@@ -28,19 +28,19 @@ const PRIMITIVE_TYPES = {
         onblur: 'blur'
     },
 
-    UNIT_TAG = 'unit',
+    RERENDER_TAG = 'instance',
 
     isSameProps = function(nextProps, props) {
         return !Object.keys(nextProps).some(name => nextProps[name] !== props[name]);
     },
 
-    createTreeItem = function({ Unit, props, children, options }) {
+    createTreeItem = function({ component, props, children, options }) {
         let item = { props };
 
-        if (isStateless(Unit)) {
-            item.lastRender = Unit(props, children, options);
+        if (isStateless(component)) {
+            item.lastRender = component(props, children, options);
         } else {
-            item.instance = new Unit(props, options);
+            item.instance = new component(props, options);
             item.lastState = item.instance.state;
             item.lastRender = item.instance.render();
         }
@@ -50,9 +50,9 @@ const PRIMITIVE_TYPES = {
 
     renderInstance = function({ attrs, children }, options) {
         let { position } = options,
-            { Class: Unit } = attrs,
-            stateless = isStateless(Unit),
-            { defaults } = Unit,
+            { of: component } = attrs,
+            stateless = isStateless(component),
+            { defaults } = component,
             props = Object.assign({}, defaults, attrs, { children }),
             isExists = !!tree[position],
             current;
@@ -62,14 +62,14 @@ const PRIMITIVE_TYPES = {
 
             if (stateless) {
                 if (!isSameProps(current.props, props)) {
-                    current = createTreeItem({ Unit, props, children, options });
+                    current = createTreeItem({ component, props, children, options });
                 }
             } else if (!isSameProps(current.props, props) || current.instance.state !== current.lastState) {
                 current.instance.setProps(props, children);
                 current.lastRender = current.instance.render();
             }
         } else {
-            current = createTreeItem({ Unit, props, children, options });
+            current = createTreeItem({ component, props, children, options });
         }
 
         tree[position] = current;
@@ -77,17 +77,17 @@ const PRIMITIVE_TYPES = {
         return current.lastRender;
     },
 
-    isStateless = function(Unit) {
-        return !(Unit.prototype instanceof Component);
+    isStateless = function(component) {
+        return !(component.prototype instanceof Component);
     },
 
-    calcInstancePosition = function({ attrs: { Class: Unit, key } }, { position }) {
-        if (Unit.singleton) {
-            return `__singletons__${Unit.name}`;
+    calcInstancePosition = function({ attrs: { of: component, key } }, { position }) {
+        if (component.singleton) {
+            return `__singletons__${component.name}`;
         } else if (key) {
             return `__keys__${key}`;
         } else {
-            return `${position}${Unit.name}`;
+            return `${position}${component.name}`;
         }
     },
 
@@ -106,7 +106,7 @@ const PRIMITIVE_TYPES = {
             }, {});
 
         if (hasEventsAttrs) {
-            attrs['data-jsunit-id'] = position;
+            attrs['data-rrid'] = position;
         }
 
         return h(tag, attrs, children);
@@ -147,7 +147,7 @@ const PRIMITIVE_TYPES = {
                 Object.assign(json, { attrs });
 
                 return curried(json, position);
-            } else if (typeof json === 'object' && json.tag !== UNIT_TAG) {
+            } else if (typeof json === 'object' && json.tag !== RERENDER_TAG) {
                 let item = {
                     tag: json.tag,
                     attrs: json.attrs,
@@ -159,7 +159,7 @@ const PRIMITIVE_TYPES = {
                     : vDom
                         ? createNode(item, { position, eventHandlers })
                         : item;
-            } else if (typeof json === 'object' && json.tag === UNIT_TAG) {
+            } else if (typeof json === 'object' && json.tag === RERENDER_TAG) {
                 let instancePosition = calcInstancePosition(json, { position }),
                     options = {
                         store,

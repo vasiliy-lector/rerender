@@ -37,7 +37,7 @@ export default function connect({ actions = {}, get, merge }) {
             }
 
             render() {
-                return html `<unit Class=${Wrapped} _=${this.state}>${this.props.children}</unit>`;
+                return html `<instance of=${Wrapped} _=${this.state}>${this.props.children}</instance>`;
             }
         }
 
