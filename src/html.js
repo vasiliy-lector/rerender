@@ -7,4 +7,6 @@ if (typeof window !== 'undefined') {
     window.t7 = t7;
 }
 
-export { t7 as default };
+const html = t7;
+
+export { html as default };

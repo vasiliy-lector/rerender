@@ -1,4 +1,4 @@
-import { Component, t7 } from 'jsunit';
+import { Component, html } from './index';
 import { hoistStatics } from './utils';
 
 export default function connect({ actions = {}, get, merge }) {
@@ -37,7 +37,7 @@ export default function connect({ actions = {}, get, merge }) {
             }
 
             render() {
-                return t7 `<unit Class=${Wrapped} _=${this.state}>${this.props.children}</unit>`;
+                return html `<unit Class=${Wrapped} _=${this.state}>${this.props.children}</unit>`;
             }
         }
 
