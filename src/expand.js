@@ -94,13 +94,15 @@ const PRIMITIVE_TYPES = {
     createNode = function({ tag, attrs: attrsIn = {}, children }, { eventHandlers, position }) {
         let hasEventsAttrs = false,
             attrs = Object.keys(attrsIn).reduce((memo, keyIn) => {
-                let key = keyIn.toLowerCase();
+                let key = keyIn.toLowerCase(),
+                    eventType = EVENTS_ATTRS[key];
 
-                if (!EVENTS_ATTRS[key]) {
+                if (!eventType) {
                     memo[ATTRS_TO_JS[key] || key] = attrsIn[key];
                 } else {
                     hasEventsAttrs = true;
-                    eventHandlers[position] = attrsIn[key];
+                    eventHandlers[eventType] = eventHandlers[eventType] || {};
+                    eventHandlers[eventType][position] = attrsIn[key];
                 }
                 return memo;
             }, {});
@@ -196,8 +198,44 @@ const PRIMITIVE_TYPES = {
         // });
     },
 
-    attach = function(json, domNode, { store = {} } = {}) {
+    attachEventListeners = function(domNode) {
+        Object.keys(EVENTS_ATTRS).forEach(eventType => {
+            domNode.addEventListener(eventType, event => {
+                let handlers = eventHandlers[eventType];
 
+                if (!handlers) {
+                    return;
+                }
+
+                let synteticEvent = {
+                        origin: event,
+                        stopped: false,
+                        stopPropagation() {
+                            this.stopped = true;
+                        },
+                        preventDefault() {
+                            this.prevented = true;
+                        },
+                        prevented: false
+                    },
+                    { path } = event;
+
+                for (let i = 0, l = path.length; i < l && !synteticEvent.stopped && path[i] !== domNode; i++) {
+                    let currentNode = path[i],
+                        rrId = currentNode.dataset && currentNode.dataset.rrid;
+                    if (rrId && handlers[rrId]) {
+                        handlers[rrId](synteticEvent);
+                    }
+                }
+
+                if (synteticEvent.prevented) {
+                    event.preventDefault();
+                }
+            });
+        });
+    },
+
+    attach = function(json, domNode, { store = {} } = {}) {
         let tree = expand({
                 vDom: true,
                 store,
@@ -215,7 +253,7 @@ const PRIMITIVE_TYPES = {
             rootNode = domNode.firstChild;
         }
 
-        // attachEventListeners(eventHandlers);
+        attachEventListeners(domNode);
         attachMutationListener();
 
         store.on('change', () => {

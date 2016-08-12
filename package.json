@@ -1,6 +1,6 @@
 {
   "name": "rerender",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "ES6 framework with virtual dom without need transpiling",
   "main": "lib/index.js",
   "repository": {
