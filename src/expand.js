@@ -92,24 +92,22 @@ const PRIMITIVE_TYPES = {
     },
 
     createNode = function({ tag, attrs: attrsIn = {}, children }, { eventHandlers, position }) {
-        let hasEventsAttrs = false,
-            attrs = Object.keys(attrsIn).reduce((memo, keyIn) => {
-                let key = keyIn.toLowerCase(),
-                    eventType = EVENTS_ATTRS[key];
+        let attrs = Object.keys(attrsIn).reduce((memo, key) => {
+            let eventType = EVENTS_ATTRS[key];
 
-                if (!eventType) {
-                    memo[ATTRS_TO_JS[key] || key] = attrsIn[key];
-                } else {
-                    hasEventsAttrs = true;
-                    eventHandlers[eventType] = eventHandlers[eventType] || {};
-                    eventHandlers[eventType][position] = attrsIn[key];
-                }
-                return memo;
-            }, {});
+            if (key === 'data-rrid') {
+                memo.dataset = {
+                    rrid: attrsIn[key]
+                };
+            } else if (!eventType) {
+                memo[ATTRS_TO_JS[key] || key] = attrsIn[key];
+            } else {
+                eventHandlers[eventType] = eventHandlers[eventType] || {};
+                eventHandlers[eventType][position] = attrsIn[key];
+            }
 
-        if (hasEventsAttrs) {
-            attrs['data-rrid'] = position;
-        }
+            return memo;
+        }, {});
 
         return h(tag, attrs, children);
     },
@@ -131,8 +129,12 @@ const PRIMITIVE_TYPES = {
         return `<${tag}${attrsString}>${children}</${tag}>`;
     },
 
+    hasEventsHandlers = function(attrs = {}) {
+        return Object.keys(attrs).some( key => !!EVENTS_ATTRS[key]);
+    },
+
     // FIXME: recursive function => loops
-    expand = function({ stringify, vDom, store, eventHandlers }) {
+    expand = function({ stringify, omitIds, vDom, store, eventHandlers }) {
         return function curried(json, position = '') {
             if (Array.isArray(json)) {
                 let expandedArray = json.map((item, index) => curried(item, `${position}.${index}`));
@@ -150,11 +152,16 @@ const PRIMITIVE_TYPES = {
 
                 return curried(json, position);
             } else if (typeof json === 'object' && json.tag !== RERENDER_TAG) {
-                let item = {
-                    tag: json.tag,
-                    attrs: json.attrs,
-                    children: curried(json.children, `${position}.0`)
-                };
+                let attrs = omitIds || !hasEventsHandlers(json.attrs)
+                        ? json.attrs
+                        : Object.assign({
+                            'data-rrid': position
+                        }, json.attrs),
+                    item = {
+                        tag: json.tag,
+                        attrs,
+                        children: curried(json.children, `${position}.0`)
+                    };
 
                 return stringify
                     ? stringifyTag(item)
@@ -176,9 +183,10 @@ const PRIMITIVE_TYPES = {
         };
     },
 
-    renderToString = function(json, { store } = {}) {
+    renderToString = function(json, { store, omitIds } = {}) {
         return expand({
             stringify: true,
+            omitIds,
             store
         })(json);
     },
@@ -199,7 +207,9 @@ const PRIMITIVE_TYPES = {
     },
 
     attachEventListeners = function(domNode) {
-        Object.keys(EVENTS_ATTRS).forEach(eventType => {
+        Object.keys(EVENTS_ATTRS).forEach(propName => {
+            let eventType = EVENTS_ATTRS[propName];
+
             domNode.addEventListener(eventType, event => {
                 let handlers = eventHandlers[eventType];
 
@@ -231,7 +241,7 @@ const PRIMITIVE_TYPES = {
                 if (synteticEvent.prevented) {
                     event.preventDefault();
                 }
-            });
+            }, true);
         });
     },
 
