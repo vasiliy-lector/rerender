@@ -13,19 +13,22 @@ const PRIMITIVE_TYPES = {
         boolean: true
     },
 
-    ATTRS_TO_JS = {
-        class: 'className'
+    ATTRS_TO_HTML = {
+        className: 'class',
+        dataset: true
     },
 
     EVENTS_ATTRS = {
-        onclick: 'click',
-        onmousedown: 'mousedown',
-        onmouseup: 'mouseup',
-        onchange: 'change',
-        onkeydown: 'keydown',
-        onkeyup: 'keyup',
-        onfocus: 'focus',
-        onblur: 'blur'
+        onClick: 'click',
+        onMousedown: 'mousedown',
+        onMouseup: 'mouseup',
+        onChange: 'change',
+        onKeydown: 'keydown',
+        onKeyup: 'keyup',
+        onFocus: 'focus',
+        onBlur: 'blur',
+        onInput: 'input',
+        onSubmit: 'submit'
     },
 
     RERENDER_TAG = 'instance',
@@ -35,12 +38,12 @@ const PRIMITIVE_TYPES = {
     },
 
     createTreeItem = function({ component, props, children, options }) {
-        let item = { props };
+        let item = { component, props, children };
 
         if (isStateless(component)) {
             item.lastRender = component(props, children, options);
         } else {
-            item.instance = new component(props, options);
+            item.instance = new component(props, children, options);
             item.lastState = item.instance.state;
             item.lastRender = item.instance.render();
         }
@@ -53,18 +56,21 @@ const PRIMITIVE_TYPES = {
             { of: component } = attrs,
             stateless = isStateless(component),
             { defaults } = component,
-            props = Object.assign({}, defaults, attrs, { children }),
+            props = Object.assign({}, defaults, attrs),
             isExists = !!tree[position],
             current;
 
+        delete props.of;
+
         if (isExists) {
             current = tree[position];
+            let sameOuter = isSameProps(current.props, props) && children === current.children && component === current.component;
 
             if (stateless) {
-                if (!isSameProps(current.props, props)) {
+                if (!sameOuter) {
                     current = createTreeItem({ component, props, children, options });
                 }
-            } else if (!isSameProps(current.props, props) || current.instance.state !== current.lastState) {
+            } else if (!sameOuter || current.instance.state !== current.lastState) {
                 current.instance.setProps(props, children);
                 current.lastRender = current.instance.render();
             }
@@ -91,38 +97,49 @@ const PRIMITIVE_TYPES = {
         }
     },
 
-    createNode = function({ tag, attrs: attrsIn = {}, children }, { eventHandlers, position }) {
-        let attrs = Object.keys(attrsIn).reduce((memo, key) => {
-            let eventType = EVENTS_ATTRS[key];
+    createNode = function({ tag, attrs = {}, children }, { eventHandlers, position }) {
+        let attrsFiltered = Object.keys(attrs).reduce((memo, name) => {
+            if (typeof attrs[name] === 'undefined' || attrs[name] === '') {
+                return memo;
+            }
 
-            if (key === 'data-rrid') {
-                memo.dataset = {
-                    rrid: attrsIn[key]
-                };
-            } else if (!eventType) {
-                memo[ATTRS_TO_JS[key] || key] = attrsIn[key];
+            let eventType = EVENTS_ATTRS[name];
+
+            if (!eventType) {
+                memo[name] = attrs[name];
             } else {
                 eventHandlers[eventType] = eventHandlers[eventType] || {};
-                eventHandlers[eventType][position] = attrsIn[key];
+                eventHandlers[eventType][position] = attrs[name];
             }
 
             return memo;
         }, {});
 
-        return h(tag, attrs, children);
+        return h(tag, attrsFiltered, children);
     },
 
-    stringifyTag = function({ tag, attrs, children }) {
-        let attrsString = '';
-
-        for (let name in attrs) {
-            if (attrs.hasOwnProperty(name) && attrs[name] || attrs[name] === 0) {
-                let nameLowerCase = name.toLowerCase();
-                if (!EVENTS_ATTRS[nameLowerCase]) {
-                    attrsString += ` ${nameLowerCase}="${escape(attrs[name])}"`;
-                }
+    stringifyTag = function({ tag, attrs = {}, children }) {
+        let attrsString = Object.keys(attrs).reduce((memo, name) => {
+            if (typeof attrs[name] === 'undefined' || attrs[name] === '') {
+                return memo;
             }
-        }
+
+            if (ATTRS_TO_HTML[name]) {
+                if (name === 'dataset') {
+                    memo += Object.keys(attrs[name]).reduce((dataset, key) => {
+                        dataset += ` data-${key}="${escape(attrs[name][key])}"`;
+
+                        return dataset;
+                    }, '');
+                } else {
+                    memo += ` ${ATTRS_TO_HTML[name]}="${escape(attrs[name])}"`;
+                }
+            } else if (!EVENTS_ATTRS[name]) {
+                memo += ` ${name}="${escape(attrs[name])}"`;
+            }
+
+            return memo;
+        }, '');
 
         // FIXME: tag inspections
         // TODO: implement selfclosed tags
@@ -154,9 +171,11 @@ const PRIMITIVE_TYPES = {
             } else if (typeof json === 'object' && json.tag !== RERENDER_TAG) {
                 let attrs = omitIds || !hasEventsHandlers(json.attrs)
                         ? json.attrs
-                        : Object.assign({
-                            'data-rrid': position
-                        }, json.attrs),
+                        : Object.assign({}, json.attrs, {
+                            dataset: Object.assign({}, json.attrs.dataset, {
+                                rrid: position
+                            })
+                        }),
                     item = {
                         tag: json.tag,
                         attrs,
@@ -226,7 +245,8 @@ const PRIMITIVE_TYPES = {
                         preventDefault() {
                             this.prevented = true;
                         },
-                        prevented: false
+                        prevented: false,
+                        target: event.target
                     },
                     { path } = event;
 

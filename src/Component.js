@@ -1,7 +1,7 @@
 import { isSameProps } from './expand';
 
 class Component {
-    constructor(props, { store, isDom } = {}) {
+    constructor(props, children, { store, isDom } = {}) {
         let {
             // actions = [],
             autoBind = []
@@ -13,9 +13,12 @@ class Component {
         }
 
         this.props = props;
+        this.children = children;
         this.isDom = isDom;
         this.store = store;
         this.state = {};
+
+        this.init && this.init();
 
         // this.state = {
         //     initActionsStatus: 'resolved'
@@ -63,8 +66,9 @@ class Component {
         }
     }
 
-    setProps(props) {
+    setProps(props, children) {
         this.props = props;
+        this.children = children;
     }
 
     // scheduleRender() {
