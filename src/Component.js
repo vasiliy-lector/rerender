@@ -1,7 +1,7 @@
-import { isSameProps } from './expand';
+import { isSameProps, scheduleUpdate } from './expand';
 
 class Component {
-    constructor(props, children, { store, isDom } = {}) {
+    constructor(props, children, { store, isDom, position } = {}) {
         let {
             // actions = [],
             autoBind = []
@@ -17,6 +17,7 @@ class Component {
         this.isDom = isDom;
         this.store = store;
         this.state = {};
+        this.position = position;
 
         this.init && this.init();
 
@@ -61,8 +62,11 @@ class Component {
 
         if (!isSameProps(nextState, this.state)) {
             this.state = nextState;
-            // FIXME: temporary
-            this.store.emit('change');
+            scheduleUpdate({
+                position: this.position,
+                instance: this,
+                store: this.store
+            });
         }
     }
 
@@ -70,10 +74,6 @@ class Component {
         this.props = props;
         this.children = children;
     }
-
-    // scheduleRender() {
-    //     // раз в 10ms производить один reRender, не чаще
-    // }
 
     render() {
         return '';

@@ -1,5 +1,5 @@
 import Component from './Component';
-import { debug, escape, getHash } from './utils';
+import { debug, escape, escapeHtml, getHash } from './utils';
 import { patch, diff } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 import h from 'virtual-dom/h';
@@ -64,7 +64,7 @@ const PRIMITIVE_TYPES = {
 
         if (isExists) {
             current = tree[position];
-            let sameOuter = isSameProps(current.props, props) && children === current.children && component === current.component;
+            let sameOuter = false && isSameProps(current.props, props) && children === current.children && component === current.component;
 
             if (stateless) {
                 if (!sameOuter) {
@@ -151,14 +151,29 @@ const PRIMITIVE_TYPES = {
     },
 
     // FIXME: recursive function => loops
-    expand = function({ stringify, omitIds, vDom, store, eventHandlers }) {
+    expand = function({ stringify, omitIds, vDom, store, eventHandlers, joinTextNodes }) {
         return function curried(json, position = '') {
             if (Array.isArray(json)) {
                 let expandedArray = json.map((item, index) => curried(item, `${position}.${index}`));
+                // need for first render without replacing server result
+                if (joinTextNodes) {
+                    expandedArray = expandedArray.reduce((memo, item) => {
+                        let lastIndex = memo.length - 1,
+                            prevItem = memo[lastIndex];
+
+                        if (typeof item === 'string' && typeof prevItem === 'string') {
+                            memo[lastIndex] += item;
+                        } else {
+                            memo.push(item);
+                        }
+
+                        return memo;
+                    }, []);
+                }
 
                 return stringify ? expandedArray.join('') : expandedArray;
             } else if (PRIMITIVE_TYPES[typeof json]) {
-                return escape(json + '');
+                return stringify ? escapeHtml(json) : json;
             } else if (typeof json === 'function') {
                 return curried(json(), position);
             } else if (typeof json === 'object' && json.attrs && typeof json.attrs._ === 'object') {
@@ -266,13 +281,14 @@ const PRIMITIVE_TYPES = {
     },
 
     attach = function(json, domNode, { store = {} } = {}) {
-        let tree = expand({
+        let vDom = expand({
                 vDom: true,
                 store,
+                joinTextNodes: true,
                 eventHandlers
             })(json),
             hash = domNode.dataset && domNode.dataset.hash,
-            rootNode = createElement(tree),
+            rootNode = createElement(vDom),
             newHash = getHash(rootNode.outerHTML);
 
         if (hash && hash !== newHash) {
@@ -288,17 +304,22 @@ const PRIMITIVE_TYPES = {
 
         store.on('change', () => {
             let newEventHandlers = {},
-                newTree = expand({
+                newVDom = expand({
                     vDom: true,
                     store,
                     eventHandlers: newEventHandlers
                 })(json),
-                patches = diff(tree, newTree);
+                patches = diff(vDom, newVDom);
 
-            tree = newTree;
+            vDom = newVDom;
             rootNode = patch(rootNode, patches);
             eventHandlers = newEventHandlers;
         });
+    },
+    scheduleUpdate = function({ position, store }) {
+        debug.log('schedule: ', position);
+        // FIXME: temporary
+        store.emit('change');
     };
 
-export { expand as default, isSameProps, renderToString, attach };
+export { expand as default, isSameProps, renderToString, attach, scheduleUpdate };

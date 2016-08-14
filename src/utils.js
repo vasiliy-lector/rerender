@@ -25,6 +25,14 @@ function getKey(id) {
     return getHash(id).slice(0, 8);
 }
 
+function escapeHtml(data) {
+    return typeof data === 'string'
+        ? data
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+        : escapeHtml(data + '');
+}
+
 function escape(data) {
     return typeof data === 'string'
         ? data
@@ -32,7 +40,6 @@ function escape(data) {
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
-            .replace(/'/g, '&apos;')
         : escape(data + '');
 }
 
@@ -49,4 +56,4 @@ function hoistStatics(Target, Source) {
 // TODO
 const debug = console;
 
-export { debug, escape, hoistStatics, isEmptyObject, getHash, getKey };
+export { debug, escape, escapeHtml, hoistStatics, isEmptyObject, getHash, getKey };
