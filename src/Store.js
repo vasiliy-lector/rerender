@@ -1,5 +1,5 @@
 import Events from './Events';
-import { throttle } from 'lodash';
+import throttle from 'lodash/throttle';
 
 class Store extends Events {
     constructor({ reducers = [], state = {} }) {
@@ -19,17 +19,17 @@ class Store extends Events {
     }
 
     runInitActions(actions) {
-        return Promise.all(actions.map(Action => {
-            let actionIndex = this.initActions.indexOf(Action),
+        return Promise.all(actions.map(action => {
+            let actionIndex = this.initActions.indexOf(action),
                 actionPromise;
 
             if (actionIndex !== -1) {
                 return this.initActionsPromises[actionIndex];
             } else {
-                actionPromise = new Action({
+                actionPromise = action({
                     store: this
-                });
-                this.initActions.push(Action);
+                })();
+                this.initActions.push(action);
                 this.initActions.push(actionPromise);
                 return actionPromise;
             }
