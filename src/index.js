@@ -4,6 +4,6 @@ export { default as Component } from './Component';
 export { default as Store } from './Store';
 export { default as Events } from './Events';
 export { default as Reducer } from './Reducer';
-export { renderToString, attach } from './expand';
+export { serverRender, clientRender } from './expand';
 export { debug, getHash, getKey, isEpmtyObject } from './utils';
 export { default as html } from './html';

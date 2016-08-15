@@ -217,7 +217,7 @@ const PRIMITIVE_TYPES = {
         };
     },
 
-    renderToString = function(json, { store, omitIds } = {}) {
+    serverRender = function(json, { store, omitIds } = {}) {
         return expand({
             stringify: true,
             omitIds,
@@ -280,7 +280,7 @@ const PRIMITIVE_TYPES = {
         });
     },
 
-    attach = function(json, domNode, { store = {} } = {}) {
+    clientRender = function(json, domNode, { store = {} } = {}) {
         let vDom = expand({
                 vDom: true,
                 store,
@@ -322,4 +322,4 @@ const PRIMITIVE_TYPES = {
         store.emit('change');
     };
 
-export { expand as default, isSameProps, renderToString, attach, scheduleUpdate };
+export { expand as default, isSameProps, serverRender, clientRender, scheduleUpdate };
