@@ -157,7 +157,8 @@ const PRIMITIVE_TYPES = {
     },
 
     // FIXME: recursive function => loops
-    expand = function({ stringify, omitIds, vDom, store, nextEventHandlers, joinTextNodes, instances = {}, nextMounted= {} }) {
+    expand = function({ stringify, omitIds, vDom, store, nextEventHandlers, joinTextNodes, nextMounted = {} }) {
+
         return function curried(json, position = '') {
             if (Array.isArray(json)) {
                 let expandedArray = json.map((item, index) => curried(item, `${position}.${index}`));
@@ -214,7 +215,6 @@ const PRIMITIVE_TYPES = {
                         store,
                         isDom: vDom,
                         position: instancePosition,
-                        instances,
                         nextMounted
                     };
 
