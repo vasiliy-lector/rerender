@@ -1,5 +1,4 @@
 import Events from './Events';
-import throttle from 'lodash/throttle';
 
 class Store extends Events {
     constructor({ reducers = [], state = {} }) {
@@ -14,8 +13,6 @@ class Store extends Events {
         this.rehydrate(state);
 
         this.reducers.forEach(reducer => this.bindReducer(reducer));
-
-        this.emit = throttle(this.emit, 50, { leading: true });
     }
 
     runInitActions(actions) {
@@ -69,6 +66,7 @@ class Store extends Events {
             let newState = reducer[handlerName](this.state[path], payload);
             if (newState !== this.state[path]) {
                 this.state[path] = newState;
+                this.emit(path, this.state[path]);
                 this.emit('change', this.state);
             }
         });

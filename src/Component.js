@@ -1,4 +1,5 @@
-import { isSameProps, scheduleUpdate } from './expand';
+import { scheduleUpdate } from './render';
+import { isSameProps } from './utils';
 
 class Component {
     constructor(props, children, { store, isDom, position } = {}) {
@@ -7,6 +8,8 @@ class Component {
             autoBind = []
             // initActions = []
         } = this.constructor;
+
+        this._componentMounted = false;
 
         if (autoBind.length) {
             this.bindMethods(autoBind);
@@ -47,14 +50,24 @@ class Component {
 
     }
 
-    // mount(domNode) {
-    //     this.domNode = domNode;
-    // }
-
     bindMethods(methods) {
         methods.forEach(name => {
             this[name] = this[name].bind(this);
         });
+    }
+
+    destroy() {
+        this.componentWillDestroy && this.componentWillDestroy();
+    }
+
+    mount() {
+        this._componentMounted = true;
+        this.componentDidMount && this.componentDidMount();
+    }
+
+    unmount() {
+        this._componentMounted = false;
+        this.componentWillUnmount && this.componentWillUnmount();
     }
 
     setState(changes) {
@@ -62,7 +75,7 @@ class Component {
 
         if (!isSameProps(nextState, this.state)) {
             this.state = nextState;
-            scheduleUpdate({
+            this._componentMounted && scheduleUpdate({
                 position: this.position,
                 instance: this,
                 store: this.store

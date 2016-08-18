@@ -3,13 +3,7 @@ class Events {
         this.callbacks = {};
     }
 
-    emit(eventName, payload) {
-        let { [eventName]: callbacks = [] } = this.callbacks;
-
-        callbacks.forEach(callback => callback(payload, eventName));
-    }
-
-    on(eventName = 'default', callback = () => {}) {
+    onEvent(eventName, callback) {
         let { [eventName]: callbacks = [] } = this.callbacks,
             index = callbacks.indexOf(callback);
 
@@ -20,6 +14,16 @@ class Events {
         callbacks.push(callback);
 
         this.callbacks[eventName] = callbacks;
+    }
+
+    emit(eventName, payload) {
+        let { [eventName]: callbacks = [] } = this.callbacks;
+
+        callbacks.forEach(callback => callback(payload, eventName));
+    }
+
+    on(eventNames, callback) {
+        eventNames.split(',').forEach(eventName => this.onEvent(eventName, callback));
     }
 
     un(eventName, callback) {

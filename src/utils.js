@@ -43,6 +43,12 @@ function escape(data) {
         : escape(data + '');
 }
 
+// TODO: arrays same if same all items
+function isSameProps(nextProps, props) {
+    return nextProps === props || !Object.keys(nextProps).some(name => nextProps[name] !== props[name]);
+}
+
+
 function hoistStatics(Target, Source) {
     for( let name in Source ) {
         if (Source.hasOwnProperty(name) && !SKIP_HOIST[name]) {
@@ -56,4 +62,4 @@ function hoistStatics(Target, Source) {
 // TODO
 const debug = console;
 
-export { debug, escape, escapeHtml, hoistStatics, isEmptyObject, getHash, getKey };
+export { debug, escape, escapeHtml, getHash, getKey, hoistStatics, isEmptyObject, isSameProps };

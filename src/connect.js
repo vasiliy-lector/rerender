@@ -1,7 +1,7 @@
 import { Component, html } from './index';
 import { hoistStatics } from './utils';
 
-export default function connect({ actions = {}, get, merge }) {
+export default function connect({ actions = {}, get, merge, watch = 'change' }) {
     return (Wrapped) => hoistStatics((() => {
         class Connect extends Component {
             constructor (props, children, options) {
@@ -10,7 +10,7 @@ export default function connect({ actions = {}, get, merge }) {
                 this.store = store;
                 this.bindedActions = this.bindActions();
                 this.state = this.getMergedProps();
-                store.on('change', () => this.updateState());
+                store.on(watch, () => this.updateState());
             }
 
             bindActions() {

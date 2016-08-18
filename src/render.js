@@ -1,10 +1,12 @@
 import Component from './Component';
-import { debug, escape, escapeHtml, getHash } from './utils';
+import { debug, escape, escapeHtml, getHash, isSameProps } from './utils';
 import { patch, diff } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 import h from 'virtual-dom/h';
+import throttle from 'lodash/throttle';
 
-var tree = {},
+var allInstances = {},
+    mountedInstances = {},
     eventHandlers = {};
 
 const PRIMITIVE_TYPES = {
@@ -12,6 +14,8 @@ const PRIMITIVE_TYPES = {
         string: true,
         boolean: true
     },
+
+    RENDER_THROTTLE = 50,
 
     ATTRS_TO_HTML = {
         className: 'class',
@@ -33,10 +37,6 @@ const PRIMITIVE_TYPES = {
 
     RERENDER_TAG = 'instance',
 
-    isSameProps = function(nextProps, props) {
-        return !Object.keys(nextProps).some(name => nextProps[name] !== props[name]);
-    },
-
     createTreeItem = function({ component, props, children, options }) {
         let item = { component, props, children };
 
@@ -52,33 +52,39 @@ const PRIMITIVE_TYPES = {
     },
 
     renderInstance = function({ attrs, children }, options) {
-        let { position } = options,
+        let { position, nextMounted } = options,
             { of: component } = attrs,
             stateless = isStateless(component),
             { defaults } = component,
             props = Object.assign({}, defaults, attrs),
-            isExists = !!tree[position],
+            isExists = !!allInstances[position],
             current;
 
         delete props.of;
 
         if (isExists) {
-            current = tree[position];
+            current = allInstances[position];
             let sameOuter = false && isSameProps(current.props, props) && children === current.children && component === current.component;
 
             if (stateless) {
                 if (!sameOuter) {
                     current = createTreeItem({ component, props, children, options });
                 }
-            } else if (!sameOuter || current.instance.state !== current.lastState) {
-                current.instance.setProps(props, children);
-                current.lastRender = current.instance.render();
+            } else {
+                if (!current.componentMounted && current.instance.componentWillMount) {
+                    current.instance.componentWillMount();
+                }
+
+                if (!sameOuter || current.instance.state !== current.lastState) {
+                    current.instance.setProps(props, children);
+                    current.lastRender = current.instance.render();
+                }
             }
         } else {
             current = createTreeItem({ component, props, children, options });
         }
 
-        tree[position] = current;
+        nextMounted[position] = current;
 
         return current.lastRender;
     },
@@ -97,7 +103,7 @@ const PRIMITIVE_TYPES = {
         }
     },
 
-    createNode = function({ tag, attrs = {}, children }, { eventHandlers, position }) {
+    createNode = function({ tag, attrs = {}, children }, { nextEventHandlers, position }) {
         let attrsFiltered = Object.keys(attrs).reduce((memo, name) => {
             if (typeof attrs[name] === 'undefined' || attrs[name] === '') {
                 return memo;
@@ -108,8 +114,8 @@ const PRIMITIVE_TYPES = {
             if (!eventType) {
                 memo[name] = attrs[name];
             } else {
-                eventHandlers[eventType] = eventHandlers[eventType] || {};
-                eventHandlers[eventType][position] = attrs[name];
+                nextEventHandlers[eventType] = nextEventHandlers[eventType] || {};
+                nextEventHandlers[eventType][position] = attrs[name];
             }
 
             return memo;
@@ -147,11 +153,11 @@ const PRIMITIVE_TYPES = {
     },
 
     hasEventsHandlers = function(attrs = {}) {
-        return Object.keys(attrs).some( key => !!EVENTS_ATTRS[key]);
+        return Object.keys(attrs).some(key => !!EVENTS_ATTRS[key]);
     },
 
     // FIXME: recursive function => loops
-    expand = function({ stringify, omitIds, vDom, store, eventHandlers, joinTextNodes }) {
+    expand = function({ stringify, omitIds, vDom, store, nextEventHandlers, joinTextNodes, instances = {}, nextMounted= {} }) {
         return function curried(json, position = '') {
             if (Array.isArray(json)) {
                 let expandedArray = json.map((item, index) => curried(item, `${position}.${index}`));
@@ -200,14 +206,16 @@ const PRIMITIVE_TYPES = {
                 return stringify
                     ? stringifyTag(item)
                     : vDom
-                        ? createNode(item, { position, eventHandlers })
+                        ? createNode(item, { position, nextEventHandlers })
                         : item;
             } else if (typeof json === 'object' && json.tag === RERENDER_TAG) {
                 let instancePosition = calcInstancePosition(json, { position }),
                     options = {
                         store,
                         isDom: vDom,
-                        position: instancePosition
+                        position: instancePosition,
+                        instances,
+                        nextMounted
                     };
 
                 return curried(renderInstance(json, options), `${instancePosition}.0`);
@@ -225,29 +233,16 @@ const PRIMITIVE_TYPES = {
         })(json);
     },
 
-    attachMutationListener = function() {
-        // let observer = new MutationObserver(function(mutations) {
-        //     mutations.forEach(function(mutation) {
-        //         debug.log(mutation);
-        //     });
-        // });
-        //
-        // observer.observe(document.getElementById('application'), {
-        //     attributes: true,
-        //     childList: true,
-        //     attributeOldValue: true,
-        //     subtree: true
-        // });
-    },
+    attachEventHandlers = function(domNode, nextEventHandlers) {
+        replaceEventHandlers(nextEventHandlers);
 
-    attachEventListeners = function(domNode) {
         Object.keys(EVENTS_ATTRS).forEach(propName => {
             let eventType = EVENTS_ATTRS[propName];
 
             domNode.addEventListener(eventType, event => {
-                let handlers = eventHandlers[eventType];
+                let eventHandlersOfType = eventHandlers[eventType];
 
-                if (!handlers) {
+                if (!eventHandlersOfType) {
                     return;
                 }
 
@@ -268,8 +263,9 @@ const PRIMITIVE_TYPES = {
                 for (let i = 0, l = path.length; i < l && !synteticEvent.stopped && path[i] !== domNode; i++) {
                     let currentNode = path[i],
                         rrId = currentNode.dataset && currentNode.dataset.rrid;
-                    if (rrId && handlers[rrId]) {
-                        handlers[rrId](synteticEvent);
+
+                    if (rrId && eventHandlersOfType[rrId]) {
+                        eventHandlersOfType[rrId](synteticEvent);
                     }
                 }
 
@@ -280,12 +276,54 @@ const PRIMITIVE_TYPES = {
         });
     },
 
+    replaceEventHandlers = function(nextEventHandlers) {
+        eventHandlers = nextEventHandlers;
+    },
+
+    mount = function(nextMounted) {
+        Object.keys(mountedInstances).concat(Object.keys(nextMounted)).forEach(position => {
+            let next = nextMounted[position],
+                prev = mountedInstances[position];
+
+            if (next) {
+                if (prev && prev.instance) {
+                    if (next.instance !== prev.instance) {
+                        prev.instance.unmount();
+                        prev.instance.destroy();
+
+                        next.instance.mount();
+                        allInstances[position] = next;
+                    }
+                } else {
+                    if (next.instance) {
+                        next.instance.mount();
+                    }
+
+                    allInstances[position] = next;
+                }
+            } else {
+                if (prev.instance) {
+                    prev.instance.unmount();
+
+                // stateless
+                } else {
+                    allInstances[position] = undefined;
+                }
+            }
+        });
+
+        mountedInstances = nextMounted;
+    },
+
     clientRender = function(json, domNode, { store = {} } = {}) {
-        let vDom = expand({
+        let nextEventHandlers = {},
+            nextMounted = {},
+            vDom = expand({
                 vDom: true,
                 store,
                 joinTextNodes: true,
-                eventHandlers
+                nextEventHandlers,
+                nextMounted
             })(json),
             hash = domNode.dataset && domNode.dataset.hash,
             rootNode = createElement(vDom),
@@ -299,27 +337,30 @@ const PRIMITIVE_TYPES = {
             rootNode = domNode.firstChild;
         }
 
-        attachEventListeners(domNode);
-        attachMutationListener();
+        attachEventHandlers(domNode, nextEventHandlers);
+        mount(nextMounted);
 
-        store.on('change', () => {
-            let newEventHandlers = {},
-                newVDom = expand({
+        store.on('change,innerStateChange', throttle(() => {
+            let nextEventHandlers = {},
+                nextMounted = {},
+                nextVDom = expand({
                     vDom: true,
                     store,
-                    eventHandlers: newEventHandlers
-                })(json),
-                patches = diff(vDom, newVDom);
+                    nextEventHandlers,
+                    nextMounted
+                })(json);
 
-            vDom = newVDom;
-            rootNode = patch(rootNode, patches);
-            eventHandlers = newEventHandlers;
-        });
+            rootNode = patch(rootNode, diff(vDom, nextVDom));
+            vDom = nextVDom;
+
+            replaceEventHandlers(nextEventHandlers);
+            mount(nextMounted);
+        }, RENDER_THROTTLE, { leading: true }));
     },
-    scheduleUpdate = function({ position, store }) {
+
+    scheduleUpdate = function({ store, position }) {
         debug.log('schedule: ', position);
-        // FIXME: temporary
-        store.emit('change');
+        store.emit('innerStateChange');
     };
 
-export { expand as default, isSameProps, serverRender, clientRender, scheduleUpdate };
+export { serverRender, clientRender, scheduleUpdate };
