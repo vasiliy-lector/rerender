@@ -1,5 +1,48 @@
 import { scheduleUpdate } from './render';
-import { isSameProps } from './utils';
+import { isSameProps, debug } from './utils';
+
+const
+    SIMPLE_TYPES = {
+        'string': true,
+        'boolean': true,
+        'number': true,
+        'function': true
+    },
+    getPropType = function(prop) {
+        if (Array.isArray(prop)) {
+            return 'array';
+        } else if (SIMPLE_TYPES[typeof prop]) {
+            return typeof prop;
+        } else if (typeof prop === 'object') {
+            if (prop instanceof Component) {
+                return 'component';
+            } else if (prop === null) {
+                return 'null';
+            } else {
+                return 'object';
+            }
+        } else {
+            return typeof prop;
+        }
+    },
+    checkProps = function(props = {}, component, position) {
+        let {
+            types = {},
+            required = {},
+            name: componentName
+        } = component;
+
+        Object.keys(types).forEach(name => {
+            let type = getPropType(props[name]);
+
+            if (props[name] && type !== types[name]) {
+                debug[ required[name] ? 'error' : 'warn' ](`Component ${componentName} (${position}) expected property ${name} of type ${types[name]} but ${type} given`);
+            } else if (types[name] && !props[name]) {
+                debug.error(`Component ${componentName} (${position}) required property ${name} of type ${types[name]}`);
+            }
+        });
+
+    };
 
 class Component {
     constructor(props, children, { store, isDom, position } = {}) {
@@ -15,12 +58,12 @@ class Component {
             this.bindMethods(autoBind);
         }
 
-        this.props = props;
-        this.children = children;
         this.isDom = isDom;
         this.store = store;
         this.state = {};
         this.position = position;
+
+        this.setProps(props, children);
 
         this.init && this.init();
 
@@ -94,3 +137,5 @@ class Component {
 }
 
 export default Component;
+
+export { checkProps };

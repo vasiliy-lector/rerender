@@ -1,4 +1,4 @@
-import Component from './Component';
+import Component, { checkProps } from './Component';
 import { debug, escape, escapeHtml, getHash, isSameProps } from './utils';
 import { patch, diff } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
@@ -61,6 +61,8 @@ const PRIMITIVE_TYPES = {
             current;
 
         delete props.of;
+
+        checkProps(props, component);
 
         if (isExists) {
             current = allInstances[position];
@@ -326,10 +328,9 @@ const PRIMITIVE_TYPES = {
                 nextMounted
             })(json),
             hash = domNode.dataset && domNode.dataset.hash,
-            rootNode = createElement(vDom),
-            newHash = getHash(rootNode.outerHTML);
+            rootNode = createElement(vDom);
 
-        if (hash && hash !== newHash) {
+        if (hash && hash !== getHash(rootNode.outerHTML)) {
             debug.warn('Client initial html and server html don\'t match!');
             domNode.removeChild(domNode.firstChild);
             domNode.appendChild(rootNode);
