@@ -72,7 +72,6 @@ TodoList.required = ['todos'];
 TodoList.singleton = true;
 
 TodoList.initActions = [getTodos];
-TodoList.actions = { addTodo };
 
 TodoList.autoBind = ['handleSubmit', 'handleInput'];
 
