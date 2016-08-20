@@ -45,7 +45,7 @@ const
     };
 
 class Component {
-    constructor(props, children, { store, isDom, position } = {}) {
+    constructor(props, children, { isDom, position } = {}) {
         let {
             // actions = [],
             autoBind = []
@@ -59,7 +59,6 @@ class Component {
         }
 
         this.isDom = isDom;
-        this.store = store;
         this.state = {};
         this.position = position;
 
@@ -120,8 +119,7 @@ class Component {
             this.state = nextState;
             this._componentMounted && scheduleUpdate({
                 position: this.position,
-                instance: this,
-                store: this.store
+                instance: this
             });
         }
     }

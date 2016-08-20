@@ -1,12 +1,13 @@
 import crypto from 'crypto';
 
 const SKIP_HOIST = {
-    defaults: true,
-    required: true,
-    types: true,
-    singleton: true,
-    autoBind: true
-};
+        defaults: true,
+        required: true,
+        types: true,
+        singleton: true,
+        autoBind: true
+    },
+    NEXT_TICK_TIMEOUT = 0;
 
 function isEmptyObject(item) {
     return !item
@@ -59,7 +60,21 @@ function hoistStatics(Target, Source) {
     return Target;
 }
 
+function nextTick(fn) {
+    return setTimeout(fn, NEXT_TICK_TIMEOUT);
+}
+
 // TODO
 const debug = console;
 
-export { debug, escape, escapeHtml, getHash, getKey, hoistStatics, isEmptyObject, isSameProps };
+export {
+    debug,
+    escape,
+    escapeHtml,
+    getHash,
+    getKey,
+    hoistStatics,
+    isEmptyObject,
+    isSameProps,
+    nextTick
+};

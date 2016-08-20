@@ -1,5 +1,6 @@
 import Component, { checkProps } from './Component';
-import { debug, escape, escapeHtml, getHash, isSameProps } from './utils';
+import Events from './Events';
+import { debug, escape, escapeHtml, getHash, isSameProps, nextTick } from './utils';
 import { patch, diff } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 import h from 'virtual-dom/h';
@@ -7,7 +8,8 @@ import throttle from 'lodash/throttle';
 
 var allInstances = {},
     mountedInstances = {},
-    eventHandlers = {};
+    eventHandlers = {},
+    rerenderTrigger;
 
 const PRIMITIVE_TYPES = {
         number: true,
@@ -37,15 +39,20 @@ const PRIMITIVE_TYPES = {
 
     RERENDER_TAG = 'instance',
 
+    events = new Events(),
+
     createTreeItem = function({ component, props, children, options }) {
-        let item = { component, props, children };
+        let item = { component, props, children },
+            { position } = options;
 
         if (isStateless(component)) {
             item.lastRender = component(props, children, options);
+            debug.log(`Stateless component ${position} is rendered`);
         } else {
             item.instance = new component(props, children, options);
             item.lastState = item.instance.state;
             item.lastRender = item.instance.render();
+            debug.log(`Component ${position} is rendered`);
         }
 
         return item;
@@ -69,7 +76,7 @@ const PRIMITIVE_TYPES = {
 
         if (isExists) {
             current = allInstances[position];
-            let sameOuter = false && isSameProps(current.props, props) && children === current.children && component === current.component;
+            let sameOuter = isSameProps(current.props, props) && children === current.children && component === current.component;
 
             if (stateless) {
                 if (!sameOuter) {
@@ -81,7 +88,9 @@ const PRIMITIVE_TYPES = {
                 }
 
                 if (!sameOuter || current.instance.state !== current.lastState) {
+                    debug.log(`Component ${position} is rerendered`);
                     current.instance.setProps(props, children);
+                    current.lastState = current.instance.state;
                     current.lastRender = current.instance.render();
                 }
             }
@@ -320,6 +329,13 @@ const PRIMITIVE_TYPES = {
         mountedInstances = nextMounted;
     },
 
+    clearRerender = function() {
+        if (rerenderTrigger) {
+            clearTimeout(rerenderTrigger);
+            rerenderTrigger = undefined;
+        }
+    },
+
     clientRender = function(json, domNode, { store = {} } = {}) {
         let nextEventHandlers = {},
             nextMounted = {},
@@ -344,8 +360,11 @@ const PRIMITIVE_TYPES = {
         attachEventHandlers(domNode, nextEventHandlers);
         mount(nextMounted);
 
-        store.on('change,innerStateChange', throttle(() => {
-            let nextEventHandlers = {},
+        events.on('rerender', throttle(() => {
+            clearRerender();
+            debug.log('Rereder begin');
+            let start = performance.now(),
+                nextEventHandlers = {},
                 nextMounted = {},
                 nextVDom = expand({
                     vDom: true,
@@ -359,12 +378,18 @@ const PRIMITIVE_TYPES = {
 
             replaceEventHandlers(nextEventHandlers);
             mount(nextMounted);
+            debug.log(`Rerender took ${(performance.now() - start).toFixed(3)}ms`);
         }, RENDER_THROTTLE, { leading: true }));
     },
 
-    scheduleUpdate = function({ store, position }) {
-        debug.log('schedule: ', position);
-        store.emit('innerStateChange');
+    scheduleUpdate = function({ position }) {
+        debug.log('Schedule: ', position);
+        if (!rerenderTrigger) {
+            rerenderTrigger = nextTick(() => {
+                debug.log('Rerender triggered by', position);
+                events.emit('rerender');
+            });
+        }
     };
 
 export { serverRender, clientRender, scheduleUpdate };
