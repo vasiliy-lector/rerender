@@ -112,8 +112,6 @@ const PRIMITIVE_TYPES = {
     calcInstancePosition = function({ attrs: { of: component, key } }, { position }) {
         if (component.singleton) {
             return `__singletons__${component.name}`;
-        } else if (key) {
-            return `__keys__${key}`;
         } else {
             return `${position}${component.name}`;
         }
@@ -177,7 +175,7 @@ const PRIMITIVE_TYPES = {
 
         return function curried(json, position = '') {
             if (Array.isArray(json)) {
-                let expandedArray = json.map((item, index) => curried(item, `${position}.${index}`));
+                let expandedArray = json.map((item, index) => curried(item, `${position}.${item && (item.attrs || {}).key ? `k${item.attrs.key}` : index}`));
                 // need for first render without replacing server result
                 if (joinTextNodes) {
                     expandedArray = expandedArray.reduce((memo, item) => {
