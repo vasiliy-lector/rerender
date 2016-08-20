@@ -299,6 +299,8 @@ const PRIMITIVE_TYPES = {
     },
 
     mount = function(nextMounted) {
+        let start = performance.now();
+
         Object.keys(mountedInstances).concat(Object.keys(nextMounted)).forEach(position => {
             let next = nextMounted[position],
                 prev = mountedInstances[position];
@@ -331,6 +333,8 @@ const PRIMITIVE_TYPES = {
         });
 
         mountedInstances = nextMounted;
+
+        debug.log(`Mount took ${(performance.now() - start).toFixed(3)}ms`);
     },
 
     clearRerender = function() {
@@ -341,6 +345,8 @@ const PRIMITIVE_TYPES = {
     },
 
     clientRender = function(json, domNode, { store = {} } = {}) {
+        let start = performance.now();
+
         let nextEventHandlers = {},
             nextMounted = {},
             vDom = expand({
@@ -350,6 +356,7 @@ const PRIMITIVE_TYPES = {
                 nextEventHandlers,
                 nextMounted
             })(json),
+            endExpand = performance.now(),
             hash = domNode.dataset && domNode.dataset.hash,
             rootNode = createElement(vDom);
 
@@ -364,6 +371,9 @@ const PRIMITIVE_TYPES = {
         attachEventHandlers(domNode, nextEventHandlers);
         mount(nextMounted);
 
+        debug.log(`First expand took ${(endExpand - start).toFixed(3)}ms`);
+        debug.log(`First render took ${(performance.now() - start).toFixed(3)}ms`);
+
         events.on('rerender', throttle(() => {
             clearRerender();
             debug.log('Rereder begin');
@@ -375,13 +385,15 @@ const PRIMITIVE_TYPES = {
                     store,
                     nextEventHandlers,
                     nextMounted
-                })(json);
+                })(json),
+                endExpand = performance.now();
 
             rootNode = patch(rootNode, diff(vDom, nextVDom));
             vDom = nextVDom;
 
             replaceEventHandlers(nextEventHandlers);
             mount(nextMounted);
+            debug.log(`Expand took ${(endExpand - start).toFixed(3)}ms`);
             debug.log(`Rerender took ${(performance.now() - start).toFixed(3)}ms`);
         }, RENDER_THROTTLE, { leading: true }));
     },
