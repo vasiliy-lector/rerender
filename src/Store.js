@@ -1,89 +1,48 @@
 import Events from './Events';
+import { debug, isSameProps } from './utils';
 
 class Store extends Events {
-    constructor({ reducers = [], state = {} }) {
+    constructor({ state = {}, dehydrate, rehydrate }) {
         super();
 
-        this.state = {};
-        this.initActions = [];
-        this.initActionsPromises = [];
+        this.providedDehydrate = dehydrate;
+        this.providedRehydrate = rehydrate;
 
-        this.reducers = reducers.map(Reducer => this.initReducer(Reducer));
-
-        this.rehydrate(state);
-
-        this.reducers.forEach(reducer => this.bindReducer(reducer));
-    }
-
-    runInitActions(actions) {
-        return Promise.all(actions.map(action => {
-            let actionIndex = this.initActions.indexOf(action),
-                actionPromise;
-
-            if (actionIndex !== -1) {
-                return this.initActionsPromises[actionIndex];
-            } else {
-                actionPromise = action({
-                    store: this
-                })();
-                this.initActions.push(action);
-                this.initActions.push(actionPromise);
-                return actionPromise;
-            }
-        }));
-    }
-
-    initReducer(Reducer) {
-        let { path, handlers } = Reducer;
-
-        return {
-            reducer: new Reducer(),
-            handlers,
-            path
-        };
-    }
-
-    bindReducer({ reducer, handlers, path }) {
-        for (let event in handlers) {
-            if (handlers.hasOwnProperty(event)) {
-                this.bindHandler({
-                    reducer,
-                    event,
-                    path,
-                    handlerName: handlers[event]
-                });
-            }
-        }
-    }
-
-    bindHandler({
-        reducer,
-        event,
-        path,
-        handlerName
-    }) {
-        this.on(event, payload => {
-            let newState = reducer[handlerName](this.state[path], payload);
-            if (newState !== this.state[path]) {
-                this.state[path] = newState;
-                this.emit(path, this.state[path]);
-                this.emit('change', this.state);
-            }
-        });
+        this.state = this.rehydrate(state);
+        this.setState = this.setState.bind(this);
     }
 
     dehydrate() {
-        return this.reducers.reduce((memo, { reducer, path }) => {
-            memo[path] = reducer.dehydrate(this.state[path]);
-
-            return memo;
-        }, {});
+        return this.providedDehydrate ? this.providedDehydrate(this.state) : this.state;
     }
 
     rehydrate(state) {
-        this.reducers.forEach(({ reducer, path }) => {
-            this.state[path] = reducer.rehydrate(state[path]);
-        });
+        return this.providedRehydrate ? this.providedRehydrate(state) : state;
+    }
+
+    setState(changes) {
+        if (typeof changes !== 'object') {
+            debug.error(`Store method setState required object, but ${typeof changes} was given`);
+            return;
+        }
+
+        let reallyChanged = Object.keys(changes).reduce((memo, key) => {
+                if (!this.state[key] || !isSameProps(changes[key], this.state[key])) {
+                    memo[key] = changes[key];
+                } else {
+                    debug.warn(`Store setState: value with property "${key}" of new state is same as previous. So event with name "${key}" will not triggered. It is recommended to transfer only the changed values and do not mutate objects.`);
+                }
+
+                return memo;
+            }, {}),
+            reallyChangedKeys = Object.keys(reallyChanged);
+
+        if (reallyChangedKeys.length) {
+            this.state = Object.assign({}, this.state, changes);
+            reallyChangedKeys.forEach(key => this.emit(key));
+            this.emit('change');
+            debug.log('New state', this.state);
+        }
     }
 }
 

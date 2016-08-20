@@ -62,7 +62,10 @@ const PRIMITIVE_TYPES = {
 
         delete props.of;
 
-        checkProps(props, component);
+        // TODO: undefined and null values are same type
+        // multiple values (arrays of types), and describe subobjects
+        // FIXME: must be disabled in PRODUCTION
+        false && checkProps(props, component);
 
         if (isExists) {
             current = allInstances[position];
