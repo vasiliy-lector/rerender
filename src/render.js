@@ -50,7 +50,7 @@ const PRIMITIVE_TYPES = {
             debug.log(`Stateless component ${position} is rendered`);
         } else {
             item.instance = new component(props, children, options);
-            item.lastState = item.instance.state;
+            item.state = item.instance.state;
             item.lastRender = item.instance.render();
             debug.log(`Component ${position} is rendered`);
         }
@@ -87,10 +87,12 @@ const PRIMITIVE_TYPES = {
                     current.instance.componentWillMount();
                 }
 
-                if (!sameOuter || current.instance.state !== current.lastState) {
+                if (!sameOuter || current.instance.state !== current.state) {
                     debug.log(`Component ${position} is rerendered`);
+                    current.props = props;
+                    current.children = children;
+                    current.state = current.instance.state;
                     current.instance.setProps(props, children);
-                    current.lastState = current.instance.state;
                     current.lastRender = current.instance.render();
                 }
             }
@@ -279,6 +281,8 @@ const PRIMITIVE_TYPES = {
                         rrId = currentNode.dataset && currentNode.dataset.rrid;
 
                     if (rrId && eventHandlersOfType[rrId]) {
+                        debug.log(`Triggered event ${eventType} on ${rrId}.`);
+
                         eventHandlersOfType[rrId](synteticEvent);
                     }
                 }
