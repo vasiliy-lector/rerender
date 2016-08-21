@@ -6,5 +6,5 @@ export { default as Store } from './Store';
 export { default as Events } from './Events';
 export { default as Reducer } from './Reducer';
 export { serverRender, clientRender } from './render';
-export { debug, getHash, getKey, isEpmtyObject } from './utils';
+export { debug, getHash, getKey, isEpmtyObject, isSameProps } from './utils';
 export { default as html } from './html';

@@ -44,9 +44,34 @@ function escape(data) {
         : escape(data + '');
 }
 
-// TODO: arrays same if same all items
+// Objects same if them have same properties (arrays property same if same all items)
 function isSameProps(nextProps, props) {
-    return nextProps === props || !Object.keys(nextProps).some(name => nextProps[name] !== props[name]);
+    if (nextProps === props) {
+        return true;
+    } else {
+        for (let name in nextProps) if (nextProps.hasOwnProperty(name)) {
+            if (nextProps[name] === props[name]) {
+                continue;
+            } else if (Array.isArray(nextProps[name]) && Array.isArray(props[name])) {
+                if (nextProps[name].length !== props[name].length) {
+                    return false;
+                }
+
+                let nextArr = nextProps[name],
+                    arr = props[name];
+
+                for (let i = 0, l = nextArr.length; i < l; i++) {
+                    if (nextArr[i] !== arr[i]) {
+                        return false;
+                    }
+                }
+            } else {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
 
 
