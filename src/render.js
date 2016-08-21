@@ -272,17 +272,18 @@ const PRIMITIVE_TYPES = {
                         prevented: false,
                         target: event.target
                     },
-                    { path } = event;
+                    currentNode = event.target;
 
-                for (let i = 0, l = path.length; i < l && !synteticEvent.stopped && path[i] !== domNode; i++) {
-                    let currentNode = path[i],
-                        rrId = currentNode.dataset && currentNode.dataset.rrid;
+                while (currentNode && currentNode !== domNode && !synteticEvent.stopped) {
+                    let rrId = currentNode.dataset && currentNode.dataset.rrid;
 
                     if (rrId && eventHandlersOfType[rrId]) {
                         debug.log(`Triggered event ${eventType} on ${rrId}.`);
 
                         eventHandlersOfType[rrId](synteticEvent);
                     }
+
+                    currentNode = currentNode.parentNode;
                 }
 
                 if (synteticEvent.prevented) {
