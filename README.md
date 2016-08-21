@@ -7,6 +7,7 @@ npm install rerender
 
 Create component:
 ```javascript
+// components/todoList/TodoList.js
 import { Component, connect, html } from 'rerender';
 import Input from '../input/Input';
 import Button from '../button/Button';
@@ -96,15 +97,16 @@ export default connect({ watch, get, actions })(TodoList);
 
 Create action:
 ```javascript
+// actions/addTodo.js
 import { createAction } from 'rerender';
 import addTodoReducer from '../reducers/todos/addTodo';
 
 const
-    deps = { addTodo: addTodoReducer },
+    deps = { addTodoReducer },
     addTodo = createAction(({ payload, actions, resolve }) => {
         // some stuff can be done here with payload
 
-        actions.addTodo(payload);
+        actions.addTodoReducer(payload);
         resolve();
     }, deps);
 
@@ -113,6 +115,7 @@ export default addTodo;
 
 Create reducer:
 ```javascript
+// reducers/todos/addTodo.js
 import { createReducer } from 'rerender';
 import { buildStateByList } from './rehydrate';
 
@@ -147,6 +150,7 @@ export default addTodo;
 
 Create page:
 ```javascript
+// pages/Index.js
 import { html } from 'rerender';
 import Layout from '../components/layout/Layout';
 import TodoList from '../components/todoList/TodoList';
@@ -171,7 +175,7 @@ import { Store } from 'rerender';
 
 let store = new Store({
     state: initialState
-})
+});
 ```
 
 Render on server:
@@ -185,7 +189,7 @@ Render on client:
 ```javascript
 import { clientRender } from 'rerender';
 
-let result = clientRender(html `<instance of=${Application} />`, document.getElementById('application') { store });
+let result = clientRender(html `<instance of=${Application} />`, document.getElementById('application'), { store });
 ```
 
 Full isomorphic example [see here](https://github.com/rerender/rerender-todos).
