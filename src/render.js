@@ -51,7 +51,7 @@ const PRIMITIVE_TYPES = {
         } else {
             item.instance = new component(props, children, options);
             item.state = item.instance.state;
-            item.lastRender = item.instance.render();
+            item.lastRender = Component.render(item.instance);
             debug.log(`Component ${position} is rendered`);
         }
 
@@ -83,17 +83,13 @@ const PRIMITIVE_TYPES = {
                     current = createTreeItem({ component, props, children, options });
                 }
             } else {
-                if (!current.componentMounted && current.instance.componentWillMount) {
-                    current.instance.componentWillMount();
-                }
-
                 if (!sameOuter || current.instance.state !== current.state) {
                     debug.log(`Component ${position} is rerendered`);
                     current.props = props;
                     current.children = children;
                     current.state = current.instance.state;
-                    current.instance.setProps(props, children);
-                    current.lastRender = current.instance.render();
+                    Component.setProps(current.instance, props, children);
+                    current.lastRender = Component.render(current.instance);
                 }
             }
         } else {
@@ -307,22 +303,22 @@ const PRIMITIVE_TYPES = {
             if (next) {
                 if (prev && prev.instance) {
                     if (next.instance !== prev.instance) {
-                        prev.instance.unmount();
-                        prev.instance.destroy();
+                        Component.unmount(prev.instance);
+                        Component.destroy(prev.instance);
 
-                        next.instance.mount();
+                        Component.mount(next.instance);
                         allInstances[position] = next;
                     }
                 } else {
                     if (next.instance) {
-                        next.instance.mount();
+                        Component.mount(next.instance);
                     }
 
                     allInstances[position] = next;
                 }
             } else {
                 if (prev.instance) {
-                    prev.instance.unmount();
+                    Component.unmount(prev.instance);
 
                 // stateless
                 } else {

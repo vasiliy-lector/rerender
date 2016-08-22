@@ -1,6 +1,7 @@
 import { scheduleUpdate } from './render';
 import { isSameProps, debug } from './utils';
 
+// TODO: move checkProps from Component.js to checkProps.js
 const
     SIMPLE_TYPES = {
         'string': true,
@@ -55,14 +56,15 @@ class Component {
         this._componentMounted = false;
 
         if (autoBind.length) {
-            this.bindMethods(autoBind);
+            this._autoBindMethods(autoBind);
         }
 
         this.isDom = isDom;
         this.state = {};
         this.position = position;
 
-        this.setProps(props, children);
+        this.props = props;
+        this.children = children;
 
         this.init && this.init();
 
@@ -92,24 +94,10 @@ class Component {
 
     }
 
-    bindMethods(methods) {
+    _autoBindMethods(methods) {
         methods.forEach(name => {
             this[name] = this[name].bind(this);
         });
-    }
-
-    destroy() {
-        this.componentWillDestroy && this.componentWillDestroy();
-    }
-
-    mount() {
-        this._componentMounted = true;
-        this.componentDidMount && this.componentDidMount();
-    }
-
-    unmount() {
-        this._componentMounted = false;
-        this.componentWillUnmount && this.componentWillUnmount();
     }
 
     setState(changes) {
@@ -117,22 +105,51 @@ class Component {
 
         if (!isSameProps(nextState, this.state)) {
             this.state = nextState;
-            this._componentMounted && scheduleUpdate({
+            this._componentMounted && !this._settingProps && scheduleUpdate({
                 position: this.position,
                 instance: this
             });
         }
     }
 
-    setProps(props, children) {
-        this.props = props;
-        this.children = children;
-    }
-
     render() {
         return '';
     }
 }
+
+
+Component.destroy = function(instance) {
+    instance.componentWillDestroy && instance.componentWillDestroy();
+};
+
+Component.mount = function(instance) {
+    instance._componentMounted = true;
+    instance.componentDidMount && instance.componentDidMount();
+};
+
+Component.render = function(instance) {
+    if (!instance._componentMounted && instance.componentWillMount) {
+        instance.componentWillMount();
+    }
+
+    return instance.render();
+};
+
+Component.setProps = function(instance, props, children) {
+    if (instance.componentWillReceiveProps) {
+        instance._settingProps = true;
+        instance.componentWillReceiveProps(props, instance.props);
+        instance._settingProps = false;
+    }
+
+    instance.props = props;
+    instance.children = children;
+};
+
+Component.unmount = function(instance) {
+    instance._componentMounted = false;
+    instance.componentWillUnmount && instance.componentWillUnmount();
+};
 
 export default Component;
 
