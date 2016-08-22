@@ -54,6 +54,7 @@ class Component {
         } = this.constructor;
 
         this._componentMounted = false;
+        this._forceRender = false;
 
         if (autoBind.length) {
             this._autoBindMethods(autoBind);
@@ -117,8 +118,15 @@ class Component {
     }
 }
 
+Component.beforeRender = function(instance) {
+    !instance._componentMounted && debug.log('componentWillMount', instance.position);
+    if (!instance._componentMounted && typeof instance.componentWillMount !== 'undefined') {
+        instance.componentWillMount();
+    }
+};
 
 Component.destroy = function(instance) {
+    debug.log('componentWillDestroy', instance.position);
     if (typeof instance.componentWillDestroy !== 'undefined') {
         instance.componentWillDestroy();
     }
@@ -127,20 +135,18 @@ Component.destroy = function(instance) {
 Component.mount = function(instance) {
     instance._componentMounted = true;
 
+    debug.log('componentDidMount', instance.position);
     if (typeof instance.componentDidMount !== 'undefined') {
         instance.componentDidMount();
     }
 };
 
 Component.render = function(instance) {
-    if (!instance._componentMounted && typeof instance.componentWillMount !== 'undefined') {
-        instance.componentWillMount();
-    }
-
     return instance.render();
 };
 
 Component.setProps = function(instance, props, children) {
+    debug.log('componentWillReceiveProps', instance.position);
     if (typeof instance.componentWillReceiveProps !== 'undefined') {
         instance._settingProps = true;
         instance.componentWillReceiveProps(props, instance.props);
@@ -154,6 +160,7 @@ Component.setProps = function(instance, props, children) {
 Component.unmount = function(instance) {
     instance._componentMounted = false;
 
+    debug.log('componentWillUnmount', instance.position);
     if (typeof instance.componentWillUnmount !== 'undefined') {
         instance.componentWillUnmount();
     }

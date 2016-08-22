@@ -9,6 +9,7 @@ import throttle from 'lodash/throttle';
 var allInstances = {},
     mountedInstances = {},
     eventHandlers = {},
+    refsDom = {},
     rerenderTrigger;
 
 const PRIMITIVE_TYPES = {
@@ -26,16 +27,22 @@ const PRIMITIVE_TYPES = {
 
     EVENTS_ATTRS = {
         onClick: 'click',
-        onMousedown: 'mousedown',
-        onMouseup: 'mouseup',
+        onMouseDown: 'mousedown',
+        onMouseUp: 'mouseup',
         onChange: 'change',
-        onKeydown: 'keydown',
-        onKeyup: 'keyup',
+        onKeyDown: 'keydown',
+        onKeyUp: 'keyup',
         onFocus: 'focus',
         onBlur: 'blur',
         onInput: 'input',
         onSubmit: 'submit'
     },
+
+    RERENDER_ATTRS = {
+        onSetRef: 'refset'
+    },
+
+    SPECIAL_MEANING_ATTRS = Object.assign({}, EVENTS_ATTRS, RERENDER_ATTRS),
 
     RERENDER_TAG = 'instance',
 
@@ -50,8 +57,9 @@ const PRIMITIVE_TYPES = {
             debug.log(`Stateless component ${position} is rendered`);
         } else {
             item.instance = new component(props, children, options);
-            item.state = item.instance.state;
+            Component.beforeRender(item.instance);
             item.lastRender = Component.render(item.instance);
+            item.state = item.instance.state;
             debug.log(`Component ${position} is rendered`);
         }
 
@@ -83,13 +91,15 @@ const PRIMITIVE_TYPES = {
                     current = createTreeItem({ component, props, children, options });
                 }
             } else {
-                if (!sameOuter || current.instance.state !== current.state) {
-                    debug.log(`Component ${position} is rerendered`);
+                Component.beforeRender(current.instance);
+
+                if (!sameOuter || current.instance.state !== current.state || current.instance._forceRender) {
                     current.props = props;
                     current.children = children;
                     current.state = current.instance.state;
                     Component.setProps(current.instance, props, children);
                     current.lastRender = Component.render(current.instance);
+                    debug.log(`Component ${position} is rerendered`);
                 }
             }
         } else {
@@ -119,7 +129,7 @@ const PRIMITIVE_TYPES = {
                 return memo;
             }
 
-            let eventType = EVENTS_ATTRS[name];
+            let eventType = SPECIAL_MEANING_ATTRS[name];
 
             if (!eventType) {
                 memo[name] = attrs[name];
@@ -150,7 +160,7 @@ const PRIMITIVE_TYPES = {
                 } else {
                     memo += ` ${ATTRS_TO_HTML[name]}="${escape(attrs[name])}"`;
                 }
-            } else if (!EVENTS_ATTRS[name]) {
+            } else if (!SPECIAL_MEANING_ATTRS[name]) {
                 memo += ` ${name}="${escape(attrs[name])}"`;
             }
 
@@ -163,7 +173,7 @@ const PRIMITIVE_TYPES = {
     },
 
     hasEventsHandlers = function(attrs = {}) {
-        return Object.keys(attrs).some(key => !!EVENTS_ATTRS[key]);
+        return Object.keys(attrs).some(key => !!SPECIAL_MEANING_ATTRS[key]);
     },
 
     // FIXME: recursive function => loops
@@ -293,28 +303,40 @@ const PRIMITIVE_TYPES = {
         eventHandlers = nextEventHandlers;
     },
 
-    mount = function(nextMounted) {
+    setRefs = function(callbacks, domNode) {
+        let nextRefsDom = {};
+
+        domNode.querySelectorAll('[data-rrid]').forEach(node => {
+            let position = node.dataset.rrid,
+                callback = callbacks[position];
+
+            if (!callback) {
+                return;
+            }
+
+            if (refsDom[position] !== node) {
+                callback(node);
+            }
+
+            nextRefsDom[position] = node;
+        });
+
+        refsDom = nextRefsDom;
+    },
+
+    unmount = function(nextMounted) {
         let start = performance.now();
 
-        Object.keys(mountedInstances).concat(Object.keys(nextMounted)).forEach(position => {
+        Object.keys(mountedInstances).forEach(position => {
             let next = nextMounted[position],
                 prev = mountedInstances[position];
 
             if (next) {
-                if (prev && prev.instance) {
+                if (prev.instance) {
                     if (next.instance !== prev.instance) {
                         Component.unmount(prev.instance);
                         Component.destroy(prev.instance);
-
-                        Component.mount(next.instance);
-                        allInstances[position] = next;
                     }
-                } else {
-                    if (next.instance) {
-                        Component.mount(next.instance);
-                    }
-
-                    allInstances[position] = next;
                 }
             } else {
                 if (prev.instance) {
@@ -324,6 +346,30 @@ const PRIMITIVE_TYPES = {
                 } else {
                     allInstances[position] = undefined;
                 }
+            }
+        });
+
+        debug.log(`Unmount took ${(performance.now() - start).toFixed(3)}ms`);
+    },
+
+    mount = function(nextMounted) {
+        let start = performance.now();
+
+        Object.keys(nextMounted).forEach(position => {
+            let next = nextMounted[position],
+                prev = mountedInstances[position];
+
+            if (prev && prev.instance) {
+                if (next.instance !== prev.instance) {
+                    Component.mount(next.instance);
+                    allInstances[position] = next;
+                }
+            } else {
+                if (next.instance) {
+                    Component.mount(next.instance);
+                }
+
+                allInstances[position] = next;
             }
         });
 
@@ -364,6 +410,7 @@ const PRIMITIVE_TYPES = {
         }
 
         attachEventHandlers(domNode, nextEventHandlers);
+        nextEventHandlers.refset && setRefs(nextEventHandlers.refset, domNode);
         mount(nextMounted);
 
         debug.log(`First expand took ${(endExpand - start).toFixed(3)}ms`);
@@ -383,11 +430,13 @@ const PRIMITIVE_TYPES = {
                 })(json),
                 endExpand = performance.now();
 
+            unmount(nextMounted);
             rootNode = patch(rootNode, diff(vDom, nextVDom));
             vDom = nextVDom;
-
             replaceEventHandlers(nextEventHandlers);
+            nextEventHandlers.refset && setRefs(nextEventHandlers.refset, domNode);
             mount(nextMounted);
+
             debug.log(`Expand took ${(endExpand - start).toFixed(3)}ms`);
             debug.log(`Rerender took ${(performance.now() - start).toFixed(3)}ms`);
         }, RENDER_THROTTLE, { leading: true }));
