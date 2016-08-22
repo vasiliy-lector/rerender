@@ -119,16 +119,21 @@ class Component {
 
 
 Component.destroy = function(instance) {
-    instance.componentWillDestroy && instance.componentWillDestroy();
+    if (typeof instance.componentWillDestroy !== 'undefined') {
+        instance.componentWillDestroy();
+    }
 };
 
 Component.mount = function(instance) {
     instance._componentMounted = true;
-    instance.componentDidMount && instance.componentDidMount();
+
+    if (typeof instance.componentDidMount !== 'undefined') {
+        instance.componentDidMount();
+    }
 };
 
 Component.render = function(instance) {
-    if (!instance._componentMounted && instance.componentWillMount) {
+    if (!instance._componentMounted && typeof instance.componentWillMount !== 'undefined') {
         instance.componentWillMount();
     }
 
@@ -136,7 +141,7 @@ Component.render = function(instance) {
 };
 
 Component.setProps = function(instance, props, children) {
-    if (instance.componentWillReceiveProps) {
+    if (typeof instance.componentWillReceiveProps !== 'undefined') {
         instance._settingProps = true;
         instance.componentWillReceiveProps(props, instance.props);
         instance._settingProps = false;
@@ -148,7 +153,10 @@ Component.setProps = function(instance, props, children) {
 
 Component.unmount = function(instance) {
     instance._componentMounted = false;
-    instance.componentWillUnmount && instance.componentWillUnmount();
+
+    if (typeof instance.componentWillUnmount !== 'undefined') {
+        instance.componentWillUnmount();
+    }
 };
 
 export default Component;
