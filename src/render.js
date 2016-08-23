@@ -214,7 +214,7 @@ const PRIMITIVE_TYPES = {
                 let attrs = omitIds || !hasEventsHandlers(json.attrs)
                         ? json.attrs
                         : Object.assign({}, json.attrs, {
-                            dataset: Object.assign({}, json.attrs.dataset, {
+                            dataset: Object.assign({}, (json.attrs || {}).dataset, {
                                 rrid: position
                             })
                         }),
