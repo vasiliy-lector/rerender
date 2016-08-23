@@ -96,9 +96,9 @@ class Component {
     }
 
     _autoBindMethods(methods) {
-        methods.forEach(name => {
+        for (let name in methods) if (methods.hasOwnProperty(name) && typeof this[name] === 'function'){
             this[name] = this[name].bind(this);
-        });
+        }
     }
 
     setState(changes) {
