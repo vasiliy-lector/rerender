@@ -96,8 +96,12 @@ class Component {
     }
 
     _autoBindMethods(methods) {
-        for (let name in methods) if (methods.hasOwnProperty(name) && typeof this[name] === 'function'){
-            this[name] = this[name].bind(this);
+        for (let i = 0, l = methods.length; i < l; i++) {
+            let name = methods[i];
+
+            if (typeof this[name] === 'function') {
+                this[name] = this[name].bind(this);
+            }
         }
     }
 
