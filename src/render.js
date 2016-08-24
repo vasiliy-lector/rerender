@@ -1,4 +1,5 @@
-import Component, { checkProps } from './Component';
+import Component from './Component';
+import checkProps from './checkProps';
 import Events from './Events';
 import { debug, escape, escapeHtml, getHash, isSameProps, nextTick } from './utils';
 import { patch, diff } from 'virtual-dom';
