@@ -518,7 +518,7 @@ const PRIMITIVE_TYPES = {
             let blurDelayedCallback = delayedCallbacks.blur[0],
                 blurPosition = blurDelayedCallback.position,
                 blurId = ids[blurPosition],
-                nextFocusNode = typeof blurId !== 'undefined' && domNode.querySelectorAll(`[rrid=${blurId}]`)[0];
+                nextFocusNode = typeof blurId !== 'undefined' && domNode.querySelectorAll(`[data-rrid="${blurId}"]`)[0];
 
             if (nextFocusNode) {
                 repairFocusAndSelection(nextFocusNode, blurDelayedCallback.event.target);
@@ -534,7 +534,7 @@ const PRIMITIVE_TYPES = {
             let focusDelayedCallback = delayedCallbacks.focus[0],
                 focusPosition = focusDelayedCallback.position,
                 focusId = ids[focusPosition],
-                nextFocusNode = typeof focusId !== 'undefined' && domNode.querySelectorAll(`[rrid=${focusId}]`)[0];
+                nextFocusNode = typeof focusId !== 'undefined' && domNode.querySelectorAll(`[data-rrid="${focusId}"]`)[0];
 
             if (nextFocusNode) {
                 if (nextFocusNode !== focusDelayedCallback.event.target) {
@@ -547,6 +547,10 @@ const PRIMITIVE_TYPES = {
     },
 
     repairFocusAndSelection = function(node, prev) {
+        if (prev.value) {
+            node.value = prev.value;
+        }
+
         node.focus();
 
         if (typeof prev.selectionStart !== 'undefined') {
