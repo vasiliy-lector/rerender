@@ -11,7 +11,12 @@ var allInstances = {},
     mountedInstances = {},
     eventHandlers = {},
     refsDom = {},
-    rerenderTrigger;
+    rerenderTrigger,
+    delayedCallbacks = {},
+    rerenderNow = false,
+    ids = {},
+    positionsById = {},
+    nextShortId = 0;
 
 const PRIMITIVE_TYPES = {
         number: true,
@@ -24,6 +29,11 @@ const PRIMITIVE_TYPES = {
     ATTRS_TO_HTML = {
         className: 'class',
         dataset: true
+    },
+
+    DELAY_EVENTS = {
+        'focus': true,
+        'blur': true
     },
 
     EVENTS_ATTRS = {
@@ -39,11 +49,16 @@ const PRIMITIVE_TYPES = {
         onSubmit: 'submit'
     },
 
-    RERENDER_ATTRS = {
-        onSetRef: 'refset'
+    RECOVER_TAGS = {
+        input: true,
+        select: true,
+        option: true,
+        textarea: true
     },
 
-    SPECIAL_MEANING_ATTRS = Object.assign({}, EVENTS_ATTRS, RERENDER_ATTRS),
+    SPECIAL_MEANING_ATTRS = {
+        ref: true
+    },
 
     RERENDER_TAG = 'instance',
 
@@ -124,19 +139,21 @@ const PRIMITIVE_TYPES = {
         }
     },
 
-    createNode = function({ tag, attrs = {}, children }, { nextEventHandlers, position }) {
+    createNode = function({ tag, attrs = {}, children }, { nextEventHandlers, refCallbacks, position }) {
         let attrsFiltered = Object.keys(attrs).reduce((memo, name) => {
             if (typeof attrs[name] === 'undefined' || attrs[name] === '') {
                 return memo;
             }
 
-            let eventType = SPECIAL_MEANING_ATTRS[name];
+            let eventType = EVENTS_ATTRS[name];
 
-            if (!eventType) {
-                memo[name] = attrs[name];
-            } else {
+            if (eventType) {
                 nextEventHandlers[eventType] = nextEventHandlers[eventType] || {};
                 nextEventHandlers[eventType][position] = attrs[name];
+            } else if (name === 'ref') {
+                refCallbacks[position] = attrs[name];
+            } else {
+                memo[name] = attrs[name];
             }
 
             return memo;
@@ -161,7 +178,7 @@ const PRIMITIVE_TYPES = {
                 } else {
                     memo += ` ${ATTRS_TO_HTML[name]}="${escape(attrs[name])}"`;
                 }
-            } else if (!SPECIAL_MEANING_ATTRS[name]) {
+            } else if (!EVENTS_ATTRS[name] && !SPECIAL_MEANING_ATTRS[name]) {
                 memo += ` ${name}="${escape(attrs[name])}"`;
             }
 
@@ -173,12 +190,12 @@ const PRIMITIVE_TYPES = {
         return `<${tag}${attrsString}>${children}</${tag}>`;
     },
 
-    hasEventsHandlers = function(attrs = {}) {
-        return Object.keys(attrs).some(key => !!SPECIAL_MEANING_ATTRS[key]);
-    },
-
+    // hasEventsHandlers = function(attrs = {}) {
+    //     return Object.keys(attrs).some(key => !!EVENTS_ATTRS[key]);
+    // },
+    //
     // FIXME: recursive function => loops
-    expand = function({ stringify, omitIds, vDom, store, nextEventHandlers, joinTextNodes, nextMounted = {} }) {
+    expand = function({ stringify, omitIds, vDom, store, refCallbacks, nextEventHandlers, joinTextNodes, nextMounted = {} }) {
 
         return function curried(json, position = '') {
             if (Array.isArray(json)) {
@@ -212,13 +229,7 @@ const PRIMITIVE_TYPES = {
 
                 return curried(json, position);
             } else if (typeof json === 'object' && json.tag !== RERENDER_TAG) {
-                let attrs = omitIds || !hasEventsHandlers(json.attrs)
-                        ? json.attrs
-                        : Object.assign({}, json.attrs, {
-                            dataset: Object.assign({}, (json.attrs || {}).dataset, {
-                                rrid: position
-                            })
-                        }),
+                let attrs = getAttrsWithDataset(json, { omitIds, position }),
                     item = {
                         tag: json.tag,
                         attrs,
@@ -228,7 +239,7 @@ const PRIMITIVE_TYPES = {
                 return stringify
                     ? stringifyTag(item)
                     : vDom
-                        ? createNode(item, { position, nextEventHandlers })
+                        ? createNode(item, { position, refCallbacks, nextEventHandlers })
                         : item;
             } else if (typeof json === 'object' && json.tag === RERENDER_TAG) {
                 let instancePosition = calcInstancePosition(json, { position }),
@@ -244,6 +255,44 @@ const PRIMITIVE_TYPES = {
                 return '';
             }
         };
+    },
+
+    getShortId = function(position) {
+        if (!ids[position]) {
+            ids[position] = nextShortId;
+            positionsById[nextShortId] = position;
+            nextShortId++;
+        }
+
+        return ids[position];
+    },
+
+    getAttrsWithDataset = function(json, { omitIds, position }) {
+        let { tag, attrs = {} } = json;
+
+        if (omitIds) {
+            return attrs;
+        }
+
+        let { dataset } = attrs,
+            nextDataset = Object.assign({}, dataset);
+
+        nextDataset.rrid = getShortId(position);
+        // if (hasEventsHandlers(json)) {
+        //     nextDataset.rrid = position;
+        // }
+
+        if (attrs.ref) {
+            nextDataset.rrref = true;
+        }
+
+        if (RECOVER_TAGS[tag]) {
+            nextDataset.rruser = true;
+        }
+
+        return Object.assign({}, attrs, {
+            dataset: nextDataset
+        });
     },
 
     serverRender = function(json, { store, omitIds } = {}) {
@@ -282,12 +331,21 @@ const PRIMITIVE_TYPES = {
                     currentNode = event.target;
 
                 while (currentNode && currentNode !== domNode && !synteticEvent.stopped) {
-                    let rrId = currentNode.dataset && currentNode.dataset.rrid;
+                    let rrId = currentNode.dataset && currentNode.dataset.rrid,
+                        position = positionsById[rrId];
 
-                    if (rrId && eventHandlersOfType[rrId]) {
-                        debug.log(`Triggered event ${eventType} on ${rrId}.`);
-
-                        eventHandlersOfType[rrId](synteticEvent);
+                    if (position && eventHandlersOfType[position]) {
+                        if (rerenderNow && DELAY_EVENTS[eventType]) {
+                            delayedCallbacks[eventType] = delayedCallbacks[eventType] || [];
+                            delayedCallbacks[eventType].push({
+                                event: synteticEvent,
+                                position,
+                                callback: eventHandlersOfType[position]
+                            });
+                        } else {
+                            debug.log(`Triggered event ${eventType} on ${position}.`);
+                            eventHandlersOfType[position](synteticEvent);
+                        }
                     }
 
                     currentNode = currentNode.parentNode;
@@ -307,8 +365,9 @@ const PRIMITIVE_TYPES = {
     setRefs = function(callbacks, domNode) {
         let nextRefsDom = {};
 
-        domNode.querySelectorAll('[data-rrid]').forEach(node => {
-            let position = node.dataset.rrid,
+        domNode.querySelectorAll('[rrref]').forEach(node => {
+            let id = node.dataset.rrid,
+                position = positionsById[id],
                 callback = callbacks[position];
 
             if (!callback) {
@@ -379,7 +438,7 @@ const PRIMITIVE_TYPES = {
         debug.log(`Mount took ${(performance.now() - start).toFixed(3)}ms`);
     },
 
-    clearRerender = function() {
+    clearTrigger = function() {
         if (rerenderTrigger) {
             clearTimeout(rerenderTrigger);
             rerenderTrigger = undefined;
@@ -390,12 +449,14 @@ const PRIMITIVE_TYPES = {
         let start = performance.now();
 
         let nextEventHandlers = {},
+            refCallbacks = {},
             nextMounted = {},
             vDom = expand({
                 vDom: true,
                 store,
                 joinTextNodes: true,
                 nextEventHandlers,
+                refCallbacks,
                 nextMounted
             })(json),
             endExpand = performance.now(),
@@ -410,37 +471,89 @@ const PRIMITIVE_TYPES = {
             rootNode = domNode.firstChild;
         }
 
+        refCallbacks && setRefs(refCallbacks, domNode);
         attachEventHandlers(domNode, nextEventHandlers);
-        nextEventHandlers.refset && setRefs(nextEventHandlers.refset, domNode);
         mount(nextMounted);
 
         debug.log(`First expand took ${(endExpand - start).toFixed(3)}ms`);
         debug.log(`First render took ${(performance.now() - start).toFixed(3)}ms`);
 
         events.on('rerender', throttle(() => {
-            clearRerender();
+            clearTrigger();
             debug.log('Rereder begin');
             let start = performance.now(),
                 nextEventHandlers = {},
+                refCallbacks = {},
                 nextMounted = {},
                 nextVDom = expand({
                     vDom: true,
                     store,
                     nextEventHandlers,
+                    refCallbacks,
                     nextMounted
                 })(json),
                 endExpand = performance.now();
 
             unmount(nextMounted);
+            turnOnDelay();
             rootNode = patch(rootNode, diff(vDom, nextVDom));
             vDom = nextVDom;
+            turnOffDelay(domNode);
+            refCallbacks && setRefs(refCallbacks, domNode);
             replaceEventHandlers(nextEventHandlers);
-            nextEventHandlers.refset && setRefs(nextEventHandlers.refset, domNode);
             mount(nextMounted);
 
             debug.log(`Expand took ${(endExpand - start).toFixed(3)}ms`);
             debug.log(`Rerender took ${(performance.now() - start).toFixed(3)}ms`);
         }, RENDER_THROTTLE, { leading: true }));
+    },
+
+    turnOnDelay = function() {
+        rerenderNow = true;
+    },
+
+    // blur and focus fix
+    turnOffDelay = function(domNode) {
+        if (delayedCallbacks.blur && !delayedCallbacks.focus) {
+            let blurDelayedCallback = delayedCallbacks.blur[0],
+                blurPosition = blurDelayedCallback.position,
+                blurId = ids[blurPosition],
+                nextFocusNode = typeof blurId !== 'undefined' && domNode.querySelectorAll(`[rrid=${blurId}]`)[0];
+
+            if (nextFocusNode) {
+                repairFocusAndSelection(nextFocusNode, blurDelayedCallback.event.target);
+            } else {
+                blurDelayedCallback.callback(blurDelayedCallback.event);
+            }
+        }
+
+        rerenderNow = false;
+        delayedCallbacks = {};
+
+        if (delayedCallbacks.blur && delayedCallbacks.focus) {
+            let focusDelayedCallback = delayedCallbacks.focus[0],
+                focusPosition = focusDelayedCallback.position,
+                focusId = ids[focusPosition],
+                nextFocusNode = typeof focusId !== 'undefined' && domNode.querySelectorAll(`[rrid=${focusId}]`)[0];
+
+            if (nextFocusNode) {
+                if (nextFocusNode !== focusDelayedCallback.event.target) {
+                    repairFocusAndSelection(nextFocusNode, focusDelayedCallback.event.target);
+                } else {
+                    focusDelayedCallback.callback(focusDelayedCallback.event);
+                }
+            }
+        }
+    },
+
+    repairFocusAndSelection = function(node, prev) {
+        node.focus();
+
+        if (typeof prev.selectionStart !== 'undefined') {
+            const { selectionStart, selectionEnd, selectionDirection = 'none' } = prev;
+
+            node.setSelectionRange(selectionStart, selectionEnd, selectionDirection);
+        }
     },
 
     scheduleUpdate = function({ position }) {
