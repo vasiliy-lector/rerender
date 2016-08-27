@@ -25,6 +25,10 @@ class Component {
 
         this.init && this.init();
 
+        if (props.ref && typeof props.ref === 'function') {
+            props.ref(this);
+        }
+
         // this.state = {
         //     initActionsStatus: 'resolved'
         // };

@@ -48,10 +48,14 @@ function escape(data) {
 function isSameProps(nextProps, props) {
     if (nextProps === props) {
         return true;
+    } else if (typeof nextProps !== typeof props) {
+        return false;
     } else {
         for (let name in nextProps) if (nextProps.hasOwnProperty(name)) {
             if (nextProps[name] === props[name]) {
                 continue;
+            } else if (typeof nextProps[name] !== typeof props[name]) {
+                return false;
             } else if (Array.isArray(nextProps[name]) && Array.isArray(props[name])) {
                 if (nextProps[name].length !== props[name].length) {
                     return false;

@@ -12,7 +12,7 @@ var allInstances = {},
     eventHandlers = {},
     refsDom = {},
     rerenderTrigger,
-    delayedCallbacks = {},
+    delayedEvents = {},
     rerenderNow = false,
     ids = {},
     positionsById = {},
@@ -45,6 +45,7 @@ const PRIMITIVE_TYPES = {
         onKeyUp: 'keyup',
         onFocus: 'focus',
         onBlur: 'blur',
+        onReset: 'reset',
         onInput: 'input',
         onSubmit: 'submit'
     },
@@ -310,52 +311,58 @@ const PRIMITIVE_TYPES = {
             let eventType = EVENTS_ATTRS[propName];
 
             domNode.addEventListener(eventType, event => {
-                let eventHandlersOfType = eventHandlers[eventType];
-
-                if (!eventHandlersOfType) {
-                    return;
+                if (rerenderNow && DELAY_EVENTS[eventType]) {
+                    delayedEvents[eventType] = {
+                        event,
+                        eventType,
+                        eventHandlers: eventHandlers[eventType]
+                    };
                 }
 
-                let synteticEvent = {
-                        origin: event,
-                        stopped: false,
-                        stopPropagation() {
-                            this.stopped = true;
-                        },
-                        preventDefault() {
-                            this.prevented = true;
-                        },
-                        prevented: false,
-                        target: event.target
-                    },
-                    currentNode = event.target;
-
-                while (currentNode && currentNode !== domNode && !synteticEvent.stopped) {
-                    let rrId = currentNode.dataset && currentNode.dataset.rrid,
-                        position = positionsById[rrId];
-
-                    if (position && eventHandlersOfType[position]) {
-                        if (rerenderNow && DELAY_EVENTS[eventType]) {
-                            delayedCallbacks[eventType] = delayedCallbacks[eventType] || [];
-                            delayedCallbacks[eventType].push({
-                                event: synteticEvent,
-                                position,
-                                callback: eventHandlersOfType[position]
-                            });
-                        } else {
-                            debug.log(`Triggered event ${eventType} on ${position}.`);
-                            eventHandlersOfType[position](synteticEvent);
-                        }
-                    }
-
-                    currentNode = currentNode.parentNode;
-                }
-
-                if (synteticEvent.prevented) {
-                    event.preventDefault();
-                }
+                executeCallbacks({
+                    domNode,
+                    event,
+                    eventType,
+                    eventHandlers: eventHandlers[eventType]
+                });
             }, true);
         });
+    },
+
+    executeCallbacks = function({ domNode, event, eventType, eventHandlers }) {
+        if (!eventHandlers) {
+            return;
+        }
+
+        let synteticEvent = {
+                origin: event,
+                stopped: false,
+                stopPropagation() {
+                    this.stopped = true;
+                },
+                preventDefault() {
+                    this.prevented = true;
+                },
+                prevented: false,
+                target: event.target
+            },
+            currentNode = event.target;
+
+        while (currentNode && currentNode !== domNode && !synteticEvent.stopped) {
+            let rrId = currentNode.dataset && currentNode.dataset.rrid,
+                position = positionsById[rrId];
+
+            if (position && eventHandlers[position]) {
+                debug.log(`Triggered event ${eventType} on ${position}.`);
+                eventHandlers[position](synteticEvent);
+            }
+
+            currentNode = currentNode.parentNode;
+        }
+
+        if (synteticEvent.prevented) {
+            event.preventDefault();
+        }
     },
 
     replaceEventHandlers = function(nextEventHandlers) {
@@ -514,43 +521,54 @@ const PRIMITIVE_TYPES = {
 
     // blur and focus fix
     turnOffDelay = function(domNode) {
-        if (delayedCallbacks.blur && !delayedCallbacks.focus) {
-            let blurDelayedCallback = delayedCallbacks.blur[0],
-                blurPosition = blurDelayedCallback.position,
-                blurId = ids[blurPosition],
-                nextFocusNode = typeof blurId !== 'undefined' && domNode.querySelectorAll(`[data-rrid="${blurId}"]`)[0];
+        if (delayedEvents.blur && !delayedEvents.focus) {
+            const {
+                    event: {
+                        target: prevFocusNode
+                    }
+                } = delayedEvents.blur,
+                {
+                    dataset: {
+                        rrid: prevFocusId
+                    }
+                } = prevFocusNode,
+                nextFocusNode = typeof prevFocusId !== 'undefined' && domNode.querySelectorAll(`[data-rrid="${prevFocusId}"]`)[0];
 
             if (nextFocusNode) {
-                repairFocusAndSelection(nextFocusNode, blurDelayedCallback.event.target);
+                repairFocusAndSelection(nextFocusNode, prevFocusNode);
             } else {
-                blurDelayedCallback.callback(blurDelayedCallback.event);
+                executeCallbacks(Object.assign({ domNode }, delayedEvents.blur));
             }
         }
 
         rerenderNow = false;
-        delayedCallbacks = {};
 
-        if (delayedCallbacks.blur && delayedCallbacks.focus) {
-            let focusDelayedCallback = delayedCallbacks.focus[0],
-                focusPosition = focusDelayedCallback.position,
-                focusId = ids[focusPosition],
-                nextFocusNode = typeof focusId !== 'undefined' && domNode.querySelectorAll(`[data-rrid="${focusId}"]`)[0];
+        if (delayedEvents.blur && delayedEvents.focus) {
+            const {
+                    event: {
+                        target: prevFocusNode
+                    }
+                } = delayedEvents.focus,
+                {
+                    dataset: {
+                        rrid: prevFocusId
+                    }
+                } = prevFocusNode,
+                nextFocusNode = typeof prevFocusId !== 'undefined' && domNode.querySelectorAll(`[data-rrid="${prevFocusId}"]`)[0];
 
             if (nextFocusNode) {
-                if (nextFocusNode !== focusDelayedCallback.event.target) {
-                    repairFocusAndSelection(nextFocusNode, focusDelayedCallback.event.target);
+                if (nextFocusNode !== prevFocusNode) {
+                    repairFocusAndSelection(nextFocusNode, prevFocusNode);
                 } else {
-                    focusDelayedCallback.callback(focusDelayedCallback.event);
+                    executeCallbacks(Object.assign({ domNode }, delayedEvents.focus));
                 }
             }
         }
+
+        delayedEvents = {};
     },
 
     repairFocusAndSelection = function(node, prev) {
-        if (prev.value) {
-            node.value = prev.value;
-        }
-
         node.focus();
 
         if (typeof prev.selectionStart !== 'undefined') {
