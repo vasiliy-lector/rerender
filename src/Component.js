@@ -10,7 +10,6 @@ class Component {
         } = this.constructor;
 
         this._componentMounted = false;
-        this._forceRender = false;
 
         if (autoBind.length) {
             this._autoBindMethods(autoBind);

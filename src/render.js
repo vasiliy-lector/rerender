@@ -36,6 +36,15 @@ const PRIMITIVE_TYPES = {
         'blur': true
     },
 
+    SUPPORT_SELECTION_INPUT_TYPES = {
+        text: true,
+        search: true,
+        URL: true,
+        url: true,
+        tel: true,
+        password: true
+    },
+
     EVENTS_ATTRS = {
         onClick: 'click',
         onMouseDown: 'mousedown',
@@ -89,8 +98,8 @@ const PRIMITIVE_TYPES = {
             stateless = isStateless(component),
             { defaults } = component,
             props = Object.assign({}, defaults, attrs),
-            isExists = !!allInstances[position],
-            current;
+            current = allInstances[position];
+
 
         delete props.of;
 
@@ -99,7 +108,7 @@ const PRIMITIVE_TYPES = {
         // FIXME: must be disabled in PRODUCTION
         false && checkProps(props, component);
 
-        if (isExists) {
+        if (typeof current !== 'undefined') {
             current = allInstances[position];
             let sameOuter = isSameProps(current.props, props) && children === current.children && component === current.component;
 
@@ -110,7 +119,7 @@ const PRIMITIVE_TYPES = {
             } else {
                 Component.beforeRender(current.instance);
 
-                if (!sameOuter || current.instance.state !== current.state || current.instance._forceRender) {
+                if (!sameOuter || current.instance.state !== current.state) {
                     current.props = props;
                     current.children = children;
                     current.state = current.instance.state;
@@ -142,10 +151,6 @@ const PRIMITIVE_TYPES = {
 
     createNode = function({ tag, attrs = {}, children }, { nextEventHandlers, refCallbacks, position }) {
         let attrsFiltered = Object.keys(attrs).reduce((memo, name) => {
-            if (typeof attrs[name] === 'undefined' || attrs[name] === '') {
-                return memo;
-            }
-
             let eventType = EVENTS_ATTRS[name];
 
             if (eventType) {
@@ -155,6 +160,9 @@ const PRIMITIVE_TYPES = {
                 refCallbacks[position] = attrs[name];
             } else {
                 memo[name] = attrs[name];
+                if (name === 'dataset') {
+                    memo.key = attrs[name].rrid;
+                }
             }
 
             return memo;
@@ -568,10 +576,14 @@ const PRIMITIVE_TYPES = {
         delayedEvents = {};
     },
 
+    isDisabledSelection = function(node) {
+        return node.tagName === 'INPUT' && !SUPPORT_SELECTION_INPUT_TYPES[node.type];
+    },
+
     repairFocusAndSelection = function(node, prev) {
         node.focus();
 
-        if (typeof prev.selectionStart !== 'undefined') {
+        if (!isDisabledSelection(prev) && typeof prev.selectionStart !== 'undefined') {
             const { selectionStart, selectionEnd, selectionDirection = 'none' } = prev;
 
             node.setSelectionRange(selectionStart, selectionEnd, selectionDirection);
