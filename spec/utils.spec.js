@@ -22,7 +22,6 @@ const
     arr1 = [obj1, obj2, obj3],
     arr2 = [obj1, obj2, obj3],
     arr3 = [obj1, obj3],
-    arr4 = [obj1, obj2, obj3],
     obj6 = {
         prop1,
         prop2: arr1
@@ -95,7 +94,7 @@ describe('isSameProps', () => {
             caseDescr: 'obj6, obj9',
             one: obj6,
             two: obj9,
-            same: false
+            same: true
         }
     ];
 

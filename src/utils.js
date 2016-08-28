@@ -9,12 +9,6 @@ const SKIP_HOIST = {
     },
     NEXT_TICK_TIMEOUT = 0;
 
-function isEmptyObject(item) {
-    return !item
-        || typeof item !== 'object'
-        || !Object.keys(item).length;
-}
-
 function getHash(string) {
     return crypto
         .createHash('md5')
@@ -103,7 +97,6 @@ export {
     getHash,
     getKey,
     hoistStatics,
-    isEmptyObject,
     isSameProps,
     nextTick
 };
