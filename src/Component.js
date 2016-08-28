@@ -112,7 +112,7 @@ Component.setProps = function(instance, props, children) {
     debug.log('componentWillReceiveProps', instance.position);
     if (typeof instance.componentWillReceiveProps !== 'undefined') {
         instance._settingProps = true;
-        instance.componentWillReceiveProps(props, instance.props);
+        instance.componentWillReceiveProps(props, children);
         instance._settingProps = false;
     }
 
