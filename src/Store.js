@@ -2,7 +2,7 @@ import Events from './Events';
 import { debug, isSameProps } from './utils';
 
 class Store extends Events {
-    constructor({ state = {}, dehydrate, rehydrate }) {
+    constructor({ state = {}, dehydrate, rehydrate } = {}) {
         super();
 
         this.providedDehydrate = dehydrate;
