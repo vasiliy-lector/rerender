@@ -1,5 +1,4 @@
 import Component from './Component';
-import checkProps from './checkProps';
 import Events from './Events';
 import { debug, escape, escapeHtml, getHash, isSameProps, nextTick } from './utils';
 import { patch, diff } from 'virtual-dom';
@@ -7,16 +6,6 @@ import createElement from 'virtual-dom/create-element';
 import h from 'virtual-dom/h';
 import throttle from 'lodash/throttle';
 
-var allInstances = {},
-    mountedInstances = {},
-    eventHandlers = {},
-    refsDom = {},
-    rerenderTrigger,
-    delayedEvents = {},
-    rerenderNow = false,
-    ids = {},
-    positionsById = {},
-    nextShortId = 0;
 
 const PRIMITIVE_TYPES = {
         number: true,
@@ -72,13 +61,99 @@ const PRIMITIVE_TYPES = {
 
     RERENDER_TAG = 'instance',
 
-    events = new Events(),
+    events = new Events();
 
-    createTreeItem = function({ component, props, children, options }) {
+let rerenderTrigger;
+
+class RenderController {
+    constructor({ json, domNode, options }) {
+
+        this.domNode = domNode;
+        this.store = options.store;
+        this.options = options;
+        this.allInstances = {};
+        this.mountedInstances = {};
+        this.eventHandlers = {};
+        this.refsDom = {};
+        this.delayedEvents = {};
+        this.rerenderNow = false;
+        this.ids = {};
+        this.positionsById = {};
+        this.nextShortId = 0;
+
+        if (!options.isServer) {
+            this.clientInit(json);
+        }
+    }
+
+    clientInit(json) {
+        const { domNode, store } = this;
+
+        let start = performance.now();
+
+        let nextEventHandlers = {},
+            refCallbacks = {},
+            nextMounted = {},
+            vDom = this.expand({
+                joinTextNodes: true,
+                nextEventHandlers,
+                refCallbacks,
+                nextMounted
+            })(json),
+            endExpand = performance.now(),
+            hash = domNode.dataset && domNode.dataset.hash,
+            rootNode = createElement(vDom);
+
+        if (hash && hash !== getHash(rootNode.outerHTML)) {
+            debug.warn('Client initial html and server html don\'t match!');
+            domNode.removeChild(domNode.firstChild);
+            domNode.appendChild(rootNode);
+        } else {
+            rootNode = domNode.firstChild;
+        }
+
+        refCallbacks && this.setRefs(refCallbacks, domNode);
+        this.attachEventHandlers(domNode, nextEventHandlers);
+        this.mount(nextMounted);
+
+        debug.log(`First expand took ${(endExpand - start).toFixed(3)}ms`);
+        debug.log(`First render took ${(performance.now() - start).toFixed(3)}ms`);
+
+        events.on('rerender', throttle(() => {
+            this.clearTrigger();
+            debug.log('Rereder begin');
+            let start = performance.now(),
+                nextEventHandlers = {},
+                refCallbacks = {},
+                nextMounted = {},
+                nextVDom = this.expand({
+                    vDom: true,
+                    store,
+                    nextEventHandlers,
+                    refCallbacks,
+                    nextMounted
+                })(json),
+                endExpand = performance.now();
+
+            this.unmount(nextMounted);
+            this.turnOnDelay();
+            rootNode = patch(rootNode, diff(vDom, nextVDom));
+            vDom = nextVDom;
+            this.turnOffDelay(domNode);
+            refCallbacks && this.setRefs(refCallbacks, domNode);
+            this.replaceEventHandlers(nextEventHandlers);
+            this.mount(nextMounted);
+
+            debug.log(`Expand took ${(endExpand - start).toFixed(3)}ms`);
+            debug.log(`Rerender took ${(performance.now() - start).toFixed(3)}ms`);
+        }, RENDER_THROTTLE, { leading: true }));
+    }
+
+    createTreeItem({ component, props, children, options }) {
         let item = { component, props, children },
             { position } = options;
 
-        if (isStateless(component)) {
+        if (this.isStateless(component)) {
             item.lastRender = component(props, children, options);
             debug.log(`Stateless component ${position} is rendered`);
         } else {
@@ -90,15 +165,15 @@ const PRIMITIVE_TYPES = {
         }
 
         return item;
-    },
+    }
 
-    renderInstance = function({ attrs, children }, options) {
+    renderInstance({ attrs, children }, options) {
         let { position, nextMounted } = options,
             { of: component } = attrs,
-            stateless = isStateless(component),
+            stateless = this.isStateless(component),
             { defaults } = component,
             props = Object.assign({}, defaults, attrs),
-            current = allInstances[position];
+            current = this.allInstances[position];
 
 
         delete props.of;
@@ -106,15 +181,15 @@ const PRIMITIVE_TYPES = {
         // TODO: undefined and null values are same type
         // multiple values (arrays of types), and describe subobjects
         // FIXME: must be disabled in PRODUCTION
-        false && checkProps(props, component);
+        // checkProps(props, component);
 
         if (typeof current !== 'undefined') {
-            current = allInstances[position];
+            current = this.allInstances[position];
             let sameOuter = isSameProps(current.props, props) && children === current.children && component === current.component;
 
             if (stateless) {
                 if (!sameOuter) {
-                    current = createTreeItem({ component, props, children, options });
+                    current = this.createTreeItem({ component, props, children, options });
                 }
             } else {
                 Component.beforeRender(current.instance);
@@ -129,27 +204,27 @@ const PRIMITIVE_TYPES = {
                 }
             }
         } else {
-            current = createTreeItem({ component, props, children, options });
+            current = this.createTreeItem({ component, props, children, options });
         }
 
         nextMounted[position] = current;
 
         return current.lastRender;
-    },
+    }
 
-    isStateless = function(component) {
+    isStateless(component) {
         return !(component.prototype instanceof Component);
-    },
+    }
 
-    calcInstancePosition = function({ attrs: { of: component, key } }, { position }) {
+    calcInstancePosition({ attrs: { of: component, key } }, { position }) {
         if (component.singleton) {
             return `__singletons__${component.name}`;
         } else {
             return `${position}${component.name}`;
         }
-    },
+    }
 
-    createNode = function({ tag, attrs = {}, children }, { nextEventHandlers, refCallbacks, position }) {
+    createNode({ tag, attrs = {}, children }, { nextEventHandlers, refCallbacks, position }) {
         let attrsFiltered = Object.keys(attrs).reduce((memo, name) => {
             let eventType = EVENTS_ATTRS[name];
 
@@ -169,9 +244,9 @@ const PRIMITIVE_TYPES = {
         }, {});
 
         return h(tag, attrsFiltered, children);
-    },
+    }
 
-    stringifyTag = function({ tag, attrs = {}, children }) {
+    stringifyTag({ tag, attrs = {}, children }) {
         let attrsString = Object.keys(attrs).reduce((memo, name) => {
             if (typeof attrs[name] === 'undefined' || attrs[name] === '') {
                 return memo;
@@ -197,14 +272,19 @@ const PRIMITIVE_TYPES = {
         // FIXME: tag inspections
         // TODO: implement selfclosed tags
         return `<${tag}${attrsString}>${children}</${tag}>`;
-    },
+    }
 
-    // hasEventsHandlers = function(attrs = {}) {
+    // hasEventsHandlers(attrs = {}) {
     //     return Object.keys(attrs).some(key => !!EVENTS_ATTRS[key]);
-    // },
+    // }
     //
     // FIXME: recursive function => loops
-    expand = function({ stringify, omitIds, vDom, store, refCallbacks, nextEventHandlers, joinTextNodes, nextMounted = {} }) {
+    expand({ refCallbacks, nextEventHandlers, joinTextNodes, nextMounted = {} } = {}) {
+        const { isServer, omitIds } = this.options,
+            vDom = !isServer,
+            store = this.store,
+            stringify = isServer,
+            _this = this;
 
         return function curried(json, position = '') {
             if (Array.isArray(json)) {
@@ -238,7 +318,7 @@ const PRIMITIVE_TYPES = {
 
                 return curried(json, position);
             } else if (typeof json === 'object' && json.tag !== RERENDER_TAG) {
-                let attrs = getAttrsWithDataset(json, { omitIds, position }),
+                let attrs = _this.getAttrsWithDataset(json, { omitIds, position }),
                     item = {
                         tag: json.tag,
                         attrs,
@@ -246,12 +326,12 @@ const PRIMITIVE_TYPES = {
                     };
 
                 return stringify
-                    ? stringifyTag(item)
+                    ? _this.stringifyTag(item)
                     : vDom
-                        ? createNode(item, { position, refCallbacks, nextEventHandlers })
+                        ? _this.createNode(item, { position, refCallbacks, nextEventHandlers })
                         : item;
             } else if (typeof json === 'object' && json.tag === RERENDER_TAG) {
-                let instancePosition = calcInstancePosition(json, { position }),
+                let instancePosition = _this.calcInstancePosition(json, { position }),
                     options = {
                         store,
                         isDom: vDom,
@@ -259,24 +339,24 @@ const PRIMITIVE_TYPES = {
                         nextMounted
                     };
 
-                return curried(renderInstance(json, options), `${instancePosition}.0`);
+                return curried(_this.renderInstance(json, options), `${instancePosition}.0`);
             } else {
                 return '';
             }
         };
-    },
+    }
 
-    getShortId = function(position) {
-        if (!ids[position]) {
-            ids[position] = nextShortId;
-            positionsById[nextShortId] = position;
-            nextShortId++;
+    getShortId(position) {
+        if (!this.ids[position]) {
+            this.ids[position] = this.nextShortId;
+            this.positionsById[this.nextShortId] = position;
+            this.nextShortId++;
         }
 
-        return ids[position];
-    },
+        return this.ids[position];
+    }
 
-    getAttrsWithDataset = function(json, { omitIds, position }) {
+    getAttrsWithDataset(json, { omitIds, position }) {
         let { tag, attrs = {} } = json;
 
         if (omitIds) {
@@ -286,7 +366,7 @@ const PRIMITIVE_TYPES = {
         let { dataset } = attrs,
             nextDataset = Object.assign({}, dataset);
 
-        nextDataset.rrid = getShortId(position);
+        nextDataset.rrid = this.getShortId(position);
         // if (hasEventsHandlers(json)) {
         //     nextDataset.rrid = position;
         // }
@@ -302,42 +382,34 @@ const PRIMITIVE_TYPES = {
         return Object.assign({}, attrs, {
             dataset: nextDataset
         });
-    },
+    }
 
-    serverRender = function(json, { store, omitIds } = {}) {
-        return expand({
-            stringify: true,
-            omitIds,
-            store
-        })(json);
-    },
-
-    attachEventHandlers = function(domNode, nextEventHandlers) {
-        replaceEventHandlers(nextEventHandlers);
+    attachEventHandlers(domNode, nextEventHandlers) {
+        this.replaceEventHandlers(nextEventHandlers);
 
         Object.keys(EVENTS_ATTRS).forEach(propName => {
             let eventType = EVENTS_ATTRS[propName];
 
             domNode.addEventListener(eventType, event => {
-                if (rerenderNow && DELAY_EVENTS[eventType]) {
-                    delayedEvents[eventType] = {
+                if (this.rerenderNow && DELAY_EVENTS[eventType]) {
+                    this.delayedEvents[eventType] = {
                         event,
                         eventType,
-                        eventHandlers: eventHandlers[eventType]
+                        eventHandlers: this.eventHandlers[eventType]
                     };
                 }
 
-                executeCallbacks({
+                this.executeCallbacks({
                     domNode,
                     event,
                     eventType,
-                    eventHandlers: eventHandlers[eventType]
+                    eventHandlers: this.eventHandlers[eventType]
                 });
             }, true);
         });
-    },
+    }
 
-    executeCallbacks = function({ domNode, event, eventType, eventHandlers }) {
+    executeCallbacks({ domNode, event, eventType, eventHandlers }) {
         if (!eventHandlers) {
             return;
         }
@@ -358,7 +430,7 @@ const PRIMITIVE_TYPES = {
 
         while (currentNode && currentNode !== domNode && !synteticEvent.stopped) {
             let rrId = currentNode.dataset && currentNode.dataset.rrid,
-                position = positionsById[rrId];
+                position = this.positionsById[rrId];
 
             if (position && eventHandlers[position]) {
                 debug.log(`Triggered event ${eventType} on ${position}.`);
@@ -371,40 +443,40 @@ const PRIMITIVE_TYPES = {
         if (synteticEvent.prevented) {
             event.preventDefault();
         }
-    },
+    }
 
-    replaceEventHandlers = function(nextEventHandlers) {
-        eventHandlers = nextEventHandlers;
-    },
+    replaceEventHandlers(nextEventHandlers) {
+        this.eventHandlers = nextEventHandlers;
+    }
 
-    setRefs = function(callbacks, domNode) {
+    setRefs(callbacks, domNode) {
         let nextRefsDom = {};
 
         domNode.querySelectorAll('[rrref]').forEach(node => {
             let id = node.dataset.rrid,
-                position = positionsById[id],
+                position = this.positionsById[id],
                 callback = callbacks[position];
 
             if (!callback) {
                 return;
             }
 
-            if (refsDom[position] !== node) {
+            if (this.refsDom[position] !== node) {
                 callback(node);
             }
 
             nextRefsDom[position] = node;
         });
 
-        refsDom = nextRefsDom;
-    },
+        this.refsDom = nextRefsDom;
+    }
 
-    unmount = function(nextMounted) {
+    unmount(nextMounted) {
         let start = performance.now();
 
-        Object.keys(mountedInstances).forEach(position => {
+        Object.keys(this.mountedInstances).forEach(position => {
             let next = nextMounted[position],
-                prev = mountedInstances[position];
+                prev = this.mountedInstances[position];
 
             if (next) {
                 if (prev.instance) {
@@ -419,122 +491,59 @@ const PRIMITIVE_TYPES = {
 
                 // stateless
                 } else {
-                    allInstances[position] = undefined;
+                    this.allInstances[position] = undefined;
                 }
             }
         });
 
         debug.log(`Unmount took ${(performance.now() - start).toFixed(3)}ms`);
-    },
+    }
 
-    mount = function(nextMounted) {
+    mount(nextMounted) {
         let start = performance.now();
 
         Object.keys(nextMounted).forEach(position => {
             let next = nextMounted[position],
-                prev = mountedInstances[position];
+                prev = this.mountedInstances[position];
 
             if (prev && prev.instance) {
                 if (next.instance !== prev.instance) {
                     Component.mount(next.instance);
-                    allInstances[position] = next;
+                    this.allInstances[position] = next;
                 }
             } else {
                 if (next.instance) {
                     Component.mount(next.instance);
                 }
 
-                allInstances[position] = next;
+                this.allInstances[position] = next;
             }
         });
 
-        mountedInstances = nextMounted;
+        this.mountedInstances = nextMounted;
 
         debug.log(`Mount took ${(performance.now() - start).toFixed(3)}ms`);
-    },
+    }
 
-    clearTrigger = function() {
+    clearTrigger() {
         if (rerenderTrigger) {
             clearTimeout(rerenderTrigger);
             rerenderTrigger = undefined;
         }
-    },
+    }
 
-    clientRender = function(json, domNode, { store = {} } = {}) {
-        let start = performance.now();
-
-        let nextEventHandlers = {},
-            refCallbacks = {},
-            nextMounted = {},
-            vDom = expand({
-                vDom: true,
-                store,
-                joinTextNodes: true,
-                nextEventHandlers,
-                refCallbacks,
-                nextMounted
-            })(json),
-            endExpand = performance.now(),
-            hash = domNode.dataset && domNode.dataset.hash,
-            rootNode = createElement(vDom);
-
-        if (hash && hash !== getHash(rootNode.outerHTML)) {
-            debug.warn('Client initial html and server html don\'t match!');
-            domNode.removeChild(domNode.firstChild);
-            domNode.appendChild(rootNode);
-        } else {
-            rootNode = domNode.firstChild;
-        }
-
-        refCallbacks && setRefs(refCallbacks, domNode);
-        attachEventHandlers(domNode, nextEventHandlers);
-        mount(nextMounted);
-
-        debug.log(`First expand took ${(endExpand - start).toFixed(3)}ms`);
-        debug.log(`First render took ${(performance.now() - start).toFixed(3)}ms`);
-
-        events.on('rerender', throttle(() => {
-            clearTrigger();
-            debug.log('Rereder begin');
-            let start = performance.now(),
-                nextEventHandlers = {},
-                refCallbacks = {},
-                nextMounted = {},
-                nextVDom = expand({
-                    vDom: true,
-                    store,
-                    nextEventHandlers,
-                    refCallbacks,
-                    nextMounted
-                })(json),
-                endExpand = performance.now();
-
-            unmount(nextMounted);
-            turnOnDelay();
-            rootNode = patch(rootNode, diff(vDom, nextVDom));
-            vDom = nextVDom;
-            turnOffDelay(domNode);
-            refCallbacks && setRefs(refCallbacks, domNode);
-            replaceEventHandlers(nextEventHandlers);
-            mount(nextMounted);
-
-            debug.log(`Expand took ${(endExpand - start).toFixed(3)}ms`);
-            debug.log(`Rerender took ${(performance.now() - start).toFixed(3)}ms`);
-        }, RENDER_THROTTLE, { leading: true }));
-    },
-
-    turnOnDelay = function() {
-        rerenderNow = true;
-    },
+    turnOnDelay() {
+        this.rerenderNow = true;
+    }
 
     // blur and focus fix
-    turnOffDelay = function(domNode) {
-        if (delayedEvents.blur && !delayedEvents.focus) {
+    turnOffDelay(domNode) {
+        if (this.delayedEvents.blur && !this.delayedEvents.focus) {
             const {
                     event: {
                         target: prevFocusNode
                     }
-                } = delayedEvents.blur,
+                } = this.delayedEvents.blur,
                 {
                     dataset: {
                         rrid: prevFocusId
@@ -543,20 +552,20 @@ const PRIMITIVE_TYPES = {
                 nextFocusNode = typeof prevFocusId !== 'undefined' && domNode.querySelectorAll(`[data-rrid="${prevFocusId}"]`)[0];
 
             if (nextFocusNode) {
-                repairFocusAndSelection(nextFocusNode, prevFocusNode);
+                this.repairFocusAndSelection(nextFocusNode, prevFocusNode);
             } else {
-                executeCallbacks(Object.assign({ domNode }, delayedEvents.blur));
+                this.executeCallbacks(Object.assign({ domNode }, this.delayedEvents.blur));
             }
         }
 
-        rerenderNow = false;
+        this.rerenderNow = false;
 
-        if (delayedEvents.blur && delayedEvents.focus) {
+        if (this.delayedEvents.blur && this.delayedEvents.focus) {
             const {
                     event: {
                         target: prevFocusNode
                     }
-                } = delayedEvents.focus,
+                } = this.delayedEvents.focus,
                 {
                     dataset: {
                         rrid: prevFocusId
@@ -566,28 +575,47 @@ const PRIMITIVE_TYPES = {
 
             if (nextFocusNode) {
                 if (nextFocusNode !== prevFocusNode) {
-                    repairFocusAndSelection(nextFocusNode, prevFocusNode);
+                    this.repairFocusAndSelection(nextFocusNode, prevFocusNode);
                 } else {
-                    executeCallbacks(Object.assign({ domNode }, delayedEvents.focus));
+                    this.executeCallbacks(Object.assign({ domNode }, this.delayedEvents.focus));
                 }
             }
         }
 
-        delayedEvents = {};
-    },
+        this.delayedEvents = {};
+    }
 
-    isDisabledSelection = function(node) {
+    isDisabledSelection(node) {
         return node.tagName === 'INPUT' && !SUPPORT_SELECTION_INPUT_TYPES[node.type];
-    },
+    }
 
-    repairFocusAndSelection = function(node, prev) {
+    repairFocusAndSelection(node, prev) {
         node.focus();
 
-        if (!isDisabledSelection(prev) && typeof prev.selectionStart !== 'undefined') {
+        if (!this.isDisabledSelection(prev) && typeof prev.selectionStart !== 'undefined') {
             const { selectionStart, selectionEnd, selectionDirection = 'none' } = prev;
 
             node.setSelectionRange(selectionStart, selectionEnd, selectionDirection);
         }
+    }
+}
+
+const
+    clientRender = function(json, domNode, options) {
+        return new RenderController({
+            json,
+            domNode,
+            options: Object.assign({}, options, { isServer: false })
+        });
+    },
+
+    serverRender = function(json, options) {
+        const controller = new RenderController({
+            json,
+            options: Object.assign({}, options, { isServer: true })
+        });
+
+        return controller.expand()(json);
     },
 
     scheduleUpdate = function({ position }) {
