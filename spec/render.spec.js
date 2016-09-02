@@ -1,3 +1,4 @@
+import domino from 'domino';
 import { serverRender, clientRender } from '../src/render';
 import Store from '../src/Store';
 import html from '../src/html';
@@ -42,25 +43,30 @@ describe('render', () => {
         });
     });
 
-    // describe('clientRender', () => {
-    //     let store,
-    //         domNode = {
-    //             dataset: {},
-    //             removeChild() {},
-    //             appendChild() {}
-    //         };
-    //
-    //     beforeEach(() => {
-    //         store = new Store();
-    //     });
-    //
-    //     it('should do first render', () => {
-    //         let vDom = clientRender(
-    //             html `<div className="block">Text of block</div>`,
-    //             domNode,
-    //             { store }
-    //         );
-    //         expect(vDom).toBeDefined();
-    //     });
-    // });
+    describe('clientRender', () => {
+        const document = domino.createWindow('<div id="application"></div>').window.document;
+
+        global.performance = {
+            now: () => {}
+        };
+
+        let store;
+
+        beforeEach(() => {
+            store = new Store();
+        });
+
+        it('should do first render', () => {
+            const
+                domNode = document.getElementById('application');
+
+            clientRender(
+                html `<instance of=${Block} text="Text of block"><p>Text from parent</p></instance>`,
+                domNode,
+                { store, document, omitIds: true }
+            );
+
+            expect(domNode.innerHTML).toBe('<div class="block"><p>Text of block</p><p>Text from parent</p></div>');
+        });
+    });
 });

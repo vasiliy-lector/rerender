@@ -66,7 +66,7 @@ const PRIMITIVE_TYPES = {
 let rerenderTrigger;
 
 class RenderController {
-    constructor({ json, domNode, options }) {
+    constructor({ json, domNode, options = {} }) {
 
         this.domNode = domNode;
         this.store = options.store;
@@ -102,9 +102,11 @@ class RenderController {
             })(json),
             endExpand = performance.now(),
             hash = domNode.dataset && domNode.dataset.hash,
-            rootNode = createElement(vDom);
+            rootNode = createElement(vDom, { document: this.options.document });
 
-        if (hash && hash !== getHash(rootNode.outerHTML)) {
+        if (!hash) {
+            domNode.innerHTML = rootNode.outerHTML;
+        } else if (hash !== getHash(rootNode.outerHTML)) {
             debug.warn('Client initial html and server html don\'t match!');
             domNode.removeChild(domNode.firstChild);
             domNode.appendChild(rootNode);
@@ -452,7 +454,7 @@ class RenderController {
     setRefs(callbacks, domNode) {
         let nextRefsDom = {};
 
-        domNode.querySelectorAll('[rrref]').forEach(node => {
+        Array.prototype.slice.call(domNode.querySelectorAll('[data-rrref]')).forEach(node => {
             let id = node.dataset.rrid,
                 position = this.positionsById[id],
                 callback = callbacks[position];
