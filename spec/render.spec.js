@@ -26,7 +26,7 @@ describe('render', () => {
     describe('serverRender', () => {
         it('should render div to div', () => {
             expect(serverRender(html `<div className="block">Text of block</div>`))
-                .toEqual('<div class="block" data-rrid="0">Text of block</div>');
+                .toEqual('<div class="block" data-rerenderid="0">Text of block</div>');
 
             expect(serverRender(html `<div className="block">Text of block</div>`, { omitIds: true }))
                 .toEqual('<div class="block">Text of block</div>');

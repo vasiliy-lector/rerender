@@ -104,14 +104,14 @@ class RenderController {
             hash = domNode.dataset && domNode.dataset.hash,
             rootNode = createElement(vDom, { document: this.options.document });
 
-        if (!hash) {
-            domNode.innerHTML = rootNode.outerHTML;
-        } else if (hash !== getHash(rootNode.outerHTML)) {
-            debug.warn('Client initial html and server html don\'t match!');
-            domNode.removeChild(domNode.firstChild);
-            domNode.appendChild(rootNode);
-        } else {
+        if (hash && hash === getHash(rootNode.outerHTML)) {
             rootNode = domNode.firstChild;
+        } else {
+            if (hash) {
+                debug.warn('Client initial html and server html don\'t match!');
+            }
+            domNode.innerHTML = '';
+            domNode.appendChild(rootNode);
         }
 
         refCallbacks && this.setRefs(refCallbacks, domNode);
@@ -238,7 +238,7 @@ class RenderController {
             } else {
                 memo[name] = attrs[name];
                 if (name === 'dataset') {
-                    memo.key = attrs[name].rrid;
+                    memo.key = attrs[name].rerenderid;
                 }
             }
 
@@ -368,17 +368,17 @@ class RenderController {
         let { dataset } = attrs,
             nextDataset = Object.assign({}, dataset);
 
-        nextDataset.rrid = this.getShortId(position);
+        nextDataset.rerenderid = this.getShortId(position);
         // if (hasEventsHandlers(json)) {
-        //     nextDataset.rrid = position;
+        //     nextDataset.rerenderid = position;
         // }
 
         if (attrs.ref) {
-            nextDataset.rrref = true;
+            nextDataset.rerenderref = true;
         }
 
         if (RECOVER_TAGS[tag]) {
-            nextDataset.rruser = true;
+            nextDataset.rerenderuser = true;
         }
 
         return Object.assign({}, attrs, {
@@ -431,8 +431,8 @@ class RenderController {
             currentNode = event.target;
 
         while (currentNode && currentNode !== domNode && !synteticEvent.stopped) {
-            let rrId = currentNode.dataset && currentNode.dataset.rrid,
-                position = this.positionsById[rrId];
+            let id = currentNode.dataset && currentNode.dataset.rerenderid,
+                position = this.positionsById[id];
 
             if (position && eventHandlers[position]) {
                 debug.log(`Triggered event ${eventType} on ${position}.`);
@@ -454,8 +454,8 @@ class RenderController {
     setRefs(callbacks, domNode) {
         let nextRefsDom = {};
 
-        Array.prototype.slice.call(domNode.querySelectorAll('[data-rrref]')).forEach(node => {
-            let id = node.dataset.rrid,
+        Array.prototype.slice.call(domNode.querySelectorAll('[data-rerenderref]')).forEach(node => {
+            let id = node.dataset.rerenderid,
                 position = this.positionsById[id],
                 callback = callbacks[position];
 
@@ -548,10 +548,10 @@ class RenderController {
                 } = this.delayedEvents.blur,
                 {
                     dataset: {
-                        rrid: prevFocusId
+                        rerenderid: prevFocusId
                     }
                 } = prevFocusNode,
-                nextFocusNode = typeof prevFocusId !== 'undefined' && domNode.querySelectorAll(`[data-rrid="${prevFocusId}"]`)[0];
+                nextFocusNode = typeof prevFocusId !== 'undefined' && domNode.querySelectorAll(`[data-rerenderid="${prevFocusId}"]`)[0];
 
             if (nextFocusNode) {
                 this.repairFocusAndSelection(nextFocusNode, prevFocusNode);
@@ -570,10 +570,10 @@ class RenderController {
                 } = this.delayedEvents.focus,
                 {
                     dataset: {
-                        rrid: prevFocusId
+                        rerenderid: prevFocusId
                     }
                 } = prevFocusNode,
-                nextFocusNode = typeof prevFocusId !== 'undefined' && domNode.querySelectorAll(`[data-rrid="${prevFocusId}"]`)[0];
+                nextFocusNode = typeof prevFocusId !== 'undefined' && domNode.querySelectorAll(`[data-rerenderid="${prevFocusId}"]`)[0];
 
             if (nextFocusNode) {
                 if (nextFocusNode !== prevFocusNode) {
