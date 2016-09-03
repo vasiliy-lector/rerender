@@ -16,10 +16,6 @@ function getHash(string) {
         .digest('hex');
 }
 
-function getKey(id) {
-    return getHash(id).slice(0, 8);
-}
-
 function escapeHtml(data) {
     return typeof data === 'string'
         ? data
@@ -119,7 +115,6 @@ export {
     escape,
     escapeHtml,
     getHash,
-    getKey,
     hoistStatics,
     isSameProps,
     nextTick,

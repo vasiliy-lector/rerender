@@ -121,7 +121,7 @@ describe('render', () => {
         });
     });
 
-    describe('render life cycle', () => {
+    describe('renderClient life cycle', () => {
         const lifeCycleCalls = [];
 
         class StatefullPure extends Component {
@@ -168,6 +168,7 @@ describe('render', () => {
         }
 
         StatefullPure.autoBind = ['handleClick', 'handleSetRef'];
+        StatefullPure.propToHoist = true;
 
         const Statefull = connect({
             watch: 'links',
@@ -180,10 +181,32 @@ describe('render', () => {
             }
         })(StatefullPure);
 
+        class PagePure extends Component {
+            render() {
+                return this.props.noLink ? null : html `<instance of=${Statefull} />`;
+            }
+        }
+
+        const Page = connect({
+            watch: 'config',
+            get({
+                config: {
+                    noLink
+                }
+            }) {
+                return {
+                    noLink
+                };
+            }
+        })(PagePure);
+
         const store = new Store({
                 state: {
                     links: {
                         target: 'initTarget'
+                    },
+                    config: {
+                        noLink: false
                     }
                 }
             }),
@@ -194,7 +217,7 @@ describe('render', () => {
 
         it('should call init, componentWillMount, componentDidMount', () => {
             clientRender(
-                html `<instance of=${Statefull} />`,
+                html `<instance of=${Page} />`,
                 domNode,
                 { store, document }
             );
@@ -223,8 +246,6 @@ describe('render', () => {
         });
 
         it('should work with events', () => {
-            jasmine.clock().tick(100);
-
             expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
 
             domNode.querySelector('a').dispatchEvent(new window.Event('click'));
@@ -232,12 +253,25 @@ describe('render', () => {
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);
             expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
 
-            jasmine.clock().tick(1);
+            jasmine.clock().tick(51);
 
             expectedLifeCycle.push('render');
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);
             expect(domNode.querySelector('a').getAttribute('href')).toBe('newHref');
+        });
 
+        it('should call componentWillUnmount, componentWillDestroy', () => {
+            store.setState({
+                config: {
+                    noLink: true
+                }
+            });
+
+            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+            jasmine.clock().tick(51);
+
+            expectedLifeCycle.push('componentWillUnmount', 'componentWillDestroy');
+            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
             jasmine.clock().uninstall();
         });
 

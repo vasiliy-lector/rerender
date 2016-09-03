@@ -121,7 +121,6 @@ class RenderController {
 
         events.on('rerender', throttle(() => {
             this.clearTrigger();
-            debug.log('Rereder begin');
             let start = performance.now(),
                 nextEventHandlers = {},
                 refCallbacks = {},
@@ -150,18 +149,15 @@ class RenderController {
     }
 
     createTreeItem({ component, props, children, options }) {
-        let item = { component, props, children },
-            { position } = options;
+        let item = { component, props, children };
 
         if (this.isStateless(component)) {
             item.lastRender = component(props, children, options);
-            debug.log(`Stateless component ${position} is rendered`);
         } else {
             item.instance = new component(props, children, options);
             Component.beforeRender(item.instance);
             item.lastRender = Component.render(item.instance);
             item.state = item.instance.state;
-            debug.log(`Component ${position} is rendered`);
         }
 
         return item;
@@ -202,7 +198,6 @@ class RenderController {
                         Component.setProps(current.instance, props, children);
                     }
                     current.lastRender = Component.render(current.instance);
-                    debug.log(`Component ${position} is rerendered`);
                 }
             }
         } else {
@@ -315,6 +310,8 @@ class RenderController {
                 return stringify ? escapeHtml(json) : json;
             } else if (typeof json === 'function') {
                 return curried(json(), position);
+            } else if (json === null) {
+                return '';
             } else if (typeof json === 'object' && json.attrs && typeof json.attrs._ === 'object') {
                 let attrs = Object.assign({}, json.attrs._, json.attrs);
 
@@ -493,6 +490,10 @@ class RenderController {
             } else {
                 if (prev.instance) {
                     Component.unmount(prev.instance);
+                    if (!/^__singletons__/.test(position)) {
+                        Component.destroy(prev.instance);
+                        this.allInstances[position] = undefined;
+                    }
 
                 // stateless
                 } else {

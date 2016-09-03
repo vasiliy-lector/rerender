@@ -95,6 +95,22 @@ describe('utils', () => {
                     one: obj6,
                     two: obj9,
                     same: true
+                },
+                {
+                    caseDescr: 'str, obj5',
+                    one: '1',
+                    two: obj5,
+                    same: false
+                },
+                {
+                    caseDescr: 'case 1',
+                    one: {
+                        a: ['1', '2']
+                    },
+                    two: {
+                        a: ['1', 2]
+                    },
+                    same: false
                 }
             ];
 

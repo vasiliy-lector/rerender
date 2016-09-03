@@ -1,5 +1,5 @@
 import { scheduleUpdate } from './render';
-import { isSameProps, debug } from './utils';
+import { isSameProps } from './utils';
 
 class Component {
     constructor(props, children, { isDom, position } = {}) {
@@ -82,14 +82,12 @@ class Component {
 }
 
 Component.beforeRender = function(instance) {
-    !instance._componentMounted && debug.log('componentWillMount', instance.position);
     if (!instance._componentMounted && typeof instance.componentWillMount !== 'undefined') {
         instance.componentWillMount();
     }
 };
 
 Component.destroy = function(instance) {
-    debug.log('componentWillDestroy', instance.position);
     if (typeof instance.componentWillDestroy !== 'undefined') {
         instance.componentWillDestroy();
     }
@@ -98,7 +96,6 @@ Component.destroy = function(instance) {
 Component.mount = function(instance) {
     instance._componentMounted = true;
 
-    debug.log('componentDidMount', instance.position);
     if (typeof instance.componentDidMount !== 'undefined') {
         instance.componentDidMount();
     }
@@ -109,7 +106,6 @@ Component.render = function(instance) {
 };
 
 Component.setProps = function(instance, props, children) {
-    debug.log('componentWillReceiveProps', instance.position);
     if (typeof instance.componentWillReceiveProps !== 'undefined') {
         instance._settingProps = true;
         instance.componentWillReceiveProps(props, children);
@@ -123,7 +119,6 @@ Component.setProps = function(instance, props, children) {
 Component.unmount = function(instance) {
     instance._componentMounted = false;
 
-    debug.log('componentWillUnmount', instance.position);
     if (typeof instance.componentWillUnmount !== 'undefined') {
         instance.componentWillUnmount();
     }
