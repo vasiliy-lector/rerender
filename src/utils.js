@@ -34,6 +34,24 @@ function escape(data) {
         : escape(data + '');
 }
 
+let mesuarements = {};
+
+function performanceStart(type) {
+    if (typeof performance === 'undefined') {
+        return;
+    }
+
+    mesuarements[type] = performance.now();
+}
+
+function performanceEnd(type) {
+    if (typeof performance === 'undefined') {
+        return;
+    }
+
+    debug.log(`${type} took ${(performance.now() - mesuarements[type]).toFixed(3)}ms`);
+}
+
 // Objects same if them have same properties (arrays property same if same all items)
 function isSameProps(nextProps, props) {
     if (nextProps === props) {
@@ -118,5 +136,7 @@ export {
     hoistStatics,
     isSameProps,
     nextTick,
+    performanceStart,
+    performanceEnd,
     throttle
 };

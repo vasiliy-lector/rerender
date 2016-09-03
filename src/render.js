@@ -1,6 +1,6 @@
 import Component from './Component';
 import Events from './Events';
-import { debug, escape, escapeHtml, getHash, isSameProps, nextTick, throttle } from './utils';
+import { debug, escape, escapeHtml, getHash, isSameProps, nextTick, performanceStart, performanceEnd, throttle } from './utils';
 import { patch, diff } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 import h from 'virtual-dom/h';
@@ -87,8 +87,9 @@ class RenderController {
     clientInit(json) {
         const { domNode, store } = this;
 
-        let start = performance.now();
+        performanceStart('first render');
 
+        performanceStart('first expand');
         let nextEventHandlers = {},
             refCallbacks = {},
             nextMounted = {},
@@ -97,9 +98,10 @@ class RenderController {
                 nextEventHandlers,
                 refCallbacks,
                 nextMounted
-            })(json),
-            endExpand = performance.now(),
-            hash = domNode.getAttribute('data-hash'),
+            })(json);
+        performanceEnd('first expand');
+
+        let hash = domNode.getAttribute('data-hash'),
             rootNode = createElement(vDom, { document: this.options.document });
 
         if (hash && hash === getHash(rootNode.outerHTML)) {
@@ -116,13 +118,14 @@ class RenderController {
         this.attachEventHandlers(domNode, nextEventHandlers);
         this.mount(nextMounted);
 
-        debug.log(`First expand took ${(endExpand - start).toFixed(3)}ms`);
-        debug.log(`First render took ${(performance.now() - start).toFixed(3)}ms`);
-
+        performanceEnd('first render');
         events.on('rerender', throttle(() => {
             this.clearTrigger();
-            let start = performance.now(),
-                nextEventHandlers = {},
+
+            performanceStart('rerender');
+            performanceStart('expand');
+
+            let nextEventHandlers = {},
                 refCallbacks = {},
                 nextMounted = {},
                 nextVDom = this.expand({
@@ -131,8 +134,9 @@ class RenderController {
                     nextEventHandlers,
                     refCallbacks,
                     nextMounted
-                })(json),
-                endExpand = performance.now();
+                })(json);
+
+            performanceEnd('expand');
 
             this.unmount(nextMounted);
             this.turnOnDelay();
@@ -143,8 +147,7 @@ class RenderController {
             this.replaceEventHandlers(nextEventHandlers);
             this.mount(nextMounted);
 
-            debug.log(`Expand took ${(endExpand - start).toFixed(3)}ms`);
-            debug.log(`Rerender took ${(performance.now() - start).toFixed(3)}ms`);
+            performanceEnd('rerender');
         }, RENDER_THROTTLE, { leading: true }));
     }
 
@@ -474,7 +477,7 @@ class RenderController {
     }
 
     unmount(nextMounted) {
-        let start = performance.now();
+        performanceStart('unmount');
 
         Object.keys(this.mountedInstances).forEach(position => {
             let next = nextMounted[position],
@@ -502,11 +505,11 @@ class RenderController {
             }
         });
 
-        debug.log(`Unmount took ${(performance.now() - start).toFixed(3)}ms`);
+        performanceEnd('unmount');
     }
 
     mount(nextMounted) {
-        let start = performance.now();
+        performanceStart('mount');
 
         Object.keys(nextMounted).forEach(position => {
             let next = nextMounted[position],
@@ -528,7 +531,7 @@ class RenderController {
 
         this.mountedInstances = nextMounted;
 
-        debug.log(`Mount took ${(performance.now() - start).toFixed(3)}ms`);
+        performanceEnd('mount');
     }
 
     clearTrigger() {

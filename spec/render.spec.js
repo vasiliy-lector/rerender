@@ -4,7 +4,8 @@ import Store from '../src/Store';
 import html from '../src/html';
 import Component from '../src/Component';
 import connect from '../src/connect';
-import { getHash } from '../src/utils';
+import { debug, getHash } from '../src/utils';
+
 
 class Block extends Component {
     render() {
@@ -25,6 +26,12 @@ Stateless.defaults = {
 };
 
 describe('render', () => {
+    beforeEach(() => {
+        spyOn(debug, 'log');
+        spyOn(debug, 'warn');
+        spyOn(debug, 'error');
+    });
+
     describe('serverRender', () => {
         it('should render div to div', () => {
             expect(serverRender(html `<div className="block">Text of block</div>`))
@@ -46,10 +53,6 @@ describe('render', () => {
     });
 
     describe('clientRender', () => {
-
-        global.performance = {
-            now: () => {}
-        };
 
         let store;
         const
