@@ -12,7 +12,7 @@ export default function connect({ actions = {}, get, merge, watch }) {
                 this.bindedActions = this.bindActions();
                 this.state = this.getMergedProps();
                 if (typeof watch === 'undefined' && get) {
-                    watch = 'changed';
+                    watch = 'change';
                 }
                 if (watch) {
                     store.on(watch, () => this.updateState());

@@ -191,7 +191,6 @@ describe('render', () => {
         }
 
         const Page = connect({
-            watch: 'config',
             get({
                 config: {
                     noLink
