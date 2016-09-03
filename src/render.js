@@ -1,11 +1,9 @@
 import Component from './Component';
 import Events from './Events';
-import { debug, escape, escapeHtml, getHash, isSameProps, nextTick } from './utils';
+import { debug, escape, escapeHtml, getHash, isSameProps, nextTick, throttle } from './utils';
 import { patch, diff } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 import h from 'virtual-dom/h';
-import throttle from 'lodash/throttle';
-
 
 const PRIMITIVE_TYPES = {
         number: true,
@@ -101,7 +99,7 @@ class RenderController {
                 nextMounted
             })(json),
             endExpand = performance.now(),
-            hash = domNode.dataset && domNode.dataset.hash,
+            hash = domNode.getAttribute('data-hash'),
             rootNode = createElement(vDom, { document: this.options.document });
 
         if (hash && hash === getHash(rootNode.outerHTML)) {
@@ -200,7 +198,9 @@ class RenderController {
                     current.props = props;
                     current.children = children;
                     current.state = current.instance.state;
-                    Component.setProps(current.instance, props, children);
+                    if (!sameOuter) {
+                        Component.setProps(current.instance, props, children);
+                    }
                     current.lastRender = Component.render(current.instance);
                     debug.log(`Component ${position} is rerendered`);
                 }
@@ -235,11 +235,14 @@ class RenderController {
                 nextEventHandlers[eventType][position] = attrs[name];
             } else if (name === 'ref') {
                 refCallbacks[position] = attrs[name];
+            } else if (name === 'dataset') {
+                memo.key = attrs[name].rerenderid;
+                memo.attributes = Object.assign({}, attrs.attributes, Object.keys(attrs.dataset).reduce((memo, dataName) => {
+                    memo[`data-${dataName}`] = attrs.dataset[dataName];
+                    return memo;
+                }, {}));
             } else {
                 memo[name] = attrs[name];
-                if (name === 'dataset') {
-                    memo.key = attrs[name].rerenderid;
-                }
             }
 
             return memo;
@@ -431,8 +434,8 @@ class RenderController {
             currentNode = event.target;
 
         while (currentNode && currentNode !== domNode && !synteticEvent.stopped) {
-            let id = currentNode.dataset && currentNode.dataset.rerenderid,
-                position = this.positionsById[id];
+            let id = currentNode.getAttribute('data-rerenderid'),
+                position = id && this.positionsById[id];
 
             if (position && eventHandlers[position]) {
                 debug.log(`Triggered event ${eventType} on ${position}.`);
@@ -455,9 +458,9 @@ class RenderController {
         let nextRefsDom = {};
 
         Array.prototype.slice.call(domNode.querySelectorAll('[data-rerenderref]')).forEach(node => {
-            let id = node.dataset.rerenderid,
-                position = this.positionsById[id],
-                callback = callbacks[position];
+            let id = node.getAttribute('data-rerenderid'),
+                position = id && this.positionsById[id],
+                callback = position && callbacks[position];
 
             if (!callback) {
                 return;
@@ -546,11 +549,7 @@ class RenderController {
                         target: prevFocusNode
                     }
                 } = this.delayedEvents.blur,
-                {
-                    dataset: {
-                        rerenderid: prevFocusId
-                    }
-                } = prevFocusNode,
+                prevFocusId = prevFocusNode.getAttribute('data-rerenderid'),
                 nextFocusNode = typeof prevFocusId !== 'undefined' && domNode.querySelectorAll(`[data-rerenderid="${prevFocusId}"]`)[0];
 
             if (nextFocusNode) {
@@ -568,11 +567,7 @@ class RenderController {
                         target: prevFocusNode
                     }
                 } = this.delayedEvents.focus,
-                {
-                    dataset: {
-                        rerenderid: prevFocusId
-                    }
-                } = prevFocusNode,
+                prevFocusId = prevFocusNode.getAttribute('data-rerenderid'),
                 nextFocusNode = typeof prevFocusId !== 'undefined' && domNode.querySelectorAll(`[data-rerenderid="${prevFocusId}"]`)[0];
 
             if (nextFocusNode) {

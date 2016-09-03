@@ -87,6 +87,30 @@ function nextTick(fn) {
     return setTimeout(fn, NEXT_TICK_TIMEOUT);
 }
 
+function throttle(fn, milliseconds, { leading }) {
+    let timeout,
+        called = false;
+
+    return function() {
+        if (leading && !timeout) {
+            fn();
+            called = true;
+        }
+
+        if (!timeout) {
+            timeout = setTimeout(() => {
+                timeout = undefined;
+
+                if (!called) {
+                    fn();
+                }
+            }, milliseconds);
+        } else {
+            called = false;
+        }
+    };
+}
+
 // TODO
 const debug = console;
 
@@ -98,5 +122,6 @@ export {
     getKey,
     hoistStatics,
     isSameProps,
-    nextTick
+    nextTick,
+    throttle
 };

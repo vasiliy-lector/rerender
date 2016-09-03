@@ -1,4 +1,5 @@
-import { Component, html } from './index';
+import Component from './Component';
+import html from './html';
 import { hoistStatics } from './utils';
 
 export default function connect({ actions = {}, get, merge, watch }) {
