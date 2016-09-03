@@ -320,7 +320,7 @@ class RenderController {
 
                 return curried(json, position);
             } else if (typeof json === 'object' && json.tag !== RERENDER_TAG) {
-                let attrs = _this.getAttrsWithDataset(json, { omitIds, position }),
+                let attrs = _this.getAttrsWithClasses(json, { omitIds, position }),
                     item = {
                         tag: json.tag,
                         attrs,
@@ -358,31 +358,25 @@ class RenderController {
         return this.ids[position];
     }
 
-    getAttrsWithDataset(json, { omitIds, position }) {
-        let { tag, attrs = {} } = json;
-
+    getAttrsWithClasses(json, { omitIds, position }) {
         if (omitIds) {
-            return attrs;
+            return json.attrs;
         }
 
-        let { dataset } = attrs,
-            nextDataset = Object.assign({}, dataset);
-
-        nextDataset.rerenderid = this.getShortId(position);
-        // if (hasEventsHandlers(json)) {
-        //     nextDataset.rerenderid = position;
-        // }
+        let { tag, attrs = {} } = json,
+            { className } = attrs,
+            nextClassName = [className, 'rerender-with-id', `rerender-id-${this.getShortId(position)}`];
 
         if (attrs.ref) {
-            nextDataset.rerenderref = true;
+            nextClassName.push('rerender-ref');
         }
 
         if (RECOVER_TAGS[tag]) {
-            nextDataset.rerenderuser = true;
+            nextClassName.push('rerender-user');
         }
 
         return Object.assign({}, attrs, {
-            dataset: nextDataset
+            className: nextClassName.join('')
         });
     }
 
@@ -431,7 +425,7 @@ class RenderController {
             currentNode = event.target;
 
         while (currentNode && currentNode !== domNode && !synteticEvent.stopped) {
-            let id = currentNode.dataset && currentNode.dataset.rerenderid,
+            let id = this.getIdFromClassName(currentNode.className),
                 position = this.positionsById[id];
 
             if (position && eventHandlers[position]) {
@@ -445,6 +439,11 @@ class RenderController {
         if (synteticEvent.prevented) {
             event.preventDefault();
         }
+    }
+
+    getIdFromClassName(className = '') {
+        let match = className.match(/rerender-id-([^\s])/);
+        return match && match[0];
     }
 
     replaceEventHandlers(nextEventHandlers) {
