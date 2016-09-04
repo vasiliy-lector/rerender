@@ -352,10 +352,10 @@ class RenderController {
     }
 
     getShortId(position) {
-        if (!this.ids[position]) {
+        if (typeof this.ids[position] === 'undefined') {
             this.ids[position] = this.nextShortId;
             this.positionsById[this.nextShortId] = position;
-            this.nextShortId++;
+            this.nextShortId += 1;
         }
 
         return this.ids[position];

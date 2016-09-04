@@ -154,7 +154,7 @@ describe('render', () => {
                 lifeCycleCalls.push('componentWillDestroy');
             }
             handleSetRef() {
-                // lifeCycleCalls.push('handleSetRef');
+                lifeCycleCalls.push('handleSetRef');
             }
             handleClick() {
                 this.setState({
@@ -224,7 +224,7 @@ describe('render', () => {
                 { store, document }
             );
 
-            expectedLifeCycle.push('init', 'componentWillMount', 'render', 'componentDidMount');
+            expectedLifeCycle.push('init', 'componentWillMount', 'render', 'handleSetRef', 'componentDidMount');
             expect(domNode.innerHTML).toBe('<a target="initTarget" href="initHref" data-rerenderid="0" data-rerenderref="true">link</a>');
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);
         });
@@ -243,7 +243,7 @@ describe('render', () => {
 
             jasmine.clock().tick(1);
             expectedLifeCycle.push('componentWillReceiveProps', 'render');
-            expect(domNode.querySelector('a').getAttribute('target')).toBe('newTarget');
+            expect(domNode.innerHTML).toBe('<a target="newTarget" href="initHref" data-rerenderid="0" data-rerenderref="true">link</a>');
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);
         });
 
