@@ -1,5 +1,5 @@
 import { jsdom } from 'jsdom';
-import { clientRender } from '../../src/render';
+import { clientRender, RENDER_THROTTLE } from '../../src/render';
 import Store from '../../src/Store';
 import html from '../../src/html';
 import Component from '../../src/Component';
@@ -93,10 +93,13 @@ describe('render', () => {
         })(StatefullPure);
 
         class PagePure extends Component {
+            handleRef() { }
             render() {
-                return this.props.noLink ? null : html `<instance of=${Statefull} />`;
+                return this.props.noLink ? null : html `<instance of=${Statefull} ref=${this.handleRef} />`;
             }
         }
+
+        PagePure.autoBind = ['handleRef'];
 
         const Page = connect({
             get({
@@ -126,6 +129,8 @@ describe('render', () => {
             expectedLifeCycle = [];
 
         it('should call init, componentWillMount, componentDidMount', () => {
+            spyOn(PagePure.prototype, 'handleRef');
+
             clientRender(
                 html `<instance of=${Page} />`,
                 domNode,
@@ -133,6 +138,7 @@ describe('render', () => {
             );
 
             expectedLifeCycle.push('init', 'componentWillMount', 'render', 'handleSetRef', 'componentDidMount');
+            expect(PagePure.prototype.handleRef).toHaveBeenCalledTimes(1);
             expect(domNode.innerHTML).toBe('<a target="initTarget" href="initHref" data-rerenderid="0" data-rerenderref="true">link</a>');
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);
         });
@@ -163,7 +169,7 @@ describe('render', () => {
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);
             expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
 
-            jasmine.clock().tick(51);
+            jasmine.clock().tick(RENDER_THROTTLE + 1);
 
             expectedLifeCycle.push('render');
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);
@@ -178,7 +184,7 @@ describe('render', () => {
             });
 
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-            jasmine.clock().tick(51);
+            jasmine.clock().tick(RENDER_THROTTLE + 1);
 
             expectedLifeCycle.push('componentWillUnmount', 'componentWillDestroy');
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);

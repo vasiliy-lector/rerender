@@ -2,9 +2,8 @@ import { scheduleUpdate } from './render';
 import { isSameProps } from './utils';
 
 class Component {
-    constructor(props, children, { isDom, position } = {}) {
+    constructor(props, children, { isDom, position }) {
         let {
-            // actions = [],
             autoBind = []
             // initActions = []
         } = this.constructor;
@@ -23,10 +22,6 @@ class Component {
         this.children = children;
 
         this.init && this.init();
-
-        if (props.ref && typeof props.ref === 'function') {
-            props.ref(this);
-        }
 
         // this.state = {
         //     initActionsStatus: 'resolved'

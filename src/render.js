@@ -64,7 +64,7 @@ const PRIMITIVE_TYPES = {
 let rerenderTrigger;
 
 class RenderController {
-    constructor({ json, domNode, options = {} }) {
+    constructor({ json, domNode, options }) {
 
         this.domNode = domNode;
         this.store = options.store;
@@ -158,6 +158,9 @@ class RenderController {
             item.lastRender = component(props, children, options);
         } else {
             item.instance = new component(props, children, options);
+            if (!options.isServer && props.ref && !component.wrapper && typeof props.ref === 'function') {
+                props.ref(item.instance);
+            }
             Component.beforeRender(item.instance);
             item.lastRender = Component.render(item.instance);
             item.state = item.instance.state;
@@ -603,7 +606,7 @@ class RenderController {
 
 const
     clientRender = function(json, domNode, options) {
-        return new RenderController({
+        new RenderController({
             json,
             domNode,
             options: Object.assign({}, options, { isServer: false })
@@ -629,4 +632,4 @@ const
         }
     };
 
-export { serverRender, clientRender, scheduleUpdate };
+export { serverRender, clientRender, scheduleUpdate, RENDER_THROTTLE };

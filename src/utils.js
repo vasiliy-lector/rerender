@@ -94,6 +94,8 @@ function hoistStatics(Target, Source) {
         }
     }
 
+    Target.wrapper = true;
+
     return Target;
 }
 
