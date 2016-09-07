@@ -1,7 +1,7 @@
 import { serverRender } from '../../src/render';
 import html from '../../src/html';
 import Component from '../../src/Component';
-import { debug } from '../../src/utils';
+import { debug } from '../../src/debug';
 
 class Block extends Component {
     render() {

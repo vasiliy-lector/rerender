@@ -3,8 +3,8 @@ import { clientRender } from '../../src/render';
 import Store from '../../src/Store';
 import html from '../../src/html';
 import Component from '../../src/Component';
-import { debug, getHash } from '../../src/utils';
-
+import { getHash } from '../../src/utils';
+import { debug } from '../../src/debug';
 
 class Block extends Component {
     render() {

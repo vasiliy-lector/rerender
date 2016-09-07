@@ -1,5 +1,5 @@
 import Component from './Component';
-import { debug } from './utils';
+import { debug } from './debug';
 
 const
     SIMPLE_TYPES = {

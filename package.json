@@ -10,7 +10,7 @@
   "scripts": {
     "compile": "babel --presets es2015 -d lib/ src/",
     "prepublish": "npm run compile",
-    "test": "istanbul cover ./node_modules/.bin/jasmine --include-all-sources --root=./src -x html.js -x checkProps.js -x index.js"
+    "test": "istanbul cover ./node_modules/.bin/jasmine --include-all-sources --root=./src -x html.js -x checkProps.js -x index.js -x debug.js"
   },
   "author": "vasiliy.lector@gmail.com",
   "license": "MIT",

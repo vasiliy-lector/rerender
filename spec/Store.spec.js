@@ -1,5 +1,5 @@
 import Store from '../src/Store';
-import { debug } from '../src/utils';
+import { debug } from '../src/debug';
 
 describe('Store', () => {
     const INITIAL_STATE = {
@@ -32,11 +32,10 @@ describe('Store', () => {
             expect(store.state).toEqual({});
         });
 
-        it('should do nothing if trying set not object', () => {
-            expect(store.state).toEqual(INITIAL_STATE);
-            store.setState('');
-            expect(store.state).toEqual(INITIAL_STATE);
-            expect(debug.error).toHaveBeenCalledTimes(1);
+        it('should do nothing if trying set empty object', () => {
+            expect(store.state).toBe(INITIAL_STATE);
+            store.setState({});
+            expect(store.state).toBe(INITIAL_STATE);
         });
 
         it('should do nothing if first level paths recognized as same by method isSameProps', () => {

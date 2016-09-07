@@ -1,6 +1,7 @@
 import Component from './Component';
 import Events from './Events';
-import { debug, escape, escapeHtml, getHash, isSameProps, nextTick, performanceStart, performanceEnd, throttle } from './utils';
+import { escape, escapeHtml, getHash, isSameProps, nextTick, throttle } from './utils';
+import { debug, performanceStart, performanceEnd } from './debug';
 import { patch, diff } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 import h from 'virtual-dom/h';
@@ -158,10 +159,12 @@ class RenderController {
             item.lastRender = component(props, children, options);
         } else {
             item.instance = new component(props, children, options);
-            if (!options.isServer && props.ref && !component.wrapper && typeof props.ref === 'function') {
-                props.ref(item.instance);
+            if (options.isDom) {
+                if (props.ref && !component.wrapper && typeof props.ref === 'function') {
+                    props.ref(item.instance);
+                }
+                Component.beforeRender(item.instance);
             }
-            Component.beforeRender(item.instance);
             item.lastRender = Component.render(item.instance);
             item.state = item.instance.state;
         }
@@ -546,29 +549,34 @@ class RenderController {
 
     turnOnDelay() {
         this.rerenderNow = true;
+        this.lastActiveElement = this.getActiveElement();
+    }
+
+    getActiveElement() {
+        return (this.options.document || document).activeElement;
     }
 
     // blur and focus fix
     turnOffDelay(domNode) {
-        if (this.delayedEvents.blur && !this.delayedEvents.focus) {
-            const {
-                    event: {
-                        target: prevFocusNode
-                    }
-                } = this.delayedEvents.blur,
+        const activeElement = this.getActiveElement(),
+            isLooseFocus = activeElement !== this.lastActiveElement || this.delayedEvents.blur;
+
+        if (isLooseFocus && !this.delayedEvents.focus) {
+            const
+                prevFocusNode = this.lastActiveElement,
                 prevFocusId = prevFocusNode.getAttribute('data-rerenderid'),
                 nextFocusNode = typeof prevFocusId !== 'undefined' && domNode.querySelectorAll(`[data-rerenderid="${prevFocusId}"]`)[0];
 
             if (nextFocusNode) {
                 this.repairFocusAndSelection(nextFocusNode, prevFocusNode);
-            } else {
+            } else if (this.delayedEvents.blur) {
                 this.executeCallbacks(Object.assign({ domNode }, this.delayedEvents.blur));
             }
         }
 
         this.rerenderNow = false;
 
-        if (this.delayedEvents.blur && this.delayedEvents.focus) {
+        if (isLooseFocus && this.delayedEvents.focus) {
             const {
                     event: {
                         target: prevFocusNode

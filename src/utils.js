@@ -34,24 +34,6 @@ function escape(data) {
         : escape(data + '');
 }
 
-let mesuarements = {};
-
-function performanceStart(type) {
-    if (typeof performance === 'undefined') {
-        return;
-    }
-
-    mesuarements[type] = performance.now();
-}
-
-function performanceEnd(type) {
-    if (typeof performance === 'undefined') {
-        return;
-    }
-
-    debug.log(`${type} took ${(performance.now() - mesuarements[type]).toFixed(3)}ms`);
-}
-
 // Objects same if them have same properties (arrays property same if same all items)
 function isSameProps(nextProps, props) {
     if (nextProps === props) {
@@ -59,7 +41,11 @@ function isSameProps(nextProps, props) {
     } else if (typeof nextProps !== typeof props) {
         return false;
     } else {
-        for (let name in nextProps) if (nextProps.hasOwnProperty(name)) {
+        const nextPropsKeys = Object.keys(nextProps);
+
+        for (let i = 0, l = nextPropsKeys.length; i < l; i++) {
+            let name = nextPropsKeys[i];
+
             if (nextProps[name] === props[name]) {
                 continue;
             } else if (typeof nextProps[name] !== typeof props[name]) {
@@ -127,28 +113,12 @@ function throttle(fn, milliseconds, { leading }) {
     };
 }
 
-/* eslint-disable no-console */
-const debug = {
-    log() {
-        console.log.apply(console, arguments);
-    },
-    warn() {
-        console.warn.apply(console, arguments);
-    },
-    error() {
-        console.error.apply(console, arguments);
-    }
-};
-
 export {
-    debug,
     escape,
     escapeHtml,
     getHash,
     hoistStatics,
     isSameProps,
     nextTick,
-    performanceStart,
-    performanceEnd,
     throttle
 };

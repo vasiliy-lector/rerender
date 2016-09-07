@@ -1,5 +1,6 @@
 import Events from './Events';
-import { debug, isSameProps } from './utils';
+import { isSameProps } from './utils';
+import { debug } from './debug';
 
 class Store extends Events {
     constructor({ state = {}, dehydrate, rehydrate } = {}) {
@@ -21,11 +22,6 @@ class Store extends Events {
     }
 
     setState(changes) {
-        if (typeof changes !== 'object') {
-            debug.error(`Store method setState required object, but ${typeof changes} was given`);
-            return;
-        }
-
         let reallyChanged = Object.keys(changes).reduce((memo, key) => {
                 if (!this.state[key] || !isSameProps(changes[key], this.state[key])) {
                     memo[key] = changes[key];
