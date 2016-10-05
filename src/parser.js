@@ -1,3 +1,5 @@
+const UNDEFINED = void 0;
+
 class Parser {
     constructor(exec) {
         this.exec = exec;
@@ -20,7 +22,7 @@ class Parser {
         const exec = this.exec;
 
         return new Parser(function (string, position) {
-            return !pattern.exec(string, position) && exec(string, position);
+            return !pattern.exec(string, position) ? exec(string, position) : UNDEFINED;
         });
     }
 }
@@ -51,7 +53,7 @@ function find(pattern) {
 function optional(pattern) {
     return new Parser(function (string, position) {
         return pattern.exec(string, position) || {
-            result: void 0,
+            result: UNDEFINED,
             end: position
         };
     });
@@ -101,26 +103,32 @@ function sequence() {
     });
 }
 
-function repeat(pattern, separator) {
-    var separated = !separator
-        ? pattern
-        : sequence(separator, pattern).then(value => value[1]);
+function repeat(mainPattern, delimeter) {
+    const pattern = !delimeter
+        ? mainPattern
+        : sequence(delimeter, mainPattern).then(value => value[1]);
 
     return new Parser(function (string, position) {
         let result = [],
             end = position,
-            executed = pattern.exec(string, end);
+            executed = mainPattern.exec(string, end);
 
         while (executed && executed.end > end) {
             result.push(executed.result);
             end = executed.end;
-            executed = separated.exec(string, end);
+            executed = pattern.exec(string, end);
         }
 
         return result && {
             result,
             end
         };
+    });
+}
+
+function deffered(getPattern) {
+    return new Parser(function(str, pos) {
+        return getPattern().exec(str, pos);
     });
 }
 
@@ -139,5 +147,6 @@ export {
     optional,
     repeat,
     required,
-    sequence
+    sequence,
+    deffered
 };
