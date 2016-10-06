@@ -127,8 +127,10 @@ function repeat(mainPattern, delimeter) {
 }
 
 function deffered(getPattern) {
+    let pattern;
+
     return new Parser(function(str, pos) {
-        return getPattern().exec(str, pos);
+        return (pattern || (pattern = getPattern())).exec(str, pos);
     });
 }
 
