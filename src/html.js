@@ -1,3 +1,14 @@
+import {
+    Parser,
+    any,
+    find,
+    optional,
+    repeat,
+    required,
+    sequence,
+    deffered
+} from './parser';
+
 const cache = {
     '<div className="block"></div>': function() {
         return {
