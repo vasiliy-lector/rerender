@@ -179,16 +179,60 @@ describe('Parser', () => {
                 children: value[4]
             }));
 
-        it('should parse html', () => {
-            const result = node.exec(`<div class="block" id="id1">
-                <p id="id2">text of div</p>
-                <form onSubmit="">
-                    <input type="text" value="value" name="firstName" />
-                    <input type="text" value="value" name="lastName"/>
-                </form>
-            </div>`, 0);
-            expect(result).toBeDefined();
-            console.log(JSON.stringify(result, null, 4));
+        it('should parse one element', () => {
+            const result = node.exec(`<div class="block" id="id1">text of div</div>`, 0);
+            expect(result.result).toEqual({
+                tag: 'div',
+                attrs: {
+                    class: 'block',
+                    id: 'id1'
+                },
+                children: ['text of div']
+            });
+        });
+
+        it('should parse element with child', () => {
+            const result = node.exec(`<div class="block" id="id1"><p id="id2">text of p</p></div>`, 0);
+            expect(result.result).toEqual({
+                tag: 'div',
+                attrs: {
+                    class: 'block',
+                    id: 'id1'
+                },
+                children: [{
+                    tag: 'p',
+                    attrs: {
+                        id: 'id2'
+                    },
+                    children: ['text of p']
+                }]
+            });
+        });
+
+        it('should parse self closed element', () => {
+            const result = node.exec(`<input type="text" value="value" name="firstName" />`, 0);
+            expect(result.result).toEqual({
+                tag: 'input',
+                attrs: {
+                    type: 'text',
+                    value: 'value',
+                    name: 'firstName'
+                },
+                children: []
+            });
+        });
+
+        it('should parse self closed element without white space before slash', () => {
+            const result = node.exec(`<input type="text" value="value" name="firstName"/>`, 0);
+            expect(result.result).toEqual({
+                tag: 'input',
+                attrs: {
+                    type: 'text',
+                    value: 'value',
+                    name: 'firstName'
+                },
+                children: []
+            });
         });
     });
 });
