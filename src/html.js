@@ -19,7 +19,7 @@ const cache = {},
                 required(find(/^\d+/)),
                 required(find('}'))
             ).then(value => value[1]),
-            attrName = find(/^[a-zA-Z][a-zA-Z0-9]*/),
+            attrName = find(/^[a-zA-Z_][a-zA-Z0-9]*/),
             booleanAttr = attrName.then(value => `{${value}:true}`),
             quotedAttr = sequence(
                 attrName,

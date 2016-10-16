@@ -22,6 +22,19 @@ describe('html', () => {
         });
     });
 
+    it('should convert simple div with prop underscore', () => {
+        expect(html `<div className="block" _=${{ id: 1 }}></div>`).toEqual({
+            tag: 'div',
+            attrs: {
+                className: 'block',
+                _: {
+                    id: 1
+                }
+            },
+            children: []
+        });
+    });
+
     it('should correctly work with two same templates but another values', () => {
         expect([
             html `<div className="block" id=${'id1'}></div>`,
