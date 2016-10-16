@@ -1,5 +1,4 @@
 import {
-    Parser,
     any,
     find,
     optional,
@@ -9,98 +8,94 @@ import {
     deffered
 } from './parser';
 
-const cache = {
-    '<div className="block"></div>': function() {
-        return {
-            tag: 'div',
-            attrs: {
-                className: 'block'
-            },
-            children: []
-        };
-    },
-    '<div className="block" id=${}></div>': function (args) {
-        return {
-            tag: 'div',
-            attrs: {
-                className: 'block',
-                id: args[1]
-            },
-            children: []
-        };
-    },
-    '<div className="block" id=${} ${}><p ${}>${}</p></div>': function(args) {
-        var json = {
-            tag: 'div',
-            attrs: {
-                className: 'block',
-                id: args[1]
-            },
-            children: [
-                {
-                    tag: 'p',
-                    attrs: null,
-                    children: [ null ]
-                }
-            ]
-        };
-        var attrs = json.attrs;
-        var keys = Object.keys(args[2]);
-        for (var i = 0, l = keys.length; i < l; i++) {
-            attrs[keys[i]] = args[2][keys[i]];
-        }
-        json.children[0].attrs = args[3];
-        json.children[0].children[0] = args[4];
+const cache = {},
+    parser = (() => {
+        const
+            whiteSpace = find(/^\s+/),
+            textNode = find(/^[^<]+/),
+            tagName = find(/^[a-zA-Z]+/),
+            placeholder = sequence(
+                find('${'),
+                required(find(/^\d+/)),
+                required(find('}'))
+            ).then(value => value[1]),
+            attrName = find(/^[a-zA-Z][a-zA-Z0-9]*/),
+            booleanAttr = attrName.then(value => `{${value}:true}`),
+            quotedAttr = sequence(
+                attrName,
+                find('='),
+                required(find('"')),
+                any(placeholder, find(/[^"]*/)),
+                required(find('"'))
+            ).then(value => `{${value[0]}:'${value[3]}'}`),
+            attrWithPlaceholder = sequence(
+                attrName,
+                find('='),
+                placeholder
+            ).then(value => `{${value[0]}:args[${value[2]}]}`),
+            attrs = repeat(
+                any(
+                    attrWithPlaceholder,
+                    quotedAttr,
+                    placeholder.then(value => `args[${value}]`),
+                    booleanAttr,
+                ),
+                whiteSpace
+            ).then(value => `Object.assign(${value})`),
+            component = sequence(
+                find('<').not(find('</')),
+                required(any(
+                    tagName.then(value => `'${value}'`),
+                    placeholder.then(value => `args[${value}]`)
+                )),
+                optional(sequence(
+                    whiteSpace,
+                    attrs
+                )).then(value => value[1]),
+                optional(whiteSpace),
+                required(any(
+                    find('/>').then(() => '[]'),
+                    sequence(
+                        required(find('>')),
+                        optional(repeat(any(
+                            placeholder.then(value => `args[${value}]`),
+                            textNode.then(value => `'${value}'`),
+                            deffered(() => component),
+                            whiteSpace.then(value => `'${value}'`)
+                        )),
+                        required(find('</')),
+                        required(any(
+                            tagName,
+                            placeholder
+                        )),
+                        optional(whiteSpace),
+                        required(find('>'))
+                    )).then(value => `[${value[1].join(',')}]`)
+                ))
+            ).then(value => `{tag:${value[1]},attrs:${value[2]},children:${value[4]}}`);
 
-        return json;
-    }
-};
+        return component.then(value => `return ${value};`);
+    })();
 
 function getCacheId(templates) {
     let id = '';
     const l = templates.length - 1;
 
     for (let i = 0; i < l; i++) {
-        id += templates[i] + '${__value__}';
+        id += templates[i] + '${' + (i + 1) + '}';
     }
 
     return (id + templates[l]).trim();
-}
-
-function getJson(cacheId, args) {
-    return cache[cacheId](args);
-}
-
-function createCache(cacheId) {
-    let json = '',
-        setter = '',
-        currentParent,
-        inside = false,
-        notFinish = true;
-
-    const
-        regExpOutside = /<|$/im,
-        regExpInside = /^|\s+|=|"|>|$/im;
-
-    while (notFinish) {
-        if (inside) {
-            
-        } else {
-            
-        }
-    }
-
-    cache[cacheId] = new Function('args', fn);
 }
 
 function html(templates) {
     const cacheId = getCacheId(templates);
 
     if (typeof cache[cacheId] === 'undefined') {
-        createCache(cacheId);
+        cache[cacheId] = new Function('args', parser.exec(cacheId, 0).result);
     }
 
-    return getJson(cacheId, arguments);
+    return cache[cacheId](arguments);
 }
 
 export { html as default };
