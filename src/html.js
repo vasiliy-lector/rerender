@@ -38,7 +38,7 @@ const cache = {},
                     attrWithPlaceholder,
                     quotedAttr,
                     placeholder.then(value => `args[${value}]`),
-                    booleanAttr,
+                    booleanAttr
                 ),
                 whiteSpace
             ).then(value => `Object.assign(${value})`),
