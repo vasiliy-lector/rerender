@@ -13,7 +13,7 @@ let getArgs;
 const
     // cache = {},
     whiteSpace = find(/^\s+/),
-    textNode = find(/^[^<$]+/),
+    textNode = find(/^[^<]+/),
     tagName = find(/^[a-zA-Z]+/),
     placeholder = sequence(
         find('${'),
@@ -60,10 +60,10 @@ const
             sequence(
                 required(find('>')),
                 optional(repeat(any(
+                    whiteSpace,
                     placeholder,
                     textNode,
                     deffered(() => component),
-                    whiteSpace
                 ))),
                 required(find('</')),
                 required(any(
