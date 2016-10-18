@@ -8,74 +8,77 @@ import {
     deffered
 } from './parser';
 
-const cache = {},
-    parser = (() => {
-        const
-            whiteSpace = find(/^\s+/),
-            textNode = find(/^[^<]+/),
-            tagName = find(/^[a-zA-Z]+/),
-            placeholder = sequence(
-                find('${'),
-                required(find(/^\d+/)),
-                required(find('}'))
-            ).then(value => value[1]),
-            attrName = find(/^[a-zA-Z_][a-zA-Z0-9]*/),
-            booleanAttr = attrName.then(value => `{${value}:true}`),
-            quotedAttr = sequence(
-                attrName,
-                find('='),
-                required(find('"')),
-                any(placeholder, find(/[^"]*/)),
-                required(find('"'))
-            ).then(value => `{${value[0]}:'${value[3]}'}`),
-            attrWithPlaceholder = sequence(
-                attrName,
-                find('='),
-                placeholder
-            ).then(value => `{${value[0]}:args[${value[2]}]}`),
-            attrs = repeat(
-                any(
-                    attrWithPlaceholder,
-                    quotedAttr,
-                    placeholder.then(value => `args[${value}]`),
-                    booleanAttr
-                ),
-                whiteSpace
-            ).then(value => `Object.assign(${value})`),
-            component = sequence(
-                find('<').not(find('</')),
-                required(any(
-                    tagName.then(value => `'${value}'`),
-                    placeholder.then(value => `args[${value}]`)
-                )),
-                optional(sequence(
-                    whiteSpace,
-                    attrs
-                )).then(value => value[1]),
-                optional(whiteSpace),
-                required(any(
-                    find('/>').then(() => '[]'),
-                    sequence(
-                        required(find('>')),
-                        optional(repeat(any(
-                            placeholder.then(value => `args[${value}]`),
-                            textNode.then(value => `'${value}'`),
-                            deffered(() => component),
-                            whiteSpace.then(value => `'${value}'`)
-                        )),
-                        required(find('</')),
-                        required(any(
-                            tagName,
-                            placeholder
-                        )),
-                        optional(whiteSpace),
-                        required(find('>'))
-                    )).then(value => `[${value[1].join(',')}]`)
-                ))
-            ).then(value => `{tag:${value[1]},attrs:${value[2]},children:${value[4]}}`);
+let getArgs;
 
-        return component.then(value => `return ${value};`);
-    })();
+const
+    // cache = {},
+    whiteSpace = find(/^\s+/),
+    textNode = find(/^[^<$]+/),
+    tagName = find(/^[a-zA-Z]+/),
+    placeholder = sequence(
+        find('${'),
+        required(find(/^\d+/)),
+        required(find('}'))
+    ).then(value => getArgs()[value[1]]),
+    attrName = find(/^[a-zA-Z_][a-zA-Z0-9]*/),
+    booleanAttr = attrName.then(value => ({ [value]: true })),
+    quotedAttr = sequence(
+        attrName,
+        find('='),
+        required(find('"')),
+        any(
+            placeholder,
+            find(/[^"]*/)
+        ),
+        required(find('"'))
+    ).then(value => ({ [value[0]]: value[3] })),
+    attrWithPlaceholder = sequence(
+        attrName,
+        find('='),
+        placeholder
+    ).then(value => ({ [value[0]]: value[2] })),
+    attrs = repeat(
+        any(
+            placeholder,
+            attrWithPlaceholder,
+            quotedAttr,
+            booleanAttr
+        ),
+        whiteSpace
+    ).then(values => Object.assign.call(Object, {}, ...values)),
+    component = sequence(
+        find('<').not(find('</')),
+        required(any(
+            tagName,
+            placeholder
+        )),
+        optional(whiteSpace),
+        attrs,
+        optional(whiteSpace),
+        required(any(
+            find('/>').then(() => []),
+            sequence(
+                required(find('>')),
+                optional(repeat(any(
+                    placeholder,
+                    textNode,
+                    deffered(() => component),
+                    whiteSpace
+                ))),
+                required(find('</')),
+                required(any(
+                    tagName,
+                    placeholder
+                )),
+                optional(whiteSpace),
+                required(find('>'))
+            ).then(value => value[1])
+        ))
+    ).then(value => ({
+        tag: value[1],
+        attrs: value[3],
+        children: value[5]
+    }));
 
 function getCacheId(templates) {
     let id = '';
@@ -91,11 +94,21 @@ function getCacheId(templates) {
 function html(templates) {
     const cacheId = getCacheId(templates);
 
-    if (typeof cache[cacheId] === 'undefined') {
-        cache[cacheId] = new Function('args', parser.exec(cacheId, 0).result);
-    }
+    // if (typeof cache[cacheId] === 'undefined') {
+    //     const fn = component.exec(cacheId, 0).result;
+    //     try {
+    //         cache[cacheId] = new Function('args', fn);
+    //     } catch (error) {
+    //         throw new Error(`Error creating cache function for template: ${cacheId}\nfunciton body: ${fn}\n${error}`);
+    //     }
+    // }
+    //
+    // return cache[cacheId](arguments);
+    const args = arguments;
 
-    return cache[cacheId](arguments);
+    getArgs = () => args;
+
+    return component.exec(cacheId, 0).result;
 }
 
 export { html as default };
