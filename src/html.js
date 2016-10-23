@@ -108,7 +108,7 @@ function html(templates) {
 
     getArgs = () => args;
 
-    return component.exec(cacheId, 0).result;
+    return component.parse(cacheId);
 }
 
 export { html as default };
