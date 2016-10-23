@@ -1,6 +1,7 @@
 import {
     any,
     find,
+    next,
     optional,
     repeat,
     required,
@@ -15,11 +16,7 @@ const
     whiteSpace = find(/^\s+/),
     textNode = find(/^[^<]+/),
     tagName = find(/^[a-zA-Z]+/),
-    placeholder = sequence(
-        find('${'),
-        required(find(/^\d+/)),
-        required(find('}'))
-    ).then(value => getArgs()[value[1]]),
+    placeholder = next().then(value => getArgs()[value]),
     attrName = find(/^[a-zA-Z_][a-zA-Z0-9]*/),
     booleanAttr = attrName.then(value => ({ [value]: true })),
     quotedAttr = sequence(
@@ -80,35 +77,12 @@ const
         children: value[5]
     }));
 
-function getCacheId(templates) {
-    let id = '';
-    const l = templates.length - 1;
-
-    for (let i = 0; i < l; i++) {
-        id += templates[i] + '${' + (i + 1) + '}';
-    }
-
-    return (id + templates[l]).trim();
-}
-
 function html(templates) {
-    const cacheId = getCacheId(templates);
-
-    // if (typeof cache[cacheId] === 'undefined') {
-    //     const fn = component.exec(cacheId, 0).result;
-    //     try {
-    //         cache[cacheId] = new Function('args', fn);
-    //     } catch (error) {
-    //         throw new Error(`Error creating cache function for template: ${cacheId}\nfunciton body: ${fn}\n${error}`);
-    //     }
-    // }
-    //
-    // return cache[cacheId](arguments);
-    const args = arguments;
+    const args = Array.prototype.slice.call(arguments, 1);
 
     getArgs = () => args;
 
-    return component.parse(cacheId);
+    return component.parse(templates);
 }
 
 export { html as default };
