@@ -60,7 +60,7 @@ const
                     whiteSpace,
                     placeholder,
                     textNode,
-                    deffered(() => component),
+                    deffered(() => component)
                 ))),
                 required(find('</')),
                 required(any(
