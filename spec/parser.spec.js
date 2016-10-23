@@ -297,4 +297,79 @@ describe('Parser', () => {
             });
         });
     });
+
+    describe('integration methods multiple strings', () => {
+        const
+            name = find(/[a-z\-]+/i),
+            placeholder = next().then(value => `values[${value}]`),
+            attr = sequence(
+                name,
+                find('='),
+                sequence(
+                    find('"'),
+                    find(/[^"]*/i),
+                    find('"')
+                ).then(value => value[1])
+            ).then(value => ({ name: value[0], value: value[2] })),
+            attrWithPlaceholder = sequence(
+                name,
+                find('='),
+                placeholder
+            ).then(value => ({ name: value[0], value: value[2] })),
+            whiteSpace = find(/\s+/),
+            attrs = repeat(any(attr, attrWithPlaceholder), whiteSpace).then(value => {
+                var result = {};
+                value.forEach(a => (result[a.name] = a.value));
+                return result;
+            }),
+            text = find(/[^<]+/i),
+            node = sequence(
+                find('<').not(find('</')),
+                required(name),
+                optional(sequence(whiteSpace, attrs).then(value => value[1])),
+                optional(whiteSpace),
+                required(
+                    any(
+                        find('/>').then(() => []),
+                        sequence(
+                            required(find('>')),
+                            optional(repeat(any(
+                                text,
+                                deffered(() => node),
+                                whiteSpace
+                            ))),
+                            required(find('</')),
+                            required(name),
+                            optional(whiteSpace),
+                            required(find('>'))
+                        ).then(value => value[1] || [])
+                    )
+                )
+            ).then(value => ({
+                tag: value[1],
+                attrs: value[2],
+                children: value[4]
+            }));
+
+        it('should parse element with child', () => {
+            const result = node.parse(['<div class="block" style=',' id="id1" title=','><p id="id2" class=','>text of p</p></div>']);
+            expect(result).toEqual({
+                tag: 'div',
+                attrs: {
+                    class: 'block',
+                    style: 'values[0]',
+                    id: 'id1',
+                    title: 'values[1]'
+                },
+                children: [{
+                    tag: 'p',
+                    attrs: {
+                        id: 'id2',
+                        class: 'values[2]'
+                    },
+                    children: ['text of p']
+                }]
+            });
+        });
+    });
 });
