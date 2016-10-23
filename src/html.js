@@ -1,5 +1,6 @@
 import {
     any,
+    end,
     find,
     next,
     optional,
@@ -44,7 +45,6 @@ const
         whiteSpace
     ).then(values => Object.assign.call(Object, {}, ...values)),
     component = sequence(
-        optional(whiteSpace),
         find('<').not(find('</')),
         required(any(
             tagName,
@@ -73,17 +73,23 @@ const
             ).then(value => value[1])
         ))
     ).then(value => ({
-        tag: value[2],
-        attrs: value[4],
-        children: value[6]
-    }));
+        tag: value[1],
+        attrs: value[3],
+        children: value[5]
+    })),
+    root = sequence(
+        optional(whiteSpace),
+        component,
+        optional(whiteSpace),
+        end()
+    ).then(values => values[1]);
 
 function html(templates) {
     const args = Array.prototype.slice.call(arguments, 1);
 
     getArgs = () => args;
 
-    return component.parse(templates.raw);
+    return root.parse(templates);
 }
 
 export { html as default };
