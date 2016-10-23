@@ -1,6 +1,7 @@
 import {
     any,
     next,
+    end,
     find,
     optional,
     repeat,
@@ -125,7 +126,23 @@ describe('Parser', () => {
             ).then(values => values.join(','));
 
             expect(pattern.parse(['xyz', 'abc'])).toBe('xyz,values[0],abc');
+            expect(pattern.parse(['xyz', 'abc', 'bvc'])).toBe('xyz,values[0],abc');
+            expect(typeof pattern.parse(['xy1', 'abc'])).toBe('undefined');
             expect(typeof pattern.parse(['xyz', 'acb'])).toBe('undefined');
+        });
+
+        it('should parse multiple strings using end', () => {
+            const pattern = sequence(
+                sequence(
+                    find(/^[a-zA-Z]+/),
+                    next().then(number => `values[${number}]`),
+                    find('abc'),
+                ).then(values => values.join(',')),
+                end()
+            ).then(values => values[0]);
+
+            expect(pattern.parse(['xyz', 'abc'])).toBe('xyz,values[0],abc');
+            expect(typeof pattern.parse(['xyz', 'abc', 'bvc'])).toBe('undefined');
         });
 
         it('should work then', () => {
@@ -143,7 +160,7 @@ describe('Parser', () => {
     describe('method repeat', () => {
         it('should find pattern', () => {
             const pattern = repeat(
-                find(/[a-z]+/i),
+                find(/[a-z]+/),
                 find(/\s/)
             );
             expect(pattern.exec(['a bc def ghjk'], [0, 0])).toEqual({
@@ -163,6 +180,17 @@ describe('Parser', () => {
                 result: ['1', '2', '3'],
                 end: [0, 3]
             });
+        });
+        it('should parse multiple strings', () => {
+            const pattern = repeat(
+                any(
+                    find(/[a-z]+/),
+                    next().then(number => `values[${number}]`)
+                ),
+                find(/\s/)
+            );
+
+            expect(pattern.parse(['a bc ', ' d ef'])).toEqual(['a', 'bc', 'values[0]', 'd', 'ef']);
         });
     });
 

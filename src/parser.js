@@ -161,10 +161,20 @@ function next() {
     });
 }
 
+function end() {
+    return new Parser(function(strings, position) {
+        return !strings[position[0]][position[1]] && strings[position[0] + 1] === UNDEFINED ? {
+            result: true,
+            end: position
+        } : UNDEFINED;
+    });
+}
+
 export {
     Parser,
     any,
     next,
+    end,
     find,
     optional,
     repeat,
