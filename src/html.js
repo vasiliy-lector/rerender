@@ -44,6 +44,7 @@ const
         whiteSpace
     ).then(values => Object.assign.call(Object, {}, ...values)),
     component = sequence(
+        optional(whiteSpace),
         find('<').not(find('</')),
         required(any(
             tagName,
@@ -72,9 +73,9 @@ const
             ).then(value => value[1])
         ))
     ).then(value => ({
-        tag: value[1],
-        attrs: value[3],
-        children: value[5]
+        tag: value[2],
+        attrs: value[4],
+        children: value[6]
     }));
 
 function html(templates) {
@@ -82,7 +83,7 @@ function html(templates) {
 
     getArgs = () => args;
 
-    return component.parse(templates);
+    return component.parse(templates.raw);
 }
 
 export { html as default };
