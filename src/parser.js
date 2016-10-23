@@ -8,11 +8,11 @@ class Parser {
     then(transform) {
         const exec = this.exec;
 
-        return new Parser(function (strings, position) {
-            var executed = exec(strings, position);
+        return new Parser(function (strings, position, values) {
+            var executed = exec(strings, position, values);
 
             return executed && {
-                result: transform(executed.result),
+                result: transform(executed.result, values),
                 end: executed.end
             };
         });
@@ -21,13 +21,13 @@ class Parser {
     not(pattern) {
         const exec = this.exec;
 
-        return new Parser(function (strings, position) {
-            return !pattern.exec(strings, position) ? exec(strings, position) : UNDEFINED;
+        return new Parser(function (strings, position, values) {
+            return !pattern.exec(strings, position, values) ? exec(strings, position, values) : UNDEFINED;
         });
     }
 
-    parse(string) {
-        return (this.exec(typeof string === 'string' ? [string] : string, [0, 0]) || {}).result;
+    parse(string, values) {
+        return (this.exec(typeof string === 'string' ? [string] : string, [0, 0], values) || {}).result;
     }
 }
 
@@ -57,8 +57,8 @@ function find(pattern) {
 }
 
 function optional(pattern) {
-    return new Parser(function (strings, position) {
-        return pattern.exec(strings, position) || {
+    return new Parser(function (strings, position, values) {
+        return pattern.exec(strings, position, values) || {
             result: UNDEFINED,
             end: position
         };
@@ -66,19 +66,19 @@ function optional(pattern) {
 }
 
 function required(pattern) {
-    return new Parser(function (strings, position) {
-        return pattern.exec(strings, position) || error(strings[position[0]], position[1]);
+    return new Parser(function (strings, position, values) {
+        return pattern.exec(strings, position, values) || error(strings[position[0]], position[1]);
     });
 }
 
 function any() {
     const patterns = Array.prototype.slice.call(arguments);
 
-    return new Parser(function (strings, position) {
+    return new Parser(function (strings, position, values) {
         let executed;
 
         for (let i = 0, l = patterns.length; i < l && !executed; i++) {
-            executed = patterns[i].exec(strings, position);
+            executed = patterns[i].exec(strings, position, values);
         }
 
         return executed;
@@ -88,13 +88,13 @@ function any() {
 function sequence() {
     const patterns = Array.prototype.slice.call(arguments);
 
-    return new Parser(function (strings, position) {
+    return new Parser(function (strings, position, values) {
         let executed,
             end = position,
             result = [];
 
         for (let i = 0, l = patterns.length; i < l; i++) {
-            executed = patterns[i].exec(strings, end);
+            executed = patterns[i].exec(strings, end, values);
             if (!executed) {
                 return;
             }
@@ -114,15 +114,15 @@ function repeat(mainPattern, delimeter) {
         ? mainPattern
         : sequence(delimeter, mainPattern).then(value => value[1]);
 
-    return new Parser(function (strings, position) {
+    return new Parser(function (strings, position, values) {
         let result = [],
             end = position,
-            executed = mainPattern.exec(strings, end);
+            executed = mainPattern.exec(strings, end, values);
 
         while (executed !== UNDEFINED && (executed.end[0] > end[0] || executed.end[1] > end[1])) {
             result.push(executed.result);
             end = executed.end;
-            executed = pattern.exec(strings, end);
+            executed = pattern.exec(strings, end, values);
         }
 
         return result && {
@@ -135,8 +135,8 @@ function repeat(mainPattern, delimeter) {
 function deffered(getPattern) {
     let pattern;
 
-    return new Parser(function(strings, position) {
-        return (pattern || (pattern = getPattern())).exec(strings, position);
+    return new Parser(function(strings, position, values) {
+        return (pattern || (pattern = getPattern())).exec(strings, position, values);
     });
 }
 

@@ -10,14 +10,11 @@ import {
     deffered
 } from './parser';
 
-let getArgs;
-
 const
-    // cache = {},
     whiteSpace = find(/^\s+/),
     textNode = find(/^[^<]+/),
     tagName = find(/^[a-zA-Z]+/),
-    placeholder = next().then(value => getArgs()[value]),
+    placeholder = next().then((value, args) => args[value]),
     attrName = find(/^[a-zA-Z_][a-zA-Z0-9]*/),
     booleanAttr = attrName.then(value => ({ [value]: true })),
     quotedAttr = sequence(
@@ -85,11 +82,7 @@ const
     ).then(values => values[1]);
 
 function html(templates) {
-    const args = Array.prototype.slice.call(arguments, 1);
-
-    getArgs = () => args;
-
-    return root.parse(templates);
+    return root.parse(templates, Array.prototype.slice.call(arguments, 1));
 }
 
 export { html as default };
