@@ -8,11 +8,11 @@ class Parser {
     then(transform) {
         const exec = this.exec;
 
-        return new Parser(function (strings, position, values) {
-            const executed = exec(strings, position, values);
+        return new Parser(function (strings, position, options) {
+            const executed = exec(strings, position, options);
 
             return executed && {
-                result: transform(executed.result, values),
+                result: transform(executed.result, options && options.values),
                 end: executed.end
             };
         });
@@ -21,8 +21,8 @@ class Parser {
     not(pattern) {
         const exec = this.exec;
 
-        return new Parser(function (strings, position, values) {
-            return !pattern.exec(strings, position, values) ? exec(strings, position, values) : UNDEFINED;
+        return new Parser(function (strings, position, options) {
+            return !pattern.exec(strings, position, options) ? exec(strings, position, options) : UNDEFINED;
         });
     }
 
@@ -30,7 +30,7 @@ class Parser {
         const strings = typeof string === 'string' ? [string] : string,
             position = [0, 0];
 
-        return (this.exec(strings, position, values) || {}).result;
+        return (this.exec(strings, position, { values }) || {}).result;
     }
 }
 
@@ -60,8 +60,8 @@ function find(pattern) {
 }
 
 function optional(pattern) {
-    return new Parser(function (strings, position, values) {
-        return pattern.exec(strings, position, values) || {
+    return new Parser(function (strings, position, options) {
+        return pattern.exec(strings, position, options) || {
             result: UNDEFINED,
             end: position
         };
@@ -69,19 +69,19 @@ function optional(pattern) {
 }
 
 function required(pattern) {
-    return new Parser(function (strings, position, values) {
-        return pattern.exec(strings, position, values) || error(strings[position[0]], position[1]);
+    return new Parser(function (strings, position, options) {
+        return pattern.exec(strings, position, options) || error(strings[position[0]], position[1]);
     });
 }
 
 function any() {
     const patterns = Array.prototype.slice.call(arguments);
 
-    return new Parser(function (strings, position, values) {
+    return new Parser(function (strings, position, options) {
         let executed;
 
         for (let i = 0, l = patterns.length; i < l && !executed; i++) {
-            executed = patterns[i].exec(strings, position, values);
+            executed = patterns[i].exec(strings, position, options);
         }
 
         return executed;
@@ -91,13 +91,13 @@ function any() {
 function sequence() {
     const patterns = Array.prototype.slice.call(arguments);
 
-    return new Parser(function (strings, position, values) {
+    return new Parser(function (strings, position, options) {
         let executed,
-            end = position,
-            result = [];
+            end = position;
+        const result = [];
 
         for (let i = 0, l = patterns.length; i < l; i++) {
-            executed = patterns[i].exec(strings, end, values);
+            executed = patterns[i].exec(strings, end, options);
             if (!executed) {
                 return;
             }
@@ -117,15 +117,15 @@ function repeat(mainPattern, delimeter) {
         ? mainPattern
         : sequence(delimeter, mainPattern).then(value => value[1]);
 
-    return new Parser(function (strings, position, values) {
+    return new Parser(function (strings, position, options) {
         let result = [],
             end = position,
-            executed = mainPattern.exec(strings, end, values);
+            executed = mainPattern.exec(strings, end, options);
 
         while (executed !== UNDEFINED && (executed.end[0] > end[0] || executed.end[1] > end[1])) {
             result.push(executed.result);
             end = executed.end;
-            executed = pattern.exec(strings, end, values);
+            executed = pattern.exec(strings, end, options);
         }
 
         return result && {
@@ -138,8 +138,8 @@ function repeat(mainPattern, delimeter) {
 function deffered(getPattern) {
     let pattern;
 
-    return new Parser(function(strings, position, values) {
-        return (pattern || (pattern = getPattern())).exec(strings, position, values);
+    return new Parser(function(strings, position, options) {
+        return (pattern || (pattern = getPattern())).exec(strings, position, options);
     });
 }
 
