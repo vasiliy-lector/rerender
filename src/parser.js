@@ -9,7 +9,7 @@ class Parser {
         const exec = this.exec;
 
         return new Parser(function (strings, position, values) {
-            var executed = exec(strings, position, values);
+            const executed = exec(strings, position, values);
 
             return executed && {
                 result: transform(executed.result, values),
@@ -27,7 +27,10 @@ class Parser {
     }
 
     parse(string, values) {
-        return (this.exec(typeof string === 'string' ? [string] : string, [0, 0], values) || {}).result;
+        const strings = typeof string === 'string' ? [string] : string,
+            position = [0, 0];
+
+        return (this.exec(strings, position, values) || {}).result;
     }
 }
 
@@ -164,7 +167,7 @@ function next() {
 function end() {
     return new Parser(function(strings, position) {
         return !strings[position[0]][position[1]] && strings[position[0] + 1] === UNDEFINED ? {
-            result: true,
+            result: '',
             end: position
         } : UNDEFINED;
     });
