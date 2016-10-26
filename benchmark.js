@@ -1,16 +1,8 @@
-import {
-    any,
-    end,
-    find,
-    next,
-    optional,
-    repeat,
-    required,
-    sequence,
-    deffered
-} from './parser';
+var Benchmark = require('benchmark'),
+    parser = require('./lib/parser.js');
 
-const
+var suite = new Benchmark.Suite,
+    { find, next, sequence, repeat, required, any, optional, deffered, end } = parser,
     whiteSpace = find(/^\s+/),
     textNode = find(/^[^<]+/),
     tagName = find(/^[a-zA-Z]+/),
@@ -74,17 +66,34 @@ const
         attrs: value[3],
         children: value[5]
     })),
-    root = sequence(
-        optional(whiteSpace),
-        component,
-        optional(whiteSpace),
-        end()
-    )
+    noCacheRoot = sequence(
+            optional(whiteSpace),
+            component,
+            optional(whiteSpace),
+            end()
+        )
+        .then(values => values[1]),
+    rootWithCache = sequence(
+            optional(whiteSpace),
+            component,
+            optional(whiteSpace),
+            end()
+        )
         .then(values => values[1])
-        .useCache();
+        .useCache(),
+    templates = ['<div class="block" style=',' id="id1" title=','><p id="id2" class=','>text of p</p></div>'],
+    values = [{ background: 'red' }, 'title', 'classname'];
 
-function html(templates) {
-    return root.parse(templates, Array.prototype.slice.call(arguments, 1));
-}
+console.log('noCacheRoot', noCacheRoot.parse(templates, values)); // eslint-disable-line no-console
+console.log('rootWithCache', rootWithCache.parse(templates, values)); // eslint-disable-line no-console
 
-export { html as default };
+suite
+.add('noCacheRoot', () => noCacheRoot.parse(templates, values))
+.add('rootWithCache', () => rootWithCache.parse(templates, values))
+.on('cycle', function(event) {
+    console.log(String(event.target)); // eslint-disable-line no-console
+})
+.on('complete', function() {
+    console.log('Fastest is ' + this.filter('fastest').map('name')); // eslint-disable-line no-console
+})
+.run({ 'async': true });

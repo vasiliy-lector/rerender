@@ -301,7 +301,7 @@ describe('Parser', () => {
     describe('integration methods multiple strings', () => {
         const
             name = find(/[a-z\-]+/i),
-            placeholder = next().then(value => `values[${value}]`),
+            placeholder = next().then((value, values) => values[value]),
             attr = sequence(
                 name,
                 find('='),
@@ -352,20 +352,66 @@ describe('Parser', () => {
             }));
 
         it('should parse element with child', () => {
-            const result = node.parse(['<div class="block" style=',' id="id1" title=','><p id="id2" class=','>text of p</p></div>']);
+            const values = [{ borderColor: 'red' }, 'title of div', 'some-classname'],
+                result = node.parse(['<div class="block" style=',' id="id1" title=','><p id="id2" class=','>text of p</p></div>'], values);
+
             expect(result).toEqual({
                 tag: 'div',
                 attrs: {
                     class: 'block',
-                    style: 'values[0]',
+                    style: values[0],
                     id: 'id1',
-                    title: 'values[1]'
+                    title: values[1]
                 },
                 children: [{
                     tag: 'p',
                     attrs: {
                         id: 'id2',
-                        class: 'values[2]'
+                        class: values[2]
+                    },
+                    children: ['text of p']
+                }]
+            });
+        });
+        it('should work with cache', () => {
+            node.useCache();
+
+            const values1 = [{ borderColor: 'red' }, 'title of div', 'some-classname'],
+                values2 = [{ borderColor: 'blue' }, 'title2 of div', 'some-classname2'],
+                result1 = node.parse(['<div class="block" style=',' id="id1" title=','><p id="id2" class=','>text of p</p></div>'], values1),
+                result2 = node.parse(['<div class="block" style=',' id="id1" title=','><p id="id2" class=','>text of p</p></div>'], values2);
+
+            expect(result1).toEqual({
+                tag: 'div',
+                attrs: {
+                    class: 'block',
+                    style: values1[0],
+                    id: 'id1',
+                    title: values1[1]
+                },
+                children: [{
+                    tag: 'p',
+                    attrs: {
+                        id: 'id2',
+                        class: values1[2]
+                    },
+                    children: ['text of p']
+                }]
+            });
+
+            expect(result2).toEqual({
+                tag: 'div',
+                attrs: {
+                    class: 'block',
+                    style: values2[0],
+                    id: 'id1',
+                    title: values2[1]
+                },
+                children: [{
+                    tag: 'p',
+                    attrs: {
+                        id: 'id2',
+                        class: values2[2]
                     },
                     children: ['text of p']
                 }]

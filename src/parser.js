@@ -1,21 +1,24 @@
-const UNDEFINED = void 0;
+const UNDEFINED = void 0,
+    PRIMITIVE_TYPES = {
+        string: true,
+        boolean: true,
+        number: true
+    },
+    expandCache = function(cache, values) {
+        const type = typeof cache;
+
+        if (PRIMITIVE_TYPES[type]) {
+            return cache;
+        } else if (type === 'function') {
+            return cache(values);
+        } else if (Array.isArray(cache)) {
+            return cache.map(item => expandCache(item, values));
+        }
+    };
 
 class Parser {
     constructor(exec) {
         this.exec = exec;
-    }
-
-    then(transform) {
-        const exec = this.exec;
-
-        return new Parser(function (strings, position, options) {
-            const executed = exec(strings, position, options);
-
-            return executed && {
-                result: transform(executed.result, options && options.values),
-                end: executed.end
-            };
-        });
     }
 
     not(pattern) {
@@ -26,11 +29,50 @@ class Parser {
         });
     }
 
-    parse(string, values) {
+    then(transform) {
+        const exec = this.exec;
+
+        return new Parser(function (strings, position, options = {}) {
+            const executed = exec(strings, position, options);
+
+            return executed && {
+                result: options.cache
+                    ? function(values) {
+                        return transform(expandCache(executed.result, values), values);
+                    }
+                    : transform(executed.result, options.values),
+                end: executed.end
+            };
+        });
+    }
+
+    execWrapper(string, options) {
         const strings = typeof string === 'string' ? [string] : string,
             position = [0, 0];
 
-        return (this.exec(strings, position, { values }) || {}).result;
+        return (this.exec(strings, position, options) || {}).result;
+    }
+
+    parse(string, values) {
+        return this.execWrapper(string, { values });
+    }
+
+    parseCached(string, values) {
+        const cacheId = this.getCacheId(string),
+            cache = this.cache[cacheId] || (this.cache[cacheId] = this.execWrapper(string, { values, cache: true }));
+
+        return expandCache(cache, values);
+    }
+
+    useCache() {
+        this.cache = this.cache || {};
+        this.parse = this.parseCached;
+        return this;
+    }
+
+    getCacheId(strings) {
+        // FIXME: need more safe method
+        return strings.toString();
     }
 }
 
