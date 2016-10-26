@@ -15,38 +15,38 @@ describe('Parser', () => {
         describe('one string', () => {
             it('should work with strings', () => {
                 const pattern = find('a');
-                expect(pattern.exec(['abc'], [0, 0])).toEqual({
+                expect(pattern.exec(['abc'], [0, 0], {})).toEqual({
                     result: 'a',
                     end: [0, 1]
                 });
-                expect(typeof pattern.exec(['abc'], [0, 1])).toBe('undefined');
-                expect(pattern.exec(['bac'], [0, 1])).toEqual({
+                expect(typeof pattern.exec(['abc'], [0, 1], {})).toBe('undefined');
+                expect(pattern.exec(['bac'], [0, 1], {})).toEqual({
                     result: 'a',
                     end: [0, 2]
                 });
-                expect(typeof pattern.exec(['bac'], [0, 0])).toBe('undefined');
+                expect(typeof pattern.exec(['bac'], [0, 0], {})).toBe('undefined');
             });
 
             it('should work with regexps', () => {
                 const pattern = find(/a/);
 
-                expect(pattern.exec(['abc'], [0, 0])).toEqual({
+                expect(pattern.exec(['abc'], [0, 0], {})).toEqual({
                     result: 'a',
                     end: [0, 1]
                 });
-                expect(typeof pattern.exec(['abc'], [0, 1])).toBe('undefined');
-                expect(pattern.exec(['bac'], [0, 1])).toEqual({
+                expect(typeof pattern.exec(['abc'], [0, 1], {})).toBe('undefined');
+                expect(pattern.exec(['bac'], [0, 1], {})).toEqual({
                     result: 'a',
                     end: [0, 2]
                 });
-                expect(typeof pattern.exec(['bac'], [0, 0])).toBe('undefined');
+                expect(typeof pattern.exec(['bac'], [0, 0], {})).toBe('undefined');
             });
 
             it('should work not', () => {
                 const pattern = find(/[a-z]/).not(find('a'));
 
-                expect(typeof pattern.exec(['abc'], [0, 0])).toBe('undefined');
-                expect(pattern.not(find('a')).exec(['abc'], [0, 1])).toEqual({
+                expect(typeof pattern.exec(['abc'], [0, 0], {})).toBe('undefined');
+                expect(pattern.not(find('a')).exec(['abc'], [0, 1], {})).toEqual({
                     result: 'b',
                     end: [0, 2]
                 });
@@ -56,21 +56,21 @@ describe('Parser', () => {
         describe('multiple strings', () => {
             it('should work with strings', () => {
                 const pattern = find('a');
-                expect(pattern.exec(['abc', 'bac'], [1, 1])).toEqual({
+                expect(pattern.exec(['abc', 'bac'], [1, 1], {})).toEqual({
                     result: 'a',
                     end: [1, 2]
                 });
-                expect(typeof pattern.exec(['abc', 'bac'], [1, 0])).toBe('undefined');
+                expect(typeof pattern.exec(['abc', 'bac'], [1, 0], {})).toBe('undefined');
             });
 
             it('should work with regexps', () => {
                 const pattern = find(/a/);
 
-                expect(pattern.exec(['abc', 'bac'], [1, 1])).toEqual({
+                expect(pattern.exec(['abc', 'bac'], [1, 1], {})).toEqual({
                     result: 'a',
                     end: [1, 2]
                 });
-                expect(typeof pattern.exec(['abc', 'bac'], [1, 0])).toBe('undefined');
+                expect(typeof pattern.exec(['abc', 'bac'], [1, 0], {})).toBe('undefined');
             });
         });
 
@@ -82,20 +82,20 @@ describe('Parser', () => {
                 find('a'),
                 find('b')
             );
-            expect(pattern.exec(['abc'], [0, 0])).toEqual({
+            expect(pattern.exec(['abc'], [0, 0], {})).toEqual({
                 result: 'a',
                 end: [0, 1]
             });
-            expect(pattern.exec(['bac'], [0, 0])).toEqual({
+            expect(pattern.exec(['bac'], [0, 0], {})).toEqual({
                 result: 'b',
                 end: [0, 1]
             });
-            expect(pattern.exec(['bac', 'abc'], [1, 1])).toEqual({
+            expect(pattern.exec(['bac', 'abc'], [1, 1], {})).toEqual({
                 result: 'b',
                 end: [1, 2]
             });
-            expect(typeof pattern.exec(['abc'], [0, 2])).toBe('undefined');
-            expect(typeof pattern.exec(['cde'], [0, 0])).toBe('undefined');
+            expect(typeof pattern.exec(['abc'], [0, 2], {})).toBe('undefined');
+            expect(typeof pattern.exec(['cde'], [0, 0], {})).toBe('undefined');
         });
     });
 
@@ -105,17 +105,17 @@ describe('Parser', () => {
                 find('a'),
                 find('b')
             );
-            expect(pattern.exec(['abc'], [0, 0])).toEqual({
+            expect(pattern.exec(['abc'], [0, 0], {})).toEqual({
                 result: ['a', 'b'],
                 end: [0, 2]
             });
-            expect(typeof pattern.exec(['bac'], [0, 0])).toBe('undefined');
-            expect(pattern.exec(['dabc'], [0, 1])).toEqual({
+            expect(typeof pattern.exec(['bac'], [0, 0], {})).toBe('undefined');
+            expect(pattern.exec(['dabc'], [0, 1], {})).toEqual({
                 result: ['a', 'b'],
                 end: [0, 3]
             });
-            expect(typeof pattern.exec(['dabc'], [0, 0])).toBe('undefined');
-            expect(typeof pattern.exec(['bacd'], [0, 0])).toBe('undefined');
+            expect(typeof pattern.exec(['dabc'], [0, 0], {})).toBe('undefined');
+            expect(typeof pattern.exec(['bacd'], [0, 0], {})).toBe('undefined');
         });
 
         it('should parse multiple strings', () => {
@@ -150,7 +150,7 @@ describe('Parser', () => {
                 find('a'),
                 find('b')
             ).then(value => value[0] + value[1]);
-            expect(pattern.exec(['abc'], [0, 0])).toEqual({
+            expect(pattern.exec(['abc'], [0, 0], {})).toEqual({
                 result: 'ab',
                 end: [0, 2]
             });
@@ -163,11 +163,11 @@ describe('Parser', () => {
                 find(/[a-z]+/),
                 find(/\s/)
             );
-            expect(pattern.exec(['a bc def ghjk'], [0, 0])).toEqual({
+            expect(pattern.exec(['a bc def ghjk'], [0, 0], {})).toEqual({
                 result: ['a', 'bc', 'def', 'ghjk'],
                 end: [0, 13]
             });
-            expect(pattern.exec(['a bc '], [0, 0])).toEqual({
+            expect(pattern.exec(['a bc '], [0, 0], {})).toEqual({
                 result: ['a', 'bc'],
                 end: [0, 4]
             });
@@ -176,7 +176,7 @@ describe('Parser', () => {
             const pattern = repeat(
                 find(/\d/)
             );
-            expect(pattern.exec(['123'], [0, 0])).toEqual({
+            expect(pattern.exec(['123'], [0, 0], {})).toEqual({
                 result: ['1', '2', '3'],
                 end: [0, 3]
             });
