@@ -51,7 +51,7 @@ const
         attrs,
         optional(whiteSpace),
         required(any(
-            find('/>').then(() => []),
+            find('/>'),
             sequence(
                 required(find('>')),
                 optional(repeat(any(
@@ -71,8 +71,8 @@ const
         ))
     ).then(value => ({
         tag: value[1],
-        attrs: value[3],
-        children: value[5]
+        attrs: value[3] || {},
+        children: value[5] || []
     })),
     root = sequence(
         optional(whiteSpace),
@@ -80,11 +80,10 @@ const
         optional(whiteSpace),
         end()
     )
-        .then(values => values[1])
-        .useCache();
+        .then(values => values[1]);
 
 function html(templates) {
-    return root.parse(templates, Array.prototype.slice.call(arguments, 1));
+    return root.parse(templates, Array.prototype.slice.call(arguments, 1)) || undefined;
 }
 
 export { html as default };

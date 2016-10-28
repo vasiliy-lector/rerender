@@ -1,78 +1,59 @@
 const UNDEFINED = void 0,
-    PRIMITIVE_TYPES = {
-        string: true,
-        boolean: true,
-        number: true
-    },
-    expandCache = function(cache, values) {
-        const type = typeof cache;
-
-        if (PRIMITIVE_TYPES[type]) {
-            return cache;
-        } else if (type === 'function') {
-            return cache(values);
-        } else if (Array.isArray(cache)) {
-            return cache.map(item => expandCache(item, values));
-        }
+    globalConfig = {
+        disableAutoCache: false
     };
 
+function config(key, value) {
+    globalConfig[key] = value;
+}
+
 class Parser {
-    constructor(exec) {
-        this.exec = exec;
+    constructor(exec, useCache) {
+        if (useCache) {
+            const cache = {};
+            this.exec = function(strings, position, values) {
+                const cacheId = position[1] + ';' + strings[position[0]];
+                if (cache[cacheId] === UNDEFINED) {
+                    cache[cacheId] = exec(strings, position, values);
+                }
+                return cache[cacheId];
+            };
+            this.cached = true;
+        } else {
+            this.exec = exec;
+        }
+    }
+
+    useCache() {
+        return this.cached ? this : new Parser(this.exec, true);
     }
 
     not(pattern) {
         const exec = this.exec;
 
-        return new Parser(function (strings, position, options) {
-            return !pattern.exec(strings, position, options) ? exec(strings, position, options) : UNDEFINED;
+        return new Parser(function (strings, position, values) {
+            return !pattern.exec(strings, position, values) ? exec(strings, position, values) : false;
         });
     }
 
     then(transform) {
         const exec = this.exec;
 
-        return new Parser(function (strings, position, options = {}) {
-            const executed = exec(strings, position, options);
+        return new Parser(function (strings, position, values) {
+            const executed = exec(strings, position, values);
 
             return executed && {
-                result: options.cache
-                    ? function(values) {
-                        return transform(expandCache(executed.result, values), values);
-                    }
-                    : transform(executed.result, options.values),
+                result: transform(executed.result, values),
                 end: executed.end
             };
         });
     }
 
-    execWrapper(string, options) {
+    parse(string, values) {
         const strings = typeof string === 'string' ? [string] : string,
             position = [0, 0];
 
-        return (this.exec(strings, position, options) || {}).result;
-    }
-
-    parse(string, values) {
-        return this.execWrapper(string, { values });
-    }
-
-    parseCached(string, values) {
-        const cacheId = this.getCacheId(string),
-            cache = this.cache[cacheId] || (this.cache[cacheId] = this.execWrapper(string, { values, cache: true }));
-
-        return expandCache(cache, values);
-    }
-
-    useCache() {
-        this.cache = this.cache || {};
-        this.parse = this.parseCached;
-        return this;
-    }
-
-    getCacheId(strings) {
-        // FIXME: need more safe method
-        return strings.toString();
+        return (this.exec(strings, position, values) || {}).result;
     }
 }
 
@@ -87,7 +68,9 @@ function find(pattern) {
                     end: [position[0], position[1] + length]
                 };
             }
-        });
+
+            return false;
+        }, !globalConfig.disableAutoCache);
     } else {
         return new Parser(function (strings, position) {
             var match = pattern.exec(strings[position[0]].slice(position[1]));
@@ -97,13 +80,15 @@ function find(pattern) {
                     end: [position[0], position[1] + match[0].length]
                 };
             }
-        });
+
+            return false;
+        }, !globalConfig.disableAutoCache);
     }
 }
 
 function optional(pattern) {
-    return new Parser(function (strings, position, options) {
-        return pattern.exec(strings, position, options) || {
+    return new Parser(function (strings, position, values) {
+        return pattern.exec(strings, position, values) || {
             result: UNDEFINED,
             end: position
         };
@@ -111,37 +96,37 @@ function optional(pattern) {
 }
 
 function required(pattern) {
-    return new Parser(function (strings, position, options) {
-        return pattern.exec(strings, position, options) || error(strings[position[0]], position[1]);
+    return new Parser(function (strings, position, values) {
+        return pattern.exec(strings, position, values) || error(strings[position[0]], position[1]);
     });
 }
 
 function any() {
     const patterns = Array.prototype.slice.call(arguments);
 
-    return new Parser(function (strings, position, options) {
+    return new Parser(function (strings, position, values) {
         let executed;
 
         for (let i = 0, l = patterns.length; i < l && !executed; i++) {
-            executed = patterns[i].exec(strings, position, options);
+            executed = patterns[i].exec(strings, position, values);
         }
 
-        return executed;
+        return executed || false;
     });
 }
 
 function sequence() {
     const patterns = Array.prototype.slice.call(arguments);
 
-    return new Parser(function (strings, position, options) {
+    return new Parser(function (strings, position, values) {
         let executed,
             end = position;
         const result = [];
 
         for (let i = 0, l = patterns.length; i < l; i++) {
-            executed = patterns[i].exec(strings, end, options);
+            executed = patterns[i].exec(strings, end, values);
             if (!executed) {
-                return;
+                return false;
             }
             result.push(executed.result);
             end = executed.end;
@@ -157,20 +142,20 @@ function sequence() {
 function repeat(mainPattern, delimeter) {
     const pattern = !delimeter
         ? mainPattern
-        : sequence(delimeter, mainPattern).then(value => value[1]);
+        : sequence(delimeter, mainPattern).then(value => value[1], true);
 
-    return new Parser(function (strings, position, options) {
+    return new Parser(function (strings, position, values) {
         let result = [],
             end = position,
-            executed = mainPattern.exec(strings, end, options);
+            executed = mainPattern.exec(strings, end, values);
 
-        while (executed !== UNDEFINED && (executed.end[0] > end[0] || executed.end[1] > end[1])) {
+        while (executed !== false && (executed.end[0] > end[0] || executed.end[1] > end[1])) {
             result.push(executed.result);
             end = executed.end;
-            executed = pattern.exec(strings, end, options);
+            executed = pattern.exec(strings, end, values);
         }
 
-        return result && {
+        return result.length > 0 && {
             result,
             end
         };
@@ -180,8 +165,8 @@ function repeat(mainPattern, delimeter) {
 function deffered(getPattern) {
     let pattern;
 
-    return new Parser(function(strings, position, options) {
-        return (pattern || (pattern = getPattern())).exec(strings, position, options);
+    return new Parser(function(strings, position, values) {
+        return (pattern || (pattern = getPattern())).exec(strings, position, values);
     });
 }
 
@@ -201,8 +186,10 @@ function next() {
             return strings[nextPosition0] !== UNDEFINED ? {
                 result: position[0],
                 end: [nextPosition0, 0]
-            } : UNDEFINED;
+            } : false;
         }
+
+        return false;
     });
 }
 
@@ -211,13 +198,14 @@ function end() {
         return !strings[position[0]][position[1]] && strings[position[0] + 1] === UNDEFINED ? {
             result: '',
             end: position
-        } : UNDEFINED;
+        } : false;
     });
 }
 
 export {
     Parser,
     any,
+    config,
     next,
     end,
     find,
