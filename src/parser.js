@@ -1,21 +1,16 @@
-const UNDEFINED = void 0,
-    globalConfig = {
-        disableAutoCache: false
-    };
-
-function config(key, value) {
-    globalConfig[key] = value;
-}
+const UNDEFINED = void 0;
 
 class Parser {
     constructor(exec, useCache) {
         if (useCache) {
             const cache = {};
-            this.exec = function(strings, position, values) {
-                const cacheId = position[1] + ';' + strings[position[0]];
+            this.exec = function(strings, position, options) {
+                const cacheId = position[0] + ';' + position[1] + ';'+ options.stringsId;
+
                 if (cache[cacheId] === UNDEFINED) {
-                    cache[cacheId] = exec(strings, position, values);
+                    cache[cacheId] = exec(strings, position, options);
                 }
+
                 return cache[cacheId];
             };
             this.cached = true;
@@ -31,19 +26,19 @@ class Parser {
     not(pattern) {
         const exec = this.exec;
 
-        return new Parser(function (strings, position, values) {
-            return !pattern.exec(strings, position, values) ? exec(strings, position, values) : false;
+        return new Parser(function (strings, position, options) {
+            return !pattern.exec(strings, position, options) ? exec(strings, position, options) : false;
         });
     }
 
     then(transform) {
         const exec = this.exec;
 
-        return new Parser(function (strings, position, values) {
-            const executed = exec(strings, position, values);
+        return new Parser(function (strings, position, options) {
+            const executed = exec(strings, position, options);
 
             return executed && {
-                result: transform(executed.result, values),
+                result: transform(executed.result, options.values),
                 end: executed.end
             };
         });
@@ -51,9 +46,10 @@ class Parser {
 
     parse(string, values) {
         const strings = typeof string === 'string' ? [string] : string,
-            position = [0, 0];
+            position = [0, 0],
+            stringsId = strings.toString();
 
-        return (this.exec(strings, position, values) || {}).result;
+        return (this.exec(strings, position, { values, stringsId }) || {}).result;
     }
 }
 
@@ -70,7 +66,7 @@ function find(pattern) {
             }
 
             return false;
-        }, !globalConfig.disableAutoCache);
+        });
     } else {
         return new Parser(function (strings, position) {
             var match = pattern.exec(strings[position[0]].slice(position[1]));
@@ -82,13 +78,13 @@ function find(pattern) {
             }
 
             return false;
-        }, !globalConfig.disableAutoCache);
+        });
     }
 }
 
 function optional(pattern) {
-    return new Parser(function (strings, position, values) {
-        return pattern.exec(strings, position, values) || {
+    return new Parser(function (strings, position, options) {
+        return pattern.exec(strings, position, options) || {
             result: UNDEFINED,
             end: position
         };
@@ -96,19 +92,19 @@ function optional(pattern) {
 }
 
 function required(pattern) {
-    return new Parser(function (strings, position, values) {
-        return pattern.exec(strings, position, values) || error(strings[position[0]], position[1]);
+    return new Parser(function (strings, position, options) {
+        return pattern.exec(strings, position, options) || error(strings[position[0]], position[1]);
     });
 }
 
 function any() {
     const patterns = Array.prototype.slice.call(arguments);
 
-    return new Parser(function (strings, position, values) {
+    return new Parser(function (strings, position, options) {
         let executed;
 
         for (let i = 0, l = patterns.length; i < l && !executed; i++) {
-            executed = patterns[i].exec(strings, position, values);
+            executed = patterns[i].exec(strings, position, options);
         }
 
         return executed || false;
@@ -118,13 +114,13 @@ function any() {
 function sequence() {
     const patterns = Array.prototype.slice.call(arguments);
 
-    return new Parser(function (strings, position, values) {
+    return new Parser(function (strings, position, options) {
         let executed,
             end = position;
         const result = [];
 
         for (let i = 0, l = patterns.length; i < l; i++) {
-            executed = patterns[i].exec(strings, end, values);
+            executed = patterns[i].exec(strings, end, options);
             if (!executed) {
                 return false;
             }
@@ -144,15 +140,15 @@ function repeat(mainPattern, delimeter) {
         ? mainPattern
         : sequence(delimeter, mainPattern).then(value => value[1], true);
 
-    return new Parser(function (strings, position, values) {
+    return new Parser(function (strings, position, options) {
         let result = [],
             end = position,
-            executed = mainPattern.exec(strings, end, values);
+            executed = mainPattern.exec(strings, end, options);
 
         while (executed !== false && (executed.end[0] > end[0] || executed.end[1] > end[1])) {
             result.push(executed.result);
             end = executed.end;
-            executed = pattern.exec(strings, end, values);
+            executed = pattern.exec(strings, end, options);
         }
 
         return result.length > 0 && {
@@ -165,8 +161,8 @@ function repeat(mainPattern, delimeter) {
 function deffered(getPattern) {
     let pattern;
 
-    return new Parser(function(strings, position, values) {
-        return (pattern || (pattern = getPattern())).exec(strings, position, values);
+    return new Parser(function(strings, position, options) {
+        return (pattern || (pattern = getPattern())).exec(strings, position, options);
     });
 }
 
@@ -205,7 +201,6 @@ function end() {
 export {
     Parser,
     any,
-    config,
     next,
     end,
     find,
