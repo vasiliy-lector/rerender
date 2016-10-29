@@ -11,7 +11,7 @@ function configure(key, value) {
 }
 
 function getCacheId(stringsId, position) {
-    return (stringsId << 21) + (position[0] << 13) + position[1];
+    return (stringsId << 21) | (position[0] << 13) | position[1];
 }
 
 function getStringsId(strings) {
