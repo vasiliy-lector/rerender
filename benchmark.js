@@ -91,27 +91,29 @@ var suite = new Benchmark.Suite,
         required(any(
             find('/>').then(() => []),
             sequence(
-                required(find('>')),
+                required(find('>')).useCache(),
                 optional(repeat(any(
                     whiteSpace,
                     placeholder,
                     textNode,
                     deffered(() => componentWithCache)
                 ))),
-                required(find('</')),
-                required(any(
-                    tagName,
-                    placeholder
-                )).useCache(),
-                optional(whiteSpace),
-                required(find('>'))
+                sequence(
+                    required(find('</')),
+                    required(any(
+                        tagName,
+                        placeholder
+                    )),
+                    optional(whiteSpace),
+                    required(find('>'))
+                ).useCache()
             ).then(value => value[1])
         ))
     ).then(value => ({
         tag: value[1],
         attrs: value[3],
         children: value[5]
-    })).useCache(),
+    })),
 
     noCacheRoot = sequence(
         optional(whiteSpace),
@@ -124,7 +126,7 @@ var suite = new Benchmark.Suite,
         componentWithCache,
         optional(whiteSpace),
         end()
-    ).then(value => value[1]),
+    ).then(value => value[1]).useCache(),
     templates = ['<div class="block" style=',' id="id1" title=','><p id="id2" class=','>text of p</p></div>'],
     values = [{ background: 'red' }, 'title', 'classname'];
 

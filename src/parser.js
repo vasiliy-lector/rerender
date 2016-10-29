@@ -1,17 +1,48 @@
-const UNDEFINED = void 0;
+const UNDEFINED = void 0,
+    globalConfig = {
+        cacheDisabled: false
+    },
+    stringIds = {};
+
+let lastStringId = 0;
+
+function configure(key, value) {
+    globalConfig[key] = value;
+}
+
+function getCacheId(stringsId, position) {
+    return (stringsId << 21) + (position[0] << 13) + position[1];
+}
+
+function getStringsId(strings) {
+    let i = strings.length,
+        hash = 0;
+
+    while (i) {
+        let string = strings[--i],
+            j = string.length;
+        while (j) {
+            hash = (((hash << 5) - hash) + string.charCodeAt(--j)) | 0;
+        }
+    }
+
+    return stringIds[hash] || (stringIds[hash] = ++lastStringId);
+}
 
 class Parser {
     constructor(exec, useCache) {
-        if (useCache) {
+        if (useCache && !globalConfig.cacheDisabled) {
             const cache = {};
             this.exec = function(strings, position, options) {
-                const cacheId = position[0] + ';' + position[1] + ';'+ options.stringsId;
+                const cacheId = getCacheId(options.stringsId, position);
+                let cached = cache[cacheId];
 
-                if (cache[cacheId] === UNDEFINED) {
-                    cache[cacheId] = exec(strings, position, options);
+                if (cached === UNDEFINED) {
+                    cached = exec(strings, position, options);
+                    cache[cacheId] = cached;
                 }
 
-                return cache[cacheId];
+                return cached;
             };
             this.cached = true;
         } else {
@@ -46,8 +77,13 @@ class Parser {
 
     parse(string, values) {
         const strings = typeof string === 'string' ? [string] : string,
-            position = [0, 0],
-            stringsId = strings.toString();
+            position = [0, 0];
+
+        let stringsId;
+
+        if (!globalConfig.cacheDisabled) {
+            stringsId = getStringsId(strings);
+        }
 
         return (this.exec(strings, position, { values, stringsId }) || {}).result;
     }
@@ -66,7 +102,7 @@ function find(pattern) {
             }
 
             return false;
-        });
+        }, true);
     } else {
         return new Parser(function (strings, position) {
             var match = pattern.exec(strings[position[0]].slice(position[1]));
@@ -78,7 +114,7 @@ function find(pattern) {
             }
 
             return false;
-        });
+        }, true);
     }
 }
 
@@ -98,13 +134,25 @@ function required(pattern) {
 }
 
 function any() {
-    const patterns = Array.prototype.slice.call(arguments);
+    const patterns = Array.prototype.slice.call(arguments),
+        cache = {};
 
     return new Parser(function (strings, position, options) {
         let executed;
+        const
+            cacheId = getCacheId(options.stringsId, position),
+            cached = cache[cacheId];
 
-        for (let i = 0, l = patterns.length; i < l && !executed; i++) {
-            executed = patterns[i].exec(strings, position, options);
+        if (cached !== UNDEFINED) {
+            executed = patterns[cached].exec(strings, position, options);
+        } else {
+            let i, l;
+
+            for (i = 0, l = patterns.length; i < l && !executed; i++) {
+                executed = patterns[i].exec(strings, position, options);
+            }
+
+            globalConfig.cacheDisabled || (cache[cacheId] = i - 1);
         }
 
         return executed || false;
@@ -186,7 +234,7 @@ function next() {
         }
 
         return false;
-    });
+    }, true);
 }
 
 function end() {
@@ -195,12 +243,13 @@ function end() {
             result: '',
             end: position
         } : false;
-    });
+    }, true);
 }
 
 export {
     Parser,
     any,
+    configure,
     next,
     end,
     find,
