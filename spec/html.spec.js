@@ -35,6 +35,23 @@ describe('html', () => {
         });
     });
 
+    it('should parse component with child', () => {
+        const Instance = { instance: true };
+
+        expect(html `<instance of=${Instance} text="Text of block"><p>Text from parent</p></instance>`).toEqual({
+            tag: 'instance',
+            attrs: {
+                of: Instance,
+                text: 'Text of block'
+            },
+            children: [{
+                tag: 'p',
+                attrs: {},
+                children: ['Text from parent']
+            }]
+        });
+    });
+
     it('should correctly work with two same templates but another values', () => {
         expect([
             html `<div className="block" id=${'id1'}></div>`,

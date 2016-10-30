@@ -16,7 +16,7 @@ configure('cacheEnabled', true);
 const
     whiteSpace = find(/^\s+/),
     textNode = find(/^[^<]+/),
-    tagName = find(/^[a-zA-Z]+/),
+    tagName = find(/^[a-zA-Z][a-zA-Z0-9]*/),
     placeholder = next().then((value, args) => args[value]),
     attrName = find(/^[a-zA-Z_][a-zA-Z0-9]*/),
     booleanAttr = attrName.then(value => ({ [value]: true })),
@@ -50,8 +50,10 @@ const
             tagName,
             placeholder
         )),
-        optional(whiteSpace),
-        attrs,
+        optional(sequence(
+            whiteSpace,
+            attrs
+        ).then(values => values[1])),
         optional(whiteSpace),
         required(any(
             find('/>'),
@@ -74,8 +76,8 @@ const
         ))
     ).then(value => ({
         tag: value[1],
-        attrs: value[3] || {},
-        children: value[5] || []
+        attrs: value[2] || {},
+        children: value[4] || []
     })),
     root = sequence(
         optional(whiteSpace),
