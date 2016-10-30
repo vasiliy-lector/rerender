@@ -65,13 +65,15 @@ const
                     textNode,
                     deffered(() => component)
                 ))),
-                required(find('</')),
-                required(any(
-                    tagName,
-                    placeholder
-                )),
-                optional(whiteSpace),
-                required(find('>'))
+                required(sequence(
+                    find('</'),
+                    any(
+                        tagName,
+                        placeholder
+                    ),
+                    optional(whiteSpace),
+                    find('>')
+                )).useCache()
             ).then(value => value[1])
         ))
     ).then(value => ({
