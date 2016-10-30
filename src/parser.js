@@ -1,6 +1,6 @@
 const UNDEFINED = void 0,
     globalConfig = {
-        cacheDisabled: false
+        cache: true
     },
     stringIds = {};
 
@@ -10,28 +10,47 @@ function configure(key, value) {
     globalConfig[key] = value;
 }
 
+// FIXME: need fast and colision free method
 function getCacheId(stringsId, position) {
     return (stringsId << 21) | (position[0] << 13) | position[1];
 }
 
 function getStringsId(strings) {
-    let i = strings.length,
-        hash = 0;
+    const key = (strings.length << 5) | strings[0].length,
+        stringsWithKey = stringIds[key] || (stringIds[key] = []);
+    let i = stringsWithKey.length,
+        stringId;
 
-    while (i) {
-        let string = strings[--i],
-            j = string.length;
+    while(i) {
+        let item = stringsWithKey[--i],
+            array = item[0],
+            j = array.length;
+
         while (j) {
-            hash = (((hash << 5) - hash) + string.charCodeAt(--j)) | 0;
+            if (array[--j] !== strings[j]) {
+                break;
+            }
+        }
+
+        if (j === 0) {
+            stringId = item[1];
+            break;
         }
     }
 
-    return stringIds[hash] || (stringIds[hash] = ++lastStringId);
+    if (!stringId) {
+        stringId = ++lastStringId;
+        stringsWithKey.push([strings, stringId]);
+    }
+
+    return stringId;
 }
 
 class Parser {
     constructor(exec, useCache) {
-        if (useCache && !globalConfig.cacheDisabled) {
+        this.globalCache = globalConfig.cache;
+
+        if (useCache && this.globalCache) {
             const cache = {};
             this.exec = function(strings, position, options) {
                 const cacheId = getCacheId(options.stringsId, position);
@@ -81,7 +100,7 @@ class Parser {
 
         let stringsId;
 
-        if (!globalConfig.cacheDisabled) {
+        if (this.globalCache) {
             stringsId = getStringsId(strings);
         }
 
@@ -152,7 +171,7 @@ function any() {
                 executed = patterns[i].exec(strings, position, options);
             }
 
-            globalConfig.cacheDisabled || (cache[cacheId] = i - 1);
+            globalConfig.cache || (cache[cacheId] = i - 1);
         }
 
         return executed || false;
