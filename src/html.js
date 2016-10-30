@@ -56,7 +56,7 @@ const
         ).then(values => values[1])),
         optional(whiteSpace),
         required(any(
-            find('/>'),
+            find('/>').then(() => []),
             sequence(
                 required(find('>')),
                 optional(repeat(any(
