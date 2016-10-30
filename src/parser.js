@@ -160,7 +160,7 @@ function any() {
             const cached = cache[cacheId];
 
             if (cached !== UNDEFINED) {
-                return patterns[cached].exec(strings, position, options) || false;
+                return patterns[cached].exec(strings, position, options);
             }
         }
 
@@ -172,7 +172,7 @@ function any() {
             cache[cacheId] = i - 1;
         }
 
-        return executed || false;
+        return executed;
     });
 }
 
@@ -203,14 +203,14 @@ function sequence() {
 function repeat(mainPattern, delimeter) {
     const pattern = !delimeter
         ? mainPattern
-        : sequence(delimeter, mainPattern).then(value => value[1], true);
+        : sequence(delimeter, mainPattern).then(value => value[1]);
 
     return new Parser(function (strings, position, options) {
         let result = [],
             end = position,
             executed = mainPattern.exec(strings, end, options);
 
-        while (executed !== false && (executed.end[0] > end[0] || executed.end[1] > end[1])) {
+        while (executed !== false && (executed.end[1] > end[1] || executed.end[0] > end[0])) {
             result.push(executed.result);
             end = executed.end;
             executed = pattern.exec(strings, end, options);
