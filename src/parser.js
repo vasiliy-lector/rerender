@@ -1,76 +1,67 @@
-const UNDEFINED = void 0,
-    globalConfig = {
-        cache: true
-    },
-    stringIds = {};
+import { getCacheId, getStringsId } from './parserUtils';
 
-let lastStringId = 0;
+const UNDEFINED = void 0,
+    USE_CACHE = true,
+    USE_CACHE_NEGATIVE = 'USE_CACHE_NEGATIVE';
+
+let cacheEnabled = true,
+    autoCacheEnabled = true,
+    autoCacheNegativeEnabled = true;
 
 function configure(key, value) {
-    globalConfig[key] = value;
-}
-
-// FIXME: need fast and colision free method
-function getCacheId(stringsId, position) {
-    return (stringsId << 21) | (position[0] << 13) | position[1];
-}
-
-function getStringsId(strings) {
-    const key = (strings.length << 5) | strings[0].length,
-        stringsWithKey = stringIds[key] || (stringIds[key] = []);
-    let i = stringsWithKey.length,
-        stringId;
-
-    while(i) {
-        let item = stringsWithKey[--i],
-            array = item[0],
-            j = array.length;
-
-        while (j) {
-            if (array[--j] !== strings[j]) {
-                break;
-            }
-        }
-
-        if (j === 0) {
-            stringId = item[1];
+    switch(key) {
+        case 'cacheEnabled':
+            cacheEnabled = value;
             break;
-        }
+        case 'autoCacheEnabled':
+            autoCacheEnabled = value;
+            break;
+        case 'autoCacheNegativeEnabled':
+            autoCacheNegativeEnabled = value;
+            break;
     }
-
-    if (!stringId) {
-        stringId = ++lastStringId;
-        stringsWithKey.push([strings, stringId]);
-    }
-
-    return stringId;
 }
 
 class Parser {
     constructor(exec, useCache) {
-        this.globalCache = globalConfig.cache;
+        this.globalCacheEnabled = cacheEnabled;
 
-        if (useCache && this.globalCache) {
-            const cache = {};
-            this.exec = function(strings, position, options) {
-                const cacheId = getCacheId(options.stringsId, position);
-                let cached = cache[cacheId];
-
-                if (cached === UNDEFINED) {
-                    cached = exec(strings, position, options);
-                    cache[cacheId] = cached;
-                }
-
-                return cached;
-            };
-            this.cached = true;
+        if (useCache && this.globalCacheEnabled) {
+            this.originalExec = exec;
+            this.useCacheOption = useCache;
+            this.cache = {};
+            this.exec = this.execCached.bind(this);
         } else {
             this.exec = exec;
         }
     }
 
+    execCached(strings, position, options) {
+        const cacheId = getCacheId(options.stringsId, position);
+        let cached = this.cache[cacheId];
+
+        if (cached === UNDEFINED) {
+            cached = this.originalExec(strings, position, options);
+            if (this.useCacheOption !== USE_CACHE_NEGATIVE) {
+                this.cache[cacheId] = cached;
+            } else if (cached === false || (cached && !cached.result)) {
+                this.cache[cacheId] = cached;
+            }
+        }
+
+        return cached;
+    }
+
     useCache() {
-        return this.cached ? this : new Parser(this.exec, true);
+        return this.useCacheOption && this.useCacheOption !== 'USE_CACHE_NEGATIVE'
+            ? this
+            : new Parser(this.originalExec || this.exec, USE_CACHE);
+    }
+
+    useCacheNegative() {
+        return this.useCacheOption === 'USE_CACHE_NEGATIVE'
+            ? this
+            : new Parser(this.originalExec || this.exec, USE_CACHE_NEGATIVE);
     }
 
     not(pattern) {
@@ -100,7 +91,7 @@ class Parser {
 
         let stringsId;
 
-        if (this.globalCache) {
+        if (this.globalCacheEnabled) {
             stringsId = getStringsId(strings);
         }
 
@@ -121,7 +112,7 @@ function find(pattern) {
             }
 
             return false;
-        }, true);
+        }, autoCacheEnabled && USE_CACHE);
     } else {
         return new Parser(function (strings, position) {
             var match = pattern.exec(strings[position[0]].slice(position[1]));
@@ -133,7 +124,7 @@ function find(pattern) {
             }
 
             return false;
-        }, true);
+        }, autoCacheEnabled && USE_CACHE);
     }
 }
 
@@ -143,7 +134,7 @@ function optional(pattern) {
             result: UNDEFINED,
             end: position
         };
-    });
+    }, autoCacheNegativeEnabled && USE_CACHE_NEGATIVE);
 }
 
 function required(pattern) {
@@ -153,25 +144,32 @@ function required(pattern) {
 }
 
 function any() {
-    const patterns = Array.prototype.slice.call(arguments),
+    const patterns = Array.prototype.slice.call(arguments);
+    let cache, useCache;
+
+    if (cacheEnabled) {
         cache = {};
+        useCache = true;
+    }
 
     return new Parser(function (strings, position, options) {
-        let executed;
-        const
-            cacheId = getCacheId(options.stringsId, position),
-            cached = cache[cacheId];
+        let cacheId, executed, i, l;
 
-        if (cached !== UNDEFINED) {
-            executed = patterns[cached].exec(strings, position, options);
-        } else {
-            let i, l;
+        if (useCache) {
+            cacheId = getCacheId(options.stringsId, position);
+            const cached = cache[cacheId];
 
-            for (i = 0, l = patterns.length; i < l && !executed; i++) {
-                executed = patterns[i].exec(strings, position, options);
+            if (cached !== UNDEFINED) {
+                return patterns[cached].exec(strings, position, options) || false;
             }
+        }
 
-            globalConfig.cache || (cache[cacheId] = i - 1);
+        for (i = 0, l = patterns.length; i < l && !executed; i++) {
+            executed = patterns[i].exec(strings, position, options);
+        }
+
+        if (useCache) {
+            cache[cacheId] = i - 1;
         }
 
         return executed || false;
@@ -253,7 +251,7 @@ function next() {
         }
 
         return false;
-    }, true);
+    }, autoCacheEnabled && USE_CACHE);
 }
 
 function end() {
@@ -262,7 +260,7 @@ function end() {
             result: '',
             end: position
         } : false;
-    }, true);
+    }, autoCacheEnabled && USE_CACHE);
 }
 
 export {

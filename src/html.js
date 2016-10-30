@@ -1,5 +1,6 @@
 import {
     any,
+    configure,
     end,
     find,
     next,
@@ -9,6 +10,8 @@ import {
     sequence,
     deffered
 } from './parser';
+
+configure('cacheEnabled', true);
 
 const
     whiteSpace = find(/^\s+/),

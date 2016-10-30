@@ -7,7 +7,7 @@ var suite = new Benchmark.Suite,
     values = [{ background: 'red' }, 'title', 'classname'];
 
 function getParser(useCache) {
-    configure('cache', useCache);
+    configure('cacheEnabled', useCache);
 
     const
         whiteSpace = find(/^\s+/),
