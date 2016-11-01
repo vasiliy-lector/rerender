@@ -39,24 +39,26 @@ function getParser(useCache) {
             any(
                 placeholder,
                 attrWithPlaceholder,
-                quotedAttr.useCache(),
-                booleanAttr.useCache()
+                quotedAttr,
+                booleanAttr
             ),
             whiteSpace
         ).then(values => Object.assign.call(Object, {}, ...values)),
         component = sequence(
-            find('<').not(find('</')).useCache(),
+            find('<').not(find('</')),
             required(any(
                 tagName,
                 placeholder
             )),
-            optional(whiteSpace),
-            attrs,
+            optional(sequence(
+                whiteSpace,
+                attrs
+            ).then(values => values[1])),
             optional(whiteSpace),
             required(any(
                 find('/>').then(() => []),
                 sequence(
-                    required(find('>')).useCache(),
+                    required(find('>')),
                     optional(repeat(any(
                         whiteSpace,
                         placeholder,
@@ -71,13 +73,13 @@ function getParser(useCache) {
                         )),
                         optional(whiteSpace),
                         required(find('>'))
-                    ).useCache()
-                ).then(value => value[1])
+                    )
+                ).then(value => value[1] || [])
             ))
         ).then(value => ({
             tag: value[1],
-            attrs: value[3],
-            children: value[5]
+            attrs: value[2],
+            children: value[4]
         })),
 
         root = sequence(
