@@ -1,67 +1,32 @@
-import { getCacheId, getStringsId } from './parserUtils';
+import { getStringsId } from './parserUtils';
 
 const UNDEFINED = void 0,
-    USE_CACHE = true,
-    USE_CACHE_NEGATIVE = 'USE_CACHE_NEGATIVE';
+    NEED_EXPAND_TYPES = {
+        object: true,
+        function: true
+    };
 
-let cacheEnabled = true,
-    autoCacheEnabled = true,
-    autoCacheNegativeEnabled = true;
+function configure() {}
 
-function configure(key, value) {
-    switch(key) {
-        case 'cacheEnabled':
-            cacheEnabled = value;
-            break;
-        case 'autoCacheEnabled':
-            autoCacheEnabled = value;
-            break;
-        case 'autoCacheNegativeEnabled':
-            autoCacheNegativeEnabled = value;
-            break;
+function expandCache(cached, values) {
+    if (typeof cached === 'function') {
+        return cached(values);
+    } else {
+        return cached.map(result => NEED_EXPAND_TYPES[typeof result] ? expandCache(result, values) : result);
+    }
+}
+
+function hasFunctions(cached) {
+    for (let i = 0, l = cached.length; i < l; i++) {
+        if (typeof cached[i] === 'function' || (Array.isArray(cached[i]) && hasFunctions(cached[i]))) {
+            return true;
+        }
     }
 }
 
 class Parser {
-    constructor(exec, useCache) {
-        this.globalCacheEnabled = cacheEnabled;
-
-        if (useCache && this.globalCacheEnabled) {
-            this.originalExec = exec;
-            this.useCacheOption = useCache;
-            this.cache = {};
-            this.exec = this.execCached.bind(this);
-        } else {
-            this.exec = exec;
-        }
-    }
-
-    execCached(strings, position, options) {
-        const cacheId = getCacheId(options.stringsId, position);
-        let cached = this.cache[cacheId];
-
-        if (cached === UNDEFINED) {
-            cached = this.originalExec(strings, position, options);
-            if (this.useCacheOption !== USE_CACHE_NEGATIVE) {
-                this.cache[cacheId] = cached;
-            } else if (cached === false || (cached && !cached.result)) {
-                this.cache[cacheId] = cached;
-            }
-        }
-
-        return cached;
-    }
-
-    useCache() {
-        return this.useCacheOption && this.useCacheOption !== 'USE_CACHE_NEGATIVE'
-            ? this
-            : new Parser(this.originalExec || this.exec, USE_CACHE);
-    }
-
-    useCacheNegative() {
-        return this.useCacheOption === 'USE_CACHE_NEGATIVE'
-            ? this
-            : new Parser(this.originalExec || this.exec, USE_CACHE_NEGATIVE);
+    constructor(exec) {
+        this.exec = exec;
     }
 
     not(pattern) {
@@ -72,30 +37,68 @@ class Parser {
         });
     }
 
-    then(transform) {
-        const exec = this.exec;
+    execWithTransforms(strings, position, options) {
+        const executed = this.originalExec(strings, position, options);
 
-        return new Parser(function (strings, position, options) {
-            const executed = exec(strings, position, options);
+        if (!executed) {
+            return false;
+        }
 
-            return executed && {
-                result: transform(executed.result, options.values),
-                end: executed.end
-            };
-        });
+        let result = executed.result,
+            needExpand;
+
+        if (Array.isArray(result)) {
+            needExpand = hasFunctions(result);
+        } else if (typeof result === 'function') {
+            needExpand = true;
+        } else {
+            needExpand = false;
+        }
+
+        if (this.cachedTransforms) {
+            result = this.cachedTransforms.reduce((memo, transform) => transform(memo), result);
+        }
+
+        return {
+            result: this.transforms ? values => this.transforms.reduce((memo, transform) => transform(memo, values), needExpand ? expandCache(result, values) : result) : result,
+            end: executed.end
+        };
+    }
+
+    then(transform, useCache) {
+        if (!this.transforms || !this.cachedTransforms) {
+            this.originalExec = this.exec;
+            this.exec = this.execWithTransforms.bind(this);
+            if (useCache) {
+                this.cachedTransforms = [];
+            } else {
+                this.transforms = [];
+            }
+        }
+
+        if (useCache) {
+            this.cachedTransforms.push(transform);
+        } else {
+            this.transforms.push(transform);
+        }
+
+        return this;
     }
 
     parse(string, values) {
         const strings = typeof string === 'string' ? [string] : string,
-            position = [0, 0];
-
-        let stringsId;
-
-        if (this.globalCacheEnabled) {
+            position = [0, 0],
             stringsId = getStringsId(strings);
+        this.cache = this.cache || {};
+
+        let cached = this.cache[stringsId];
+
+        if (cached === UNDEFINED) {
+            cached = (this.exec(strings, position) || {}).result || false;
+            this.cache[stringsId] = cached;
         }
 
-        return (this.exec(strings, position, { values, stringsId }) || {}).result;
+        return cached ? expandCache(cached, values) : UNDEFINED;
     }
 }
 
@@ -112,7 +115,7 @@ function find(pattern) {
             }
 
             return false;
-        }, autoCacheEnabled && USE_CACHE);
+        });
     } else {
         return new Parser(function (strings, position) {
             var match = pattern.exec(strings[position[0]].slice(position[1]));
@@ -124,7 +127,7 @@ function find(pattern) {
             }
 
             return false;
-        }, autoCacheEnabled && USE_CACHE);
+        });
     }
 }
 
@@ -134,7 +137,7 @@ function optional(pattern) {
             result: UNDEFINED,
             end: position
         };
-    }, autoCacheNegativeEnabled && USE_CACHE_NEGATIVE);
+    });
 }
 
 function required(pattern) {
@@ -145,31 +148,12 @@ function required(pattern) {
 
 function any() {
     const patterns = Array.prototype.slice.call(arguments);
-    let cache, useCache;
-
-    if (cacheEnabled) {
-        cache = {};
-        useCache = true;
-    }
 
     return new Parser(function (strings, position, options) {
-        let cacheId, executed, i, l;
-
-        if (useCache) {
-            cacheId = getCacheId(options.stringsId, position);
-            const cached = cache[cacheId];
-
-            if (cached !== UNDEFINED) {
-                return patterns[cached].exec(strings, position, options);
-            }
-        }
+        let executed, i, l;
 
         for (i = 0, l = patterns.length; i < l && !executed; i++) {
             executed = patterns[i].exec(strings, position, options);
-        }
-
-        if (useCache) {
-            cache[cacheId] = i - 1;
         }
 
         return executed;
@@ -203,7 +187,7 @@ function sequence() {
 function repeat(mainPattern, delimeter) {
     const pattern = !delimeter
         ? mainPattern
-        : sequence(delimeter, mainPattern).then(value => value[1]);
+        : sequence(delimeter, mainPattern).then(value => value[1], true);
 
     return new Parser(function (strings, position, options) {
         let result = [],
@@ -251,7 +235,7 @@ function next() {
         }
 
         return false;
-    }, autoCacheEnabled && USE_CACHE);
+    });
 }
 
 function end() {
@@ -260,7 +244,7 @@ function end() {
             result: '',
             end: position
         } : false;
-    }, autoCacheEnabled && USE_CACHE);
+    });
 }
 
 export {

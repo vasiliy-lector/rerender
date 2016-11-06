@@ -2,13 +2,11 @@ var Benchmark = require('benchmark'),
     parser = require('./lib/parser.js');
 
 var suite = new Benchmark.Suite,
-    { configure, find, next, sequence, repeat, required, any, optional, deffered, end } = parser,
+    { find, next, sequence, repeat, required, any, optional, deffered, end } = parser,
     templates = ['<div class="block" style=',' id="id1" title=','><p id="id2" class=','>text of p</p></div>'],
     values = [{ background: 'red' }, 'title', 'classname'];
 
-function getParser(useCache) {
-    configure('cacheEnabled', useCache);
-
+function getParser() {
     const
         whiteSpace = find(/^\s+/),
         textNode = find(/^[^<]+/),
@@ -53,10 +51,10 @@ function getParser(useCache) {
             optional(sequence(
                 whiteSpace,
                 attrs
-            ).then(values => values[1])),
+            ).then(values => values[1]), true),
             optional(whiteSpace),
             required(any(
-                find('/>').then(() => []),
+                find('/>').then(() => [], true),
                 sequence(
                     required(find('>')),
                     optional(repeat(any(
@@ -74,7 +72,7 @@ function getParser(useCache) {
                         optional(whiteSpace),
                         required(find('>'))
                     )
-                ).then(value => value[1] || [])
+                ).then(value => value[1] || [], true)
             ))
         ).then(value => ({
             tag: value[1],
@@ -87,20 +85,17 @@ function getParser(useCache) {
             component,
             optional(whiteSpace),
             end()
-        ).then(value => value[1]);
+        ).then(value => value[1], true);
 
     return root;
 }
 
 const
-    noCacheRoot = getParser(false),
-    rootWithCache = getParser(true);
+    rootWithCache = getParser();
 
-console.log('noCacheRoot', noCacheRoot.parse(templates, values)); // eslint-disable-line no-console
 console.log('rootWithCache', rootWithCache.parse(templates, values)); // eslint-disable-line no-console
 
 suite
-.add('noCacheRoot', () => noCacheRoot.parse(templates, values))
 .add('rootWithCache', () => rootWithCache.parse(templates, values))
 .on('cycle', function(event) {
     console.log(String(event.target)); // eslint-disable-line no-console
