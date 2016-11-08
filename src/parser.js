@@ -1,4 +1,4 @@
-import { getCacheId, getStringsId } from './parserUtils';
+import { getStringsId } from './parserUtils';
 
 const UNDEFINED = void 0,
     USE_CACHE = true,
@@ -29,7 +29,6 @@ class Parser {
         if (useCache && this.globalCacheEnabled) {
             this.originalExec = exec;
             this.useCacheOption = useCache;
-            this.cache = {};
             this.exec = this.execCached.bind(this);
         } else {
             this.exec = exec;
@@ -37,15 +36,18 @@ class Parser {
     }
 
     execCached(strings, position, options) {
-        const cacheId = getCacheId(options.stringsId, position);
-        let cached = this.cache[cacheId];
+        const { cacheIndex } = options;
+        options.cacheIndex = cacheIndex + 1;
+        let cached = options.cache[cacheIndex];
 
         if (cached === UNDEFINED) {
+            let negative = this.useCacheOption === USE_CACHE_NEGATIVE;
             cached = this.originalExec(strings, position, options);
-            if (this.useCacheOption !== USE_CACHE_NEGATIVE) {
-                this.cache[cacheId] = cached;
-            } else if (cached === false || (cached && !cached.result)) {
-                this.cache[cacheId] = cached;
+
+            if (!negative || (negative && (cached === false || (cached && !cached.result)))) {
+                options.cache.length = cacheIndex;
+                options.cacheIndex = cacheIndex + 1;
+                options.cache.push(cached);
             }
         }
 
@@ -87,15 +89,17 @@ class Parser {
 
     parse(string, values) {
         const strings = typeof string === 'string' ? [string] : string,
-            position = [0, 0];
+            position = [0, 0],
+            cacheIndex = 0;
 
-        let stringsId;
+        let cache;
 
         if (this.globalCacheEnabled) {
-            stringsId = getStringsId(strings);
+            const stringsId = getStringsId(strings);
+            cache = (this.cache || (this.cache = {}))[stringsId] || [];
         }
 
-        return (this.exec(strings, position, { values, stringsId }) || {}).result;
+        return (this.exec(strings, position, { values, cache, cacheIndex }) || {}).result;
     }
 }
 
@@ -145,31 +149,37 @@ function required(pattern) {
 
 function any() {
     const patterns = Array.prototype.slice.call(arguments);
-    let cache, useCache;
+    let useCache;
 
     if (cacheEnabled) {
-        cache = {};
         useCache = true;
     }
 
     return new Parser(function (strings, position, options) {
-        let cacheId, executed, i, l;
+        let executed;
 
         if (useCache) {
-            cacheId = getCacheId(options.stringsId, position);
-            const cached = cache[cacheId];
+            const { cacheIndex } = options;
+            options.cacheIndex = cacheIndex + 1;
+            let cached = options.cache[cacheIndex];
 
             if (cached !== UNDEFINED) {
                 return patterns[cached].exec(strings, position, options);
+            } else {
+                let i, l;
+
+                for (i = 0, l = patterns.length; i < l && !executed; i++) {
+                    executed = patterns[i].exec(strings, position, options);
+                }
+
+                options.cache.length = cacheIndex;
+                options.cacheIndex = cacheIndex + 1;
+                options.cache.push(i - 1);
             }
-        }
-
-        for (i = 0, l = patterns.length; i < l && !executed; i++) {
-            executed = patterns[i].exec(strings, position, options);
-        }
-
-        if (useCache) {
-            cache[cacheId] = i - 1;
+        } else {
+            for (let i = 0, l = patterns.length; i < l && !executed; i++) {
+                executed = patterns[i].exec(strings, position, options);
+            }
         }
 
         return executed;
