@@ -55,17 +55,19 @@ class Parser {
     execCachedNegative(strings, position, options) {
         let cached = options.cache[++options.cacheIndex];
 
-        if (cached === UNDEFINED) {
-            const cacheIndex = options.cacheIndex;
-            options.cache.push(NULL);
-            cached = this.originalExec(strings, position, options);
-            if (!cached || (cached && !cached.result)) {
-                options.cache.length = cacheIndex;
-                options.cacheIndex = cacheIndex;
-                options.cache.push(cached);
-            }
-        } else if (cached === NULL) {
-            cached = this.originalExec(strings, position, options);
+        return cached || (cached === NULL && this.originalExec(strings, position, options))
+            || (cached === false && cached) || this.buildCacheNegative(strings, position, options);
+    }
+
+    buildCacheNegative(strings, position, options) {
+        const cacheIndex = options.cacheIndex;
+        options.cache.push(NULL);
+        const cached = this.originalExec(strings, position, options);
+
+        if (!cached || (cached && !cached.result)) {
+            options.cache.length = cacheIndex;
+            options.cacheIndex = cacheIndex;
+            options.cache.push(cached);
         }
 
         return cached;
