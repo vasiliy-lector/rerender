@@ -1,4 +1,4 @@
-import { getStringsId, getCacheId } from '../src/parserUtils';
+import { getStringsId } from '../src/parserUtils';
 
 describe('Parser utils', () => {
     describe('method getStringsId', () => {
@@ -32,30 +32,6 @@ describe('Parser utils', () => {
             expect(id).toBeDefined();
             expect(idClone).toBeDefined();
             expect(id).toBe(idClone);
-        });
-    });
-
-    describe('method getCacheId', () => {
-        it('should generate uniq cacheId', () => {
-            const stringsId1 = 1,
-                stringsId2 = 2,
-                position1 = [0, 0],
-                position1Clone = [0, 0],
-                position2 = [0, 1],
-                position3 = [1, 2];
-
-            expect(getCacheId(stringsId1, position1)).toBeDefined();
-            expect(getCacheId(stringsId1, position2)).toBeDefined();
-            expect(getCacheId(stringsId1, position3)).toBeDefined();
-
-            expect(getCacheId(stringsId1, position1)).toBe(getCacheId(stringsId1, position1));
-            expect(getCacheId(stringsId1, position1Clone)).toBe(getCacheId(stringsId1, position1));
-            expect(getCacheId(stringsId1, position3)).toBe(getCacheId(stringsId1, position3));
-            expect(getCacheId(stringsId2, position3)).toBe(getCacheId(stringsId2, position3));
-            expect(getCacheId(stringsId1, position2)).toBe(getCacheId(stringsId1, position2));
-
-            expect(getCacheId(stringsId2, position2)).not.toBe(getCacheId(stringsId1, position2));
-            expect(getCacheId(stringsId1, position1)).not.toBe(getCacheId(stringsId1, position2));
         });
     });
 });

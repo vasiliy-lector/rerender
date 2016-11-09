@@ -1,10 +1,6 @@
 const stringIds = {};
 let lastStringId = 0;
 
-function getCacheId(stringsId, position) {
-    return stringsId | (position[0] << 13) | position[1];
-}
-
 function getStringsId(strings) {
     const key = (strings.length << 18) | strings[0].length,
         stringsWithKey = stringIds[key] || (stringIds[key] = []);
@@ -29,7 +25,7 @@ function getStringsId(strings) {
     }
 
     if (!stringId) {
-        stringId = (++lastStringId) << 21;
+        stringId = ++lastStringId;
         stringsWithKey.push([strings, stringId]);
     }
 
@@ -37,6 +33,5 @@ function getStringsId(strings) {
 }
 
 export {
-    getCacheId,
     getStringsId
 };
