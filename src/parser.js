@@ -1,6 +1,7 @@
 import { getStringsId } from './parserUtils';
 
 const UNDEFINED = void 0,
+    NULL = null,
     USE_CACHE = true,
     USE_CACHE_NEGATIVE = 'USE_CACHE_NEGATIVE';
 
@@ -29,25 +30,42 @@ class Parser {
         if (useCache && this.globalCacheEnabled) {
             this.originalExec = exec;
             this.useCacheOption = useCache;
-            this.exec = this.execCached.bind(this);
+            this.exec = useCache === USE_CACHE_NEGATIVE
+                ? this.execCachedNegative.bind(this)
+                : this.execCached.bind(this);
         } else {
             this.exec = exec;
         }
     }
 
     execCached(strings, position, options) {
-        let cached = options.cache[options.cacheIndex++];
+        let cached = options.cache[++options.cacheIndex];
 
         if (cached === UNDEFINED) {
-            let negative = this.useCacheOption === USE_CACHE_NEGATIVE;
             const cacheIndex = options.cacheIndex;
             cached = this.originalExec(strings, position, options);
+            options.cache.length = cacheIndex;
+            options.cacheIndex = cacheIndex;
+            options.cache.push(cached);
+        }
 
-            if (!negative || (negative && (cached === false || (cached && !cached.result)))) {
-                options.cache.length = cacheIndex - 1;
+        return cached;
+    }
+
+    execCachedNegative(strings, position, options) {
+        let cached = options.cache[++options.cacheIndex];
+
+        if (cached === UNDEFINED) {
+            const cacheIndex = options.cacheIndex;
+            options.cache.push(NULL);
+            cached = this.originalExec(strings, position, options);
+            if (!cached || (cached && !cached.result)) {
+                options.cache.length = cacheIndex;
                 options.cacheIndex = cacheIndex;
                 options.cache.push(cached);
             }
+        } else if (cached === NULL) {
+            cached = this.originalExec(strings, position, options);
         }
 
         return cached;
@@ -89,13 +107,13 @@ class Parser {
     parse(string, values) {
         const strings = typeof string === 'string' ? [string] : string,
             position = [0, 0],
-            cacheIndex = 0;
+            cacheIndex = -1;
 
         let cache;
 
         if (this.globalCacheEnabled) {
             const stringsId = getStringsId(strings);
-            cache = (this.cache || (this.cache = {}))[stringsId] || [];
+            cache = (this.cache || (this.cache = {}))[stringsId] || (this.cache[stringsId] = []);
         }
 
         return (this.exec(strings, position, { values, cache, cacheIndex }) || {}).result;
@@ -150,7 +168,7 @@ function any() {
     const patterns = Array.prototype.slice.call(arguments);
     let useCache;
 
-    if (false && cacheEnabled) {
+    if (cacheEnabled) {
         useCache = true;
     }
 
@@ -158,22 +176,22 @@ function any() {
         let executed;
 
         if (useCache) {
-            const { cacheIndex } = options;
-            options.cacheIndex = cacheIndex + 1;
-            let cached = options.cache[cacheIndex];
+            let cached = options.cache[++options.cacheIndex];
 
             if (cached !== UNDEFINED) {
                 return patterns[cached].exec(strings, position, options);
             } else {
-                let i, l;
+                let i, l, patternCache = [];
+                const cacheIndex = options.cacheIndex;
 
                 for (i = 0, l = patterns.length; i < l && !executed; i++) {
-                    executed = patterns[i].exec(strings, position, options);
+                    patternCache = [];
+                    executed = patterns[i].exec(strings, position, Object.assign({}, options, { cache: patternCache, cacheIndex: -1 }));
                 }
 
-                options.cache.length = cacheIndex;
-                options.cacheIndex = cacheIndex + 1;
                 options.cache.push(i - 1);
+                Array.prototype.push.apply(options.cache, patternCache);
+                options.cacheIndex = cacheIndex + patternCache.length;
             }
         } else {
             for (let i = 0, l = patterns.length; i < l && !executed; i++) {
