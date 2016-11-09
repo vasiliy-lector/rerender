@@ -36,17 +36,16 @@ class Parser {
     }
 
     execCached(strings, position, options) {
-        const { cacheIndex } = options;
-        options.cacheIndex = cacheIndex + 1;
-        let cached = options.cache[cacheIndex];
+        let cached = options.cache[options.cacheIndex++];
 
         if (cached === UNDEFINED) {
             let negative = this.useCacheOption === USE_CACHE_NEGATIVE;
+            const cacheIndex = options.cacheIndex;
             cached = this.originalExec(strings, position, options);
 
             if (!negative || (negative && (cached === false || (cached && !cached.result)))) {
-                options.cache.length = cacheIndex;
-                options.cacheIndex = cacheIndex + 1;
+                options.cache.length = cacheIndex - 1;
+                options.cacheIndex = cacheIndex;
                 options.cache.push(cached);
             }
         }
@@ -151,7 +150,7 @@ function any() {
     const patterns = Array.prototype.slice.call(arguments);
     let useCache;
 
-    if (cacheEnabled) {
+    if (false && cacheEnabled) {
         useCache = true;
     }
 
