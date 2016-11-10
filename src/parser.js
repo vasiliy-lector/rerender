@@ -1,8 +1,6 @@
 import { getStringsId } from './parserUtils';
 
-const UNDEFINED = void 0,
-    NULL = null,
-    USE_CACHE = true,
+const USE_CACHE = true,
     USE_CACHE_NEGATIVE = 'USE_CACHE_NEGATIVE';
 
 let cacheEnabled = true,
@@ -41,7 +39,7 @@ class Parser {
     execCached(strings, position, options) {
         let cached = options.cache[++options.cacheIndex];
 
-        if (cached === UNDEFINED) {
+        if (cached === undefined) {
             const cacheIndex = options.cacheIndex;
             cached = this.originalExec(strings, position, options);
             options.cache.length = cacheIndex;
@@ -55,13 +53,13 @@ class Parser {
     execCachedNegative(strings, position, options) {
         let cached = options.cache[++options.cacheIndex];
 
-        return cached || (cached === NULL && this.originalExec(strings, position, options))
+        return cached || (cached === null && this.originalExec(strings, position, options))
             || (cached === false && cached) || this.buildCacheNegative(strings, position, options);
     }
 
     buildCacheNegative(strings, position, options) {
         const cacheIndex = options.cacheIndex;
-        options.cache.push(NULL);
+        options.cache.push(null);
         const cached = this.originalExec(strings, position, options);
 
         if (!cached || (cached && !cached.result)) {
@@ -154,7 +152,7 @@ function find(pattern) {
 function optional(pattern) {
     return new Parser(function (strings, position, options) {
         return pattern.exec(strings, position, options) || {
-            result: UNDEFINED,
+            result: undefined,
             end: position
         };
     }, autoCacheNegativeEnabled && USE_CACHE_NEGATIVE);
@@ -180,7 +178,7 @@ function any() {
         if (useCache) {
             let cached = options.cache[++options.cacheIndex];
 
-            if (cached !== UNDEFINED) {
+            if (cached !== undefined) {
                 return patterns[cached].exec(strings, position, options);
             } else {
                 let i, l, patternCache = [];
@@ -273,7 +271,7 @@ function next() {
         if (!strings[position[0]][position[1]]) {
             const nextPosition0 = position[0] + 1;
 
-            return strings[nextPosition0] !== UNDEFINED ? {
+            return strings[nextPosition0] !== undefined ? {
                 result: position[0],
                 end: [nextPosition0, 0]
             } : false;
@@ -285,7 +283,7 @@ function next() {
 
 function end() {
     return new Parser(function(strings, position) {
-        return !strings[position[0]][position[1]] && strings[position[0] + 1] === UNDEFINED ? {
+        return !strings[position[0]][position[1]] && strings[position[0] + 1] === undefined ? {
             result: '',
             end: position
         } : false;
