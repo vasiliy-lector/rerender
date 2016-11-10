@@ -1,11 +1,17 @@
 import { getStringsId } from './parserUtils';
 
 const USE_CACHE = true,
-    USE_CACHE_NEGATIVE = 'USE_CACHE_NEGATIVE';
+    USE_CACHE_NEGATIVE = 'USE_CACHE_NEGATIVE',
+    USE_CACHE_OPTIONAL = 'USE_CACHE_OPTIONAL',
+    execByCacheType = {
+        [USE_CACHE]: 'execCached',
+        [USE_CACHE_OPTIONAL]: 'execCachedOptional',
+        [USE_CACHE_NEGATIVE]: 'execCachedNegative'
+    };
 
 let cacheEnabled = true,
     autoCacheEnabled = true,
-    autoCacheNegativeEnabled = true;
+    autoCacheOptionalEnabled = true;
 
 function configure(key, value) {
     switch(key) {
@@ -15,8 +21,8 @@ function configure(key, value) {
         case 'autoCacheEnabled':
             autoCacheEnabled = value;
             break;
-        case 'autoCacheNegativeEnabled':
-            autoCacheNegativeEnabled = value;
+        case 'autoCacheOptionalEnabled':
+            autoCacheOptionalEnabled = value;
             break;
     }
 }
@@ -28,9 +34,7 @@ class Parser {
         if (useCache && this.globalCacheEnabled) {
             this.originalExec = exec;
             this.useCacheOption = useCache;
-            this.exec = useCache === USE_CACHE_NEGATIVE
-                ? this.execCachedNegative.bind(this)
-                : this.execCached.bind(this);
+            this.exec = this[execByCacheType[useCache]].bind(this);
         } else {
             this.exec = exec;
         }
@@ -51,13 +55,13 @@ class Parser {
         return cached;
     }
 
-    execCachedNegative(strings, position, options) {
+    execCachedOptional(strings, position, options) {
         return options.cache
             ? options.cache[++options.cacheIndex] || this.originalExec(strings, position, options)
-            : this.buildCacheNegative(strings, position, options);
+            : this.buildCacheOptional(strings, position, options);
     }
 
-    buildCacheNegative(strings, position, options) {
+    buildCacheOptional(strings, position, options) {
         const cacheIndex = ++options.cacheIndex;
         options.nextCache.push(undefined);
         const cached = this.originalExec(strings, position, options);
@@ -71,8 +75,28 @@ class Parser {
         return cached;
     }
 
+    execCachedNegative(strings, position, options) {
+        return options.cache
+            ? options.cache[++options.cacheIndex] && this.originalExec(strings, position, options)
+            : this.buildCacheNegative(strings, position, options);
+    }
+
+    buildCacheNegative(strings, position, options) {
+        const cacheIndex = ++options.cacheIndex;
+        options.nextCache.push(true);
+        const cached = this.originalExec(strings, position, options);
+
+        if (!cached) {
+            options.nextCache.length = cacheIndex;
+            options.cacheIndex = cacheIndex;
+            options.nextCache.push(cached);
+        }
+
+        return cached;
+    }
+
     useCache() {
-        return this.useCacheOption && this.useCacheOption !== 'USE_CACHE_NEGATIVE'
+        return this.useCacheOption && this.useCacheOption === USE_CACHE
             ? this
             : new Parser(this.originalExec || this.exec, USE_CACHE);
     }
@@ -158,7 +182,7 @@ function optional(pattern) {
             result: undefined,
             end: position
         };
-    }, autoCacheNegativeEnabled && USE_CACHE_NEGATIVE);
+    }, autoCacheOptionalEnabled && USE_CACHE_OPTIONAL);
 }
 
 function required(pattern) {
