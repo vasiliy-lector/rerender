@@ -124,12 +124,12 @@ class Parser {
 
     parse(string, values) {
         const strings = typeof string === 'string' ? [string] : string,
-            position = [0, 0],
-            cacheIndex = -1;
+            position = [0, 0];
 
-        let cache, nextCache;
+        let cache, nextCache, cacheIndex;
 
         if (this.globalCacheEnabled) {
+            cacheIndex = -1;
             const stringsId = getStringsId(strings);
             cache = (this.cache || (this.cache = {}))[stringsId];
             if (!cache) {
@@ -186,12 +186,8 @@ function required(pattern) {
 }
 
 function any() {
-    const patterns = Array.prototype.slice.call(arguments);
-    let useCache;
-
-    if (cacheEnabled && autoCacheEnabled) {
-        useCache = true;
-    }
+    const patterns = Array.prototype.slice.call(arguments),
+        useCache = autoCacheEnabled && cacheEnabled;
 
     return new Parser(function (strings, position, options) {
         let executed;

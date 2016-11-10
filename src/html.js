@@ -13,6 +13,7 @@ import {
 
 configure('cacheEnabled', true);
 configure('autoCacheEnabled', true);
+configure('autoCacheOptionalEnabled', true);
 
 const
     whiteSpace = find(/^\s+/),
