@@ -1,17 +1,17 @@
 import { getStringsId } from './parserUtils';
 
-const USE_CACHE = true,
-    USE_CACHE_NEGATIVE = 'USE_CACHE_NEGATIVE',
-    USE_CACHE_OPTIONAL = 'USE_CACHE_OPTIONAL',
+const CACHE_FULL = 'CACHE_FULL',
+    CACHE_NEGATIVE = 'CACHE_NEGATIVE',
+    CACHE_OPTIONAL = 'CACHE_OPTIONAL',
     execByCacheType = {
-        [USE_CACHE]: 'execCached',
-        [USE_CACHE_OPTIONAL]: 'execCachedOptional',
-        [USE_CACHE_NEGATIVE]: 'execCachedNegative'
+        [CACHE_FULL]: 'execCached',
+        [CACHE_OPTIONAL]: 'execCachedOptional',
+        [CACHE_NEGATIVE]: 'execCachedNegative'
     };
 
 let cacheEnabled = true,
-    autoCacheEnabled = true,
-    autoCacheOptionalEnabled = true;
+    autoCacheEnabled = false,
+    autoCacheOptionalEnabled = false;
 
 function configure(key, value) {
     switch(key) {
@@ -34,7 +34,7 @@ class Parser {
         if (useCache && this.globalCacheEnabled) {
             this.originalExec = exec;
             this.useCacheOption = useCache;
-            this.exec = this[execByCacheType[useCache]].bind(this);
+            this.exec = (this[execByCacheType[useCache]] || exec).bind(this);
         } else {
             this.exec = exec;
         }
@@ -95,16 +95,10 @@ class Parser {
         return cached;
     }
 
-    useCache() {
-        return this.useCacheOption && this.useCacheOption === USE_CACHE
+    useCache(type = CACHE_FULL) {
+        return this.useCacheOption && this.useCacheOption === type
             ? this
-            : new Parser(this.originalExec || this.exec, USE_CACHE);
-    }
-
-    useCacheNegative() {
-        return this.useCacheOption === 'USE_CACHE_NEGATIVE'
-            ? this
-            : new Parser(this.originalExec || this.exec, USE_CACHE_NEGATIVE);
+            : new Parser(this.originalExec || this.exec, type);
     }
 
     not(pattern) {
@@ -160,7 +154,7 @@ function find(pattern) {
             }
 
             return false;
-        }, autoCacheEnabled && USE_CACHE);
+        }, autoCacheEnabled && CACHE_FULL);
     } else {
         return new Parser(function (strings, position) {
             var match = pattern.exec(strings[position[0]].slice(position[1]));
@@ -172,7 +166,7 @@ function find(pattern) {
             }
 
             return false;
-        }, autoCacheEnabled && USE_CACHE);
+        }, autoCacheEnabled && CACHE_FULL);
     }
 }
 
@@ -182,7 +176,7 @@ function optional(pattern) {
             result: undefined,
             end: position
         };
-    }, autoCacheOptionalEnabled && USE_CACHE_OPTIONAL);
+    }, autoCacheOptionalEnabled && CACHE_OPTIONAL);
 }
 
 function required(pattern) {
@@ -195,7 +189,7 @@ function any() {
     const patterns = Array.prototype.slice.call(arguments);
     let useCache;
 
-    if (cacheEnabled) {
+    if (cacheEnabled && autoCacheEnabled) {
         useCache = true;
     }
 
@@ -303,7 +297,7 @@ function next() {
         }
 
         return false;
-    }, autoCacheEnabled && USE_CACHE);
+    }, autoCacheEnabled && CACHE_FULL);
 }
 
 function end() {
@@ -312,7 +306,7 @@ function end() {
             result: '',
             end: position
         } : false;
-    }, autoCacheEnabled && USE_CACHE);
+    }, autoCacheEnabled && CACHE_FULL);
 }
 
 export {
@@ -326,5 +320,8 @@ export {
     repeat,
     required,
     sequence,
-    deffered
+    deffered,
+    CACHE_FULL,
+    CACHE_OPTIONAL,
+    CACHE_NEGATIVE
 };

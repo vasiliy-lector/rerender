@@ -12,6 +12,7 @@ import {
 } from './parser';
 
 configure('cacheEnabled', true);
+configure('autoCacheEnabled', true);
 
 const
     whiteSpace = find(/^\s+/),

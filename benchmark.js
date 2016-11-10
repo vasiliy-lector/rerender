@@ -8,6 +8,8 @@ var suite = new Benchmark.Suite,
 
 function getParser(useCache) {
     configure('cacheEnabled', useCache);
+    configure('autoCacheEnabled', useCache);
+    configure('autoCacheOptionalEnabled', useCache);
 
     const
         whiteSpace = find(/^\s+/),
