@@ -37,35 +37,37 @@ class Parser {
     }
 
     execCached(strings, position, options) {
-        let cached = options.cache[++options.cacheIndex];
+        return options.cache ? options.cache[++options.cacheIndex] : this.buildCache(strings, position, options);
+    }
 
-        if (cached === undefined) {
-            const cacheIndex = options.cacheIndex;
+    buildCache(strings, position, options) {
+        const cacheIndex = ++options.cacheIndex,
             cached = this.originalExec(strings, position, options);
-            options.cache.length = cacheIndex;
-            options.cacheIndex = cacheIndex;
-            options.cache.push(cached);
-        }
+
+        options.nextCache.length = cacheIndex;
+        options.cacheIndex = cacheIndex;
+        options.nextCache.push(cached);
 
         return cached;
     }
 
     execCachedNegative(strings, position, options) {
-        let cached = options.cache[++options.cacheIndex];
+        let cached;
 
-        return cached || (cached === null && this.originalExec(strings, position, options))
-            || (cached === false && cached) || this.buildCacheNegative(strings, position, options);
+        return options.cache
+            ? (cached = options.cache[++options.cacheIndex]) || (cached === null && this.originalExec(strings, position, options)) || cached
+            : this.buildCacheNegative(strings, position, options);
     }
 
     buildCacheNegative(strings, position, options) {
-        const cacheIndex = options.cacheIndex;
-        options.cache.push(null);
+        const cacheIndex = ++options.cacheIndex;
+        options.nextCache.push(null);
         const cached = this.originalExec(strings, position, options);
 
         if (!cached || (cached && !cached.result)) {
-            options.cache.length = cacheIndex;
+            options.nextCache.length = cacheIndex;
             options.cacheIndex = cacheIndex;
-            options.cache.push(cached);
+            options.nextCache.push(cached);
         }
 
         return cached;
@@ -109,14 +111,17 @@ class Parser {
             position = [0, 0],
             cacheIndex = -1;
 
-        let cache;
+        let cache, nextCache;
 
         if (this.globalCacheEnabled) {
             const stringsId = getStringsId(strings);
-            cache = (this.cache || (this.cache = {}))[stringsId] || (this.cache[stringsId] = []);
+            cache = (this.cache || (this.cache = {}))[stringsId];
+            if (!cache) {
+                nextCache = (this.cache[stringsId] = []);
+            }
         }
 
-        return (this.exec(strings, position, { values, cache, cacheIndex }) || {}).result;
+        return (this.exec(strings, position, { values, cache, nextCache, cacheIndex }) || {}).result;
     }
 }
 
@@ -176,21 +181,19 @@ function any() {
         let executed;
 
         if (useCache) {
-            let cached = options.cache[++options.cacheIndex];
-
-            if (cached !== undefined) {
-                return patterns[cached].exec(strings, position, options);
+            if (options.cache) {
+                return patterns[options.cache[++options.cacheIndex]].exec(strings, position, options);
             } else {
                 let i, l, patternCache = [];
-                const cacheIndex = options.cacheIndex;
+                const cacheIndex = ++options.cacheIndex;
 
                 for (i = 0, l = patterns.length; i < l && !executed; i++) {
                     patternCache = [];
-                    executed = patterns[i].exec(strings, position, Object.assign({}, options, { cache: patternCache, cacheIndex: -1 }));
+                    executed = patterns[i].exec(strings, position, Object.assign({}, options, { nextCache: patternCache, cacheIndex: -1 }));
                 }
 
-                options.cache.push(i - 1);
-                Array.prototype.push.apply(options.cache, patternCache);
+                options.nextCache.push(i - 1);
+                Array.prototype.push.apply(options.nextCache, patternCache);
                 options.cacheIndex = cacheIndex + patternCache.length;
             }
         } else {
