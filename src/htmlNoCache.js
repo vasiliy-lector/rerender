@@ -11,9 +11,7 @@ import {
     deffered
 } from './parser';
 
-configure('cacheEnabled', true);
-configure('autoCacheEnabled', true);
-configure('autoCacheOptionalEnabled', true);
+configure('cacheEnabled', false);
 
 const
     whiteSpace = find(/^\s+/),
