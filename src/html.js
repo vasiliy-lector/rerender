@@ -13,6 +13,7 @@ import {
 
 configure('cacheEnabled', true);
 configure('autoCacheEnabled', true);
+configure('autoCacheIndexEnabled', true);
 configure('autoCacheOptionalEnabled', true);
 
 const

@@ -11,6 +11,7 @@ const CACHE_FULL = 'CACHE_FULL',
 
 let cacheEnabled = true,
     autoCacheEnabled = false,
+    autoCacheIndexEnabled = false,
     autoCacheOptionalEnabled = false;
 
 function configure(key, value) {
@@ -20,6 +21,9 @@ function configure(key, value) {
             break;
         case 'autoCacheEnabled':
             autoCacheEnabled = value;
+            break;
+        case 'autoCacheIndexEnabled':
+            autoCacheIndexEnabled = value;
             break;
         case 'autoCacheOptionalEnabled':
             autoCacheOptionalEnabled = value;
@@ -41,16 +45,18 @@ class Parser {
     }
 
     execCached(strings, position, options) {
-        return options.cache ? options.cache[++options.cacheIndex] : this.buildCache(strings, position, options);
+        return options.cache
+            ? options.cache[++options.cacheIndex]
+            : options.disableCache
+                ? this.originalExec(strings, position, options)
+                : this.buildCache(strings, position, options);
     }
 
     buildCache(strings, position, options) {
-        const cacheIndex = ++options.cacheIndex,
-            cached = this.originalExec(strings, position, options);
+        const cached = this.originalExec(strings, position, { disableCache: true, values: options.values });
 
-        options.nextCache.length = cacheIndex;
-        options.cacheIndex = cacheIndex;
         options.nextCache.push(cached);
+        options.cacheIndex++;
 
         return cached;
     }
@@ -58,7 +64,9 @@ class Parser {
     execCachedOptional(strings, position, options) {
         return options.cache
             ? options.cache[++options.cacheIndex] || this.originalExec(strings, position, options)
-            : this.buildCacheOptional(strings, position, options);
+            : options.disableCache
+                ? this.originalExec(strings, position, options)
+                : this.buildCacheOptional(strings, position, options);
     }
 
     buildCacheOptional(strings, position, options) {
@@ -78,7 +86,9 @@ class Parser {
     execCachedNegative(strings, position, options) {
         return options.cache
             ? options.cache[++options.cacheIndex] && this.originalExec(strings, position, options)
-            : this.buildCacheNegative(strings, position, options);
+            : options.disableCache
+                ? this.originalExec(strings, position, options)
+                : this.buildCacheNegative(strings, position, options);
     }
 
     buildCacheNegative(strings, position, options) {
@@ -187,7 +197,7 @@ function required(pattern) {
 
 function any() {
     const patterns = Array.prototype.slice.call(arguments),
-        useCache = autoCacheEnabled && cacheEnabled;
+        useCache = autoCacheIndexEnabled && cacheEnabled;
 
     return new Parser(function (strings, position, options) {
         let executed;
@@ -195,23 +205,26 @@ function any() {
         if (useCache) {
             if (options.cache) {
                 return patterns[options.cache[++options.cacheIndex]].exec(strings, position, options);
-            } else {
+            } else if (!options.disableCache) {
                 let i, l, patternCache = [];
-                const cacheIndex = ++options.cacheIndex;
 
                 for (i = 0, l = patterns.length; i < l && !executed; i++) {
                     patternCache = [];
-                    executed = patterns[i].exec(strings, position, Object.assign({}, options, { nextCache: patternCache, cacheIndex: -1 }));
+                    executed = patterns[i].exec(strings, position, { nextCache: patternCache, cacheIndex: -1, values: options.values });
                 }
 
                 options.nextCache.push(i - 1);
-                Array.prototype.push.apply(options.nextCache, patternCache);
-                options.cacheIndex = cacheIndex + patternCache.length;
+                if (patternCache.length) {
+                    Array.prototype.push.apply(options.nextCache, patternCache);
+                    options.cacheIndex += 1 + patternCache.length;
+                }
+
+                return executed;
             }
-        } else {
-            for (let i = 0, l = patterns.length; i < l && !executed; i++) {
-                executed = patterns[i].exec(strings, position, options);
-            }
+        }
+
+        for (let i = 0, l = patterns.length; i < l && !executed; i++) {
+            executed = patterns[i].exec(strings, position, options);
         }
 
         return executed;
