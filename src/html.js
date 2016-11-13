@@ -13,25 +13,25 @@ import {
 
 function getRoot(useCache) {
     configure('cacheEnabled', useCache);
-    configure('autoCacheEnabled', useCache);
-    configure('autoCacheIndexEnabled', useCache);
-    configure('autoCacheOptionalEnabled', useCache);
+    configure('autoCacheEnabled', false);
+    configure('autoCacheIndexEnabled', false);
+    configure('autoCacheOptionalEnabled', false);
 
     const
         whiteSpace = find(/^\s+/),
         optionalWhiteSpace = optional(whiteSpace),
         textNode = find(/^[^<]+/),
         tagName = find(/^[a-zA-Z][a-zA-Z0-9]*/),
-        placeholder = next().then((result, values) => values[result]),
+        placeholder = next(),
         attrName = find(/^[a-zA-Z_][a-zA-Z0-9]*/),
-        booleanAttr = attrName.then(result => [result, true]).useCache(),
+        booleanAttr = attrName.then(result => [result, true]),
         quotedAttr = sequence(
             attrName,
             find('='),
             required(find('"')),
             find(/[^"]*/),
             required(find('"'))
-        ).then(result => [result[0], result[3]]).useCache(),
+        ).then(result => [result[0], result[3]]),
         attrWithPlaceholder = sequence(
             attrName,
             find('='),
@@ -43,29 +43,34 @@ function getRoot(useCache) {
                     required(find('"'))
                 ).then(result => result[1])
             )
-        ).then(result => [result[0], result[2]]),
+        ).then(result => (obj, values) => {
+            obj[result[0]] = values[result[2]];
+        }),
         attrs = repeat(
             any(
-                placeholder,
+                placeholder.then(index => (obj, values) => {
+                    const value = values[index],
+                        keys = Object.keys(value);
+                    let i = keys.length;
+
+                    while (i--) {
+                        obj[keys[i]] = value[keys[i]];
+                    }
+                }),
                 attrWithPlaceholder,
                 quotedAttr,
                 booleanAttr
             ),
             whiteSpace
-        ).then(results => {
+        ).then(results => values => {
             const memo = {};
 
             for (let i = 0, l = results.length; i < l; i++) {
                 const result = results[i];
-                if (result[0]) {
-                    memo[result[0]] = result[1];
+                if (typeof result === 'function') {
+                    result(memo, values);
                 } else {
-                    const keys = Object.keys(result);
-                    let j = keys.length;
-
-                    while (j--) {
-                        memo[keys[j]] = result[keys[j]];
-                    }
+                    memo[result[0]] = result[1];
                 }
             }
 
@@ -75,20 +80,20 @@ function getRoot(useCache) {
             find('<').not(find('</')),
             required(any(
                 tagName,
-                placeholder
+                placeholder.then(index => values => values[index])
             )),
             optional(sequence(
                 whiteSpace,
                 attrs
-            ).then(result => result[1])),
+            )).then(result => values => result ? result[1](values) : {}),
             optionalWhiteSpace,
             required(any(
-                find('/>').then(() => []),
+                find('/>').then(() => () => []),
                 sequence(
                     required(find('>')),
                     optional(repeat(any(
                         whiteSpace,
-                        placeholder,
+                        placeholder.then(index => values => values[index]),
                         textNode,
                         deffered(() => component)
                     ))),
@@ -100,13 +105,23 @@ function getRoot(useCache) {
                         ),
                         optionalWhiteSpace,
                         find('>')
-                    )).useCache()
-                ).then(result => result[1] || [])
+                    ))
+                ).then(result => values => {
+                    const memo = [],
+                        items = result[1] || [];
+
+                    for (let i = 0, l = items.length; i < l; i++) {
+                        const item = items[i];
+                        memo[i] = typeof item === 'function' ? item(values) : item;
+                    }
+
+                    return memo;
+                })
             ))
-        ).then(result => ({
-            tag: result[1],
-            attrs: result[2] || {},
-            children: result[4] || []
+        ).then(result => values => ({
+            tag: typeof result[1] === 'function' ? result[1](values) : result[1],
+            attrs: result[2](values),
+            children: result[4](values)
         }));
 
     return sequence(
@@ -114,7 +129,7 @@ function getRoot(useCache) {
         component,
         optionalWhiteSpace,
         end()
-    ).then(result => result[1]);
+    ).useCache().then((result, values) => result[1](values));
 }
 
 const root = getRoot(true),
