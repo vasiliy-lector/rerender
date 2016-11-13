@@ -49,16 +49,7 @@ class Parser {
             ? options.cache[++options.cacheIndex]
             : options.disableCache
                 ? this.originalExec(strings, position, options)
-                : this.buildCache(strings, position, options);
-    }
-
-    buildCache(strings, position, options) {
-        const cached = this.originalExec(strings, position, { disableCache: true, values: options.values });
-
-        options.nextCache.push(cached);
-        options.cacheIndex++;
-
-        return cached;
+                : (options.nextCache[++options.cacheIndex] = this.originalExec(strings, position, { disableCache: true, values: options.values }));
     }
 
     execCachedOptional(strings, position, options) {
@@ -206,17 +197,18 @@ function any() {
             if (options.cache) {
                 return patterns[options.cache[++options.cacheIndex]].exec(strings, position, options);
             } else if (!options.disableCache) {
-                let i, l, patternCache = [];
+                let i, l, patternOptions;
 
                 for (i = 0, l = patterns.length; i < l && !executed; i++) {
-                    patternCache = [];
-                    executed = patterns[i].exec(strings, position, { nextCache: patternCache, cacheIndex: -1, values: options.values });
+                    patternOptions = { nextCache: [], cacheIndex: -1, values: options.values, disableCache: options.disableCache };
+                    executed = patterns[i].exec(strings, position, patternOptions);
                 }
 
-                options.nextCache.push(i - 1);
-                if (patternCache.length) {
-                    Array.prototype.push.apply(options.nextCache, patternCache);
-                    options.cacheIndex += 1 + patternCache.length;
+                options.nextCache[++options.cacheIndex] = i - 1;
+
+                if (patternOptions.nextCache.length) {
+                    Array.prototype.push.apply(options.nextCache, patternOptions.nextCache);
+                    options.cacheIndex += patternOptions.nextCache.length;
                 }
 
                 return executed;
