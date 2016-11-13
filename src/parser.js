@@ -62,13 +62,13 @@ class Parser {
 
     buildCacheOptional(strings, position, options) {
         const cacheIndex = ++options.cacheIndex;
-        options.nextCache.push(undefined);
+        options.nextCache[cacheIndex] = undefined;
         const cached = this.originalExec(strings, position, options);
 
         if (cached && !cached.result) {
-            options.nextCache.length = cacheIndex;
             options.cacheIndex = cacheIndex;
-            options.nextCache.push(cached);
+            options.nextCache[cacheIndex] = cached;
+            options.nextCache.length = cacheIndex + 1;
         }
 
         return cached;
@@ -84,13 +84,13 @@ class Parser {
 
     buildCacheNegative(strings, position, options) {
         const cacheIndex = ++options.cacheIndex;
-        options.nextCache.push(true);
+        options.nextCache[cacheIndex] = true;
         const cached = this.originalExec(strings, position, options);
 
         if (!cached) {
-            options.nextCache.length = cacheIndex;
             options.cacheIndex = cacheIndex;
-            options.nextCache.push(cached);
+            options.nextCache[cacheIndex] = cached;
+            options.nextCache.length = cacheIndex + 1;
         }
 
         return cached;
@@ -186,36 +186,36 @@ function required(pattern) {
     });
 }
 
-function any() {
-    const patterns = Array.prototype.slice.call(arguments),
-        useCache = autoCacheIndexEnabled && cacheEnabled;
+function any(...patterns) {
+    const useCache = autoCacheIndexEnabled && cacheEnabled,
+        length = patterns.length;
 
     return new Parser(function (strings, position, options) {
-        let executed;
+        let executed = false;
 
         if (useCache) {
             if (options.cache) {
                 return patterns[options.cache[++options.cacheIndex]].exec(strings, position, options);
             } else if (!options.disableCache) {
-                let i, l, patternOptions;
+                let i, l;
+                const cacheIndex = options.cacheIndex + 1;
+                options.nextCache[cacheIndex] = undefined;
 
-                for (i = 0, l = patterns.length; i < l && !executed; i++) {
-                    patternOptions = { nextCache: [], cacheIndex: -1, values: options.values, disableCache: options.disableCache };
-                    executed = patterns[i].exec(strings, position, patternOptions);
+                for (i = 0, l = length; i < l && !executed; i++) {
+                    if (options.cacheIndex > cacheIndex) {
+                        options.nextCache.length = cacheIndex + 1;
+                        options.cacheIndex = cacheIndex;
+                    }
+                    executed = patterns[i].exec(strings, position, options);
                 }
 
-                options.nextCache[++options.cacheIndex] = i - 1;
-
-                if (patternOptions.nextCache.length) {
-                    Array.prototype.push.apply(options.nextCache, patternOptions.nextCache);
-                    options.cacheIndex += patternOptions.nextCache.length;
-                }
+                options.nextCache[cacheIndex] = i - 1;
 
                 return executed;
             }
         }
 
-        for (let i = 0, l = patterns.length; i < l && !executed; i++) {
+        for (let i = 0, l = length; i < l && !executed; i++) {
             executed = patterns[i].exec(strings, position, options);
         }
 
@@ -223,9 +223,7 @@ function any() {
     });
 }
 
-function sequence() {
-    const patterns = Array.prototype.slice.call(arguments);
-
+function sequence(...patterns) {
     return new Parser(function (strings, position, options) {
         let executed,
             end = position;
