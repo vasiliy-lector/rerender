@@ -88,7 +88,7 @@ function getRoot(useCache) {
             )).then(result => values => result ? result[1](values) : {}),
             optionalWhiteSpace,
             required(any(
-                find('/>').then(() => () => []),
+                find('/>').then(() => []),
                 sequence(
                     required(find('>')),
                     optional(repeat(any(
@@ -121,7 +121,7 @@ function getRoot(useCache) {
         ).then(result => values => ({
             tag: typeof result[1] === 'function' ? result[1](values) : result[1],
             attrs: result[2](values),
-            children: result[4](values)
+            children: typeof result[4] === 'function' ? result[4](values) : result[4]
         }));
 
     return sequence(
