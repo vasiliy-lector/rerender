@@ -198,7 +198,7 @@ function any(...patterns) {
                 return patterns[options.cache[++options.cacheIndex]].exec(strings, position, options);
             } else if (!options.disableCache) {
                 let i, l;
-                const cacheIndex = options.cacheIndex + 1;
+                const cacheIndex = ++options.cacheIndex;
                 options.nextCache[cacheIndex] = undefined;
 
                 for (i = 0, l = length; i < l && !executed; i++) {
