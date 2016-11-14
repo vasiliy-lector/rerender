@@ -1,34 +1,22 @@
-import { getStringsId } from './parserUtils';
-
-const CACHE_FULL = 'CACHE_FULL',
-    CACHE_NEGATIVE = 'CACHE_NEGATIVE',
-    CACHE_OPTIONAL = 'CACHE_OPTIONAL',
-    execByCacheType = {
-        [CACHE_FULL]: 'execCached',
-        [CACHE_OPTIONAL]: 'execCachedOptional',
-        [CACHE_NEGATIVE]: 'execCachedNegative'
-    };
-
-let cacheEnabled = true,
-    autoCacheEnabled = false,
-    autoCacheIndexEnabled = false,
-    autoCacheOptionalEnabled = false;
+let cacheEnabled = true;
 
 function configure(key, value) {
     switch(key) {
         case 'cacheEnabled':
             cacheEnabled = value;
             break;
-        case 'autoCacheEnabled':
-            autoCacheEnabled = value;
-            break;
-        case 'autoCacheIndexEnabled':
-            autoCacheIndexEnabled = value;
-            break;
-        case 'autoCacheOptionalEnabled':
-            autoCacheOptionalEnabled = value;
-            break;
     }
+}
+
+function getHash(strings) {
+    let i = strings.length,
+        result = '' + i;
+
+    while (i--) {
+        result += strings[i];
+    }
+
+    return result;
 }
 
 class Parser {
@@ -38,7 +26,7 @@ class Parser {
         if (useCache && this.globalCacheEnabled) {
             this.useCacheOption = useCache;
             this.originalExec = exec;
-            this.exec = (this[execByCacheType[useCache]] || exec).bind(this);
+            this.exec = this.execCached.bind(this);
         } else {
             this.exec = exec;
         }
@@ -50,51 +38,10 @@ class Parser {
             : (options.nextCache[++options.cacheIndex] = this.originalExec(strings, position, options));
     }
 
-    execCachedOptional(strings, position, options) {
-        return options.cache
-            ? options.cache[++options.cacheIndex] || this.originalExec(strings, position, options)
-            : this.buildCacheOptional(strings, position, options);
-    }
-
-    buildCacheOptional(strings, position, options) {
-        const cacheIndex = ++options.cacheIndex;
-        options.nextCache[cacheIndex] = undefined;
-        const cached = this.originalExec(strings, position, options);
-
-        if (cached && !cached.result) {
-            options.cacheIndex = cacheIndex;
-            this.cache = {};
-            options.nextCache[cacheIndex] = cached;
-            options.nextCache.length = cacheIndex + 1;
-        }
-
-        return cached;
-    }
-
-    execCachedNegative(strings, position, options) {
-        return options.cache
-            ? options.cache[++options.cacheIndex] && this.originalExec(strings, position, options)
-            : this.buildCacheNegative(strings, position, options);
-    }
-
-    buildCacheNegative(strings, position, options) {
-        const cacheIndex = ++options.cacheIndex;
-        options.nextCache[cacheIndex] = true;
-        const cached = this.originalExec(strings, position, options);
-
-        if (!cached) {
-            options.cacheIndex = cacheIndex;
-            options.nextCache[cacheIndex] = cached;
-            options.nextCache.length = cacheIndex + 1;
-        }
-
-        return cached;
-    }
-
-    useCache(type = CACHE_FULL) {
-        return this.useCacheOption && this.useCacheOption === type
+    useCache(useCache = true) {
+        return this.useCacheOption && this.useCacheOption === useCache
             ? this
-            : new Parser(this.originalExec || this.exec, type);
+            : new Parser(this.originalExec || this.exec, useCache);
     }
 
     not(pattern) {
@@ -126,11 +73,11 @@ class Parser {
 
         if (this.globalCacheEnabled) {
             cacheIndex = -1;
-            const stringsId = getStringsId(strings);
+            const hash = getHash(strings);
             this.cache = this.cache || {};
-            cache = this.cache[stringsId];
+            cache = this.cache[hash];
             if (!cache) {
-                nextCache = (this.cache[stringsId] = []);
+                nextCache = (this.cache[hash] = []);
             }
         }
 
@@ -151,7 +98,7 @@ function find(pattern) {
             }
 
             return false;
-        }, autoCacheEnabled && CACHE_FULL);
+        });
     } else {
         return new Parser(function (strings, position) {
             var match = pattern.exec(strings[position[0]].slice(position[1]));
@@ -163,7 +110,7 @@ function find(pattern) {
             }
 
             return false;
-        }, autoCacheEnabled && CACHE_FULL);
+        });
     }
 }
 
@@ -173,7 +120,7 @@ function optional(pattern) {
             result: undefined,
             end: position
         };
-    }, autoCacheOptionalEnabled && CACHE_OPTIONAL);
+    });
 }
 
 function required(pattern) {
@@ -183,33 +130,10 @@ function required(pattern) {
 }
 
 function any(...patterns) {
-    const useCache = autoCacheIndexEnabled && cacheEnabled,
-        length = patterns.length;
+    const length = patterns.length;
 
     return new Parser(function (strings, position, options) {
         let executed = false;
-
-        if (useCache) {
-            if (options.cache) {
-                return patterns[options.cache[++options.cacheIndex]].exec(strings, position, options);
-            } else {
-                let i, l;
-                const cacheIndex = ++options.cacheIndex;
-                options.nextCache[cacheIndex] = undefined;
-
-                for (i = 0, l = length; i < l && !executed; i++) {
-                    if (options.cacheIndex > cacheIndex) {
-                        options.nextCache.length = cacheIndex + 1;
-                        options.cacheIndex = cacheIndex;
-                    }
-                    executed = patterns[i].exec(strings, position, options);
-                }
-
-                options.nextCache[cacheIndex] = i - 1;
-
-                return executed;
-            }
-        }
 
         for (let i = 0, l = length; i < l && !executed; i++) {
             executed = patterns[i].exec(strings, position, options);
@@ -292,7 +216,7 @@ function next() {
         }
 
         return false;
-    }, autoCacheEnabled && CACHE_FULL);
+    });
 }
 
 function end() {
@@ -301,7 +225,7 @@ function end() {
             result: '',
             end: position
         } : false;
-    }, autoCacheEnabled && CACHE_FULL);
+    });
 }
 
 export {
@@ -315,8 +239,5 @@ export {
     repeat,
     required,
     sequence,
-    deffered,
-    CACHE_FULL,
-    CACHE_OPTIONAL,
-    CACHE_NEGATIVE
+    deffered
 };
