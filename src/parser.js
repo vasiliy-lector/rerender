@@ -35,7 +35,21 @@ class Parser {
     execCached(strings, position, options) {
         return options.cache
             ? options.cache[++options.cacheIndex]
-            : (options.nextCache[++options.cacheIndex] = this.originalExec(strings, position, options));
+            : this.buildCache(strings, position, options);
+    }
+
+    buildCache(strings, position, options) {
+        const cacheIndex = ++options.cacheIndex,
+            cached = this.originalExec(strings, position, options);
+
+        if (options.cacheIndex > cacheIndex) {
+            options.cacheIndex = cacheIndex;
+            options.nextCache.length = cacheIndex;
+        }
+
+        options.nextCache[cacheIndex] = cached;
+
+        return cached;
     }
 
     useCache(useCache = true) {
@@ -144,12 +158,14 @@ function any(...patterns) {
 }
 
 function sequence(...patterns) {
+    const length = patterns.length;
+
     return new Parser(function (strings, position, options) {
         let executed,
             end = position;
         const result = [];
 
-        for (let i = 0, l = patterns.length; i < l; i++) {
+        for (let i = 0, l = length; i < l; i++) {
             executed = patterns[i].exec(strings, end, options);
             if (!executed) {
                 return false;
