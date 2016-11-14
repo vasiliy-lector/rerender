@@ -36,8 +36,8 @@ class Parser {
         this.globalCacheEnabled = cacheEnabled;
 
         if (useCache && this.globalCacheEnabled) {
-            this.originalExec = exec;
             this.useCacheOption = useCache;
+            this.originalExec = exec;
             this.exec = (this[execByCacheType[useCache]] || exec).bind(this);
         } else {
             this.exec = exec;
@@ -47,17 +47,13 @@ class Parser {
     execCached(strings, position, options) {
         return options.cache
             ? options.cache[++options.cacheIndex]
-            : options.disableCache
-                ? this.originalExec(strings, position, options)
-                : (options.nextCache[++options.cacheIndex] = this.originalExec(strings, position, { disableCache: true, values: options.values }));
+            : (options.nextCache[++options.cacheIndex] = this.originalExec(strings, position, options));
     }
 
     execCachedOptional(strings, position, options) {
         return options.cache
             ? options.cache[++options.cacheIndex] || this.originalExec(strings, position, options)
-            : options.disableCache
-                ? this.originalExec(strings, position, options)
-                : this.buildCacheOptional(strings, position, options);
+            : this.buildCacheOptional(strings, position, options);
     }
 
     buildCacheOptional(strings, position, options) {
@@ -67,6 +63,7 @@ class Parser {
 
         if (cached && !cached.result) {
             options.cacheIndex = cacheIndex;
+            this.cache = {};
             options.nextCache[cacheIndex] = cached;
             options.nextCache.length = cacheIndex + 1;
         }
@@ -77,9 +74,7 @@ class Parser {
     execCachedNegative(strings, position, options) {
         return options.cache
             ? options.cache[++options.cacheIndex] && this.originalExec(strings, position, options)
-            : options.disableCache
-                ? this.originalExec(strings, position, options)
-                : this.buildCacheNegative(strings, position, options);
+            : this.buildCacheNegative(strings, position, options);
     }
 
     buildCacheNegative(strings, position, options) {
@@ -132,7 +127,8 @@ class Parser {
         if (this.globalCacheEnabled) {
             cacheIndex = -1;
             const stringsId = getStringsId(strings);
-            cache = (this.cache || (this.cache = {}))[stringsId];
+            this.cache = this.cache || {};
+            cache = this.cache[stringsId];
             if (!cache) {
                 nextCache = (this.cache[stringsId] = []);
             }
@@ -196,7 +192,7 @@ function any(...patterns) {
         if (useCache) {
             if (options.cache) {
                 return patterns[options.cache[++options.cacheIndex]].exec(strings, position, options);
-            } else if (!options.disableCache) {
+            } else {
                 let i, l;
                 const cacheIndex = ++options.cacheIndex;
                 options.nextCache[cacheIndex] = undefined;
