@@ -1,13 +1,3 @@
-let cacheEnabled = true;
-
-function configure(key, value) {
-    switch(key) {
-        case 'cacheEnabled':
-            cacheEnabled = value;
-            break;
-    }
-}
-
 function getHash(strings) {
     let i = strings.length,
         result = '' + i;
@@ -21,9 +11,7 @@ function getHash(strings) {
 
 class Parser {
     constructor(exec, useCache) {
-        this.globalCacheEnabled = cacheEnabled;
-
-        if (useCache && this.globalCacheEnabled) {
+        if (useCache) {
             this.useCacheOption = useCache;
             this.originalExec = exec;
             this.exec = this.execCached.bind(this);
@@ -35,7 +23,9 @@ class Parser {
     execCached(strings, position, options) {
         return options.cache
             ? options.cache[++options.cacheIndex]
-            : this.buildCache(strings, position, options);
+            : options.cacheEnabled
+                ? this.buildCache(strings, position, options)
+                : this.originalExec(strings, position, options);
     }
 
     buildCache(strings, position, options) {
@@ -79,13 +69,13 @@ class Parser {
         });
     }
 
-    parse(string, values) {
+    parse(string, values, cacheEnabled = true) {
         const strings = typeof string === 'string' ? [string] : string,
             position = [0, 0];
 
         let cache, nextCache, cacheIndex;
 
-        if (this.globalCacheEnabled) {
+        if (cacheEnabled) {
             cacheIndex = -1;
             const hash = getHash(strings);
             this.cache = this.cache || {};
@@ -95,7 +85,9 @@ class Parser {
             }
         }
 
-        return (this.exec(strings, position, { values, cache, nextCache, cacheIndex }) || {}).result;
+        const options = { values, cache, nextCache, cacheIndex, cacheEnabled };
+
+        return (this.exec(strings, position, options) || {}).result;
     }
 }
 
@@ -247,7 +239,6 @@ function end() {
 export {
     Parser,
     any,
-    configure,
     next,
     end,
     find,
