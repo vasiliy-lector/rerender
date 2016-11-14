@@ -76,13 +76,13 @@ class Parser {
         let cache, nextCache, cacheIndex;
 
         if (cacheEnabled) {
-            cacheIndex = -1;
             const hash = getHash(strings);
             this.cache = this.cache || {};
             cache = this.cache[hash];
             if (!cache) {
                 nextCache = (this.cache[hash] = []);
             }
+            cacheIndex = -1;
         }
 
         const options = { values, cache, nextCache, cacheIndex, cacheEnabled };
