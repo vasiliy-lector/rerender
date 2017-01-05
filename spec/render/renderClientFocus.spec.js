@@ -1,14 +1,14 @@
 import { jsdom } from 'jsdom';
 import { clientRender } from '../../src/render';
 import Component from '../../src/Component';
-import html from '../../src/html';
+import jsx from '../../src/jsx';
 import connect from '../../src/connect';
 import Store from '../../src/Store';
 
 describe('clientRender#focus', () => {
     class Input extends Component {
         render() {
-            return html `<input name="block" value="value" />`;
+            return jsx `<input name="block" value="value" />`;
         }
     }
 
@@ -16,9 +16,9 @@ describe('clientRender#focus', () => {
 
     class PagePure extends Component {
         render() {
-            const input = html `<instance of=${Input} />`;
+            const input = jsx `<${Input} />`;
 
-            return html `<div className="container">
+            return jsx `<div className="container">
                 <div className="column1">
                     ${this.props.inputInColumn1 ? input : null}
                 </div>
@@ -52,7 +52,7 @@ describe('clientRender#focus', () => {
         domNode = document.getElementById('application');
 
     clientRender(
-        html `<instance of=${Page} />`,
+        jsx `<${Page} />`,
         domNode,
         { store, document }
     );

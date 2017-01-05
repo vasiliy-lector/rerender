@@ -1,14 +1,14 @@
 import { jsdom } from 'jsdom';
 import { clientRender, serverRender, RENDER_THROTTLE } from '../../src/render';
 import Store from '../../src/Store';
-import html from '../../src/html';
+import jsx from '../../src/jsx';
 import Component from '../../src/Component';
 import connect from '../../src/connect';
 import { debug } from '../../src/debug';
 
 class Block extends Component {
     render() {
-        return html `<div className="${this.props.className}"><p>${this.props.text}</p>${this.children}</div>`;
+        return jsx `<div className="${this.props.className}"><p>${this.props.text}</p>${this.children}</div>`;
     }
 }
 
@@ -17,7 +17,7 @@ Block.defaults = {
 };
 
 function Stateless(props, children) {
-    return html `<div className="${props.className}"><p>${props.text}</p>${children}</div>`;
+    return jsx `<div className="${props.className}"><p>${props.text}</p>${children}</div>`;
 }
 
 Stateless.defaults = {
@@ -67,7 +67,7 @@ describe('render', () => {
             lifeCycleCalls.push('render');
             const { href, target } = this.state;
 
-            return html `<a onClick=${this.handleClick} target=${target} ref=${this.handleSetRef} href=${href}>link</a>`;
+            return jsx `<a onClick=${this.handleClick} target=${target} ref=${this.handleSetRef} href=${href}>link</a>`;
         }
     }
 
@@ -88,7 +88,7 @@ describe('render', () => {
     class PagePure extends Component {
         handleRef() { }
         render() {
-            return this.props.noLink ? null : html `<instance of=${Statefull} ref=${this.handleRef} />`;
+            return this.props.noLink ? null : jsx `<${Statefull} ref=${this.handleRef} />`;
         }
     }
 
@@ -127,7 +127,7 @@ describe('render', () => {
             });
 
             const result = serverRender(
-                html `<instance of=${Page} />`,
+                jsx `<${Page} />`,
                 { store }
             );
 
@@ -159,7 +159,7 @@ describe('render', () => {
             spyOn(PagePure.prototype, 'handleRef');
 
             clientRender(
-                html `<instance of=${Page} />`,
+                jsx `<${Page} />`,
                 domNode,
                 { store, document }
             );

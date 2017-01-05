@@ -1,5 +1,5 @@
 import { jsdom } from 'jsdom';
-import html from '../../src/html';
+import jsx from '../../src/jsx';
 import Store from '../../src/Store';
 import Component from '../../src/Component';
 import { clientRender } from '../../src/render';
@@ -13,7 +13,7 @@ describe('clientRender#events', () => {
         handleSecondFocus() {}
         handleSecondBlur() {}
         render() {
-            return html `<form>
+            return jsx `<form>
                 <input name="first"
                     onClick=${this.handleFirstClick}
                     onFocus=${this.handleFirstFocus}
@@ -42,7 +42,7 @@ describe('clientRender#events', () => {
         domNode = document.getElementById('application');
         store = new Store();
 
-        clientRender(html `<instance of=${Block} />`, domNode, { store, document });
+        clientRender(jsx `<${Block} />`, domNode, { store, document });
     });
 
     it('should work properly with focus and blur events', () => {

@@ -4,7 +4,7 @@ import connect from '../src/connect';
 import Store from '../src/Store';
 import createAction from '../src/createAction';
 import Component from '../src/Component';
-import html from '../src/html';
+import jsx from '../src/jsx';
 
 describe('connect', () => {
     let actionCallback,
@@ -35,7 +35,7 @@ describe('connect', () => {
                 this.props.action();
             }
             render() {
-                return html `<div className="block">text</div>`;
+                return jsx `<div className="block">text</div>`;
             }
         }
 
@@ -46,7 +46,7 @@ describe('connect', () => {
         })(BlockPure);
 
         clientRender(
-            html `<instance of=${Block} />`,
+            jsx `<${Block} />`,
             domNode,
             { store, document }
         );
@@ -57,7 +57,7 @@ describe('connect', () => {
     it('should merge props', () => {
         class BlockPure extends Component {
             render() {
-                return html `<div>${JSON.stringify(this.props)}</div>`;
+                return jsx `<div>${JSON.stringify(this.props)}</div>`;
             }
         }
 
@@ -79,7 +79,7 @@ describe('connect', () => {
         })(BlockPure);
 
         clientRender(
-            html `<instance of=${Block} index="1" />`,
+            jsx `<${Block} index="1" />`,
             domNode,
             { store, document, omitIds: true }
         );

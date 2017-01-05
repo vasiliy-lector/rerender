@@ -8,7 +8,7 @@ npm install rerender
 Create component:
 ```javascript
 // components/todoList/TodoList.js
-import { Component, connect, html } from 'rerender';
+import { Component, connect, jsx } from 'rerender';
 import Input from '../input/Input';
 import Button from '../button/Button';
 import Items from './TodoListItems';
@@ -43,18 +43,18 @@ class TodoList extends Component {
     render() {
         let { removeTodo, todos } = this.props;
 
-        return html `<div className="todo-list">
-            <instance of=${Items}
+        return jsx `<div className="todo-list">
+            <${Items}
                 todos=${todos}
                 removeTodo=${removeTodo} />
             <div className="todo-list__add">
                 <form onSubmit=${this.handleSubmit}>
-                    <instance of=${Input}
+                    <${Input}
                         name="text"
                         autocomplete="off"
                         onInput=${this.handleInput}
                         placeholder="New todo" />
-                    <instance of=${Button}>${this.props.buttonText}</instance>
+                    <${Button}>${this.props.buttonText}</${Input}>
                 </form>
             </div>
             Вы ввели текст: "${this.state.newTodoValue}"
@@ -151,17 +151,17 @@ export default addTodo;
 Create page:
 ```javascript
 // pages/Index.js
-import { html } from 'rerender';
+import { jsx } from 'rerender';
 import Layout from '../components/layout/Layout';
 import TodoList from '../components/todoList/TodoList';
 import Link from '../components/link/Link';
 
 function Index(){
-    return html `<instance of=${Layout} title="todos">
-        <instance of=${TodoList} buttonText="Add todo" />
-        <p><instance of=${Link}
-            href="/second/">Go second page</instance>
-    </instance>`;
+    return jsx `<${Layout} title="todos">
+        <${TodoList} buttonText="Add todo" />
+        <p><${Link}
+            href="/second/">Go second page</${Link}>
+    </${Layout}>`;
 }
 
 Index.initActions = [].concat(TodoList.initActions);
@@ -182,14 +182,14 @@ Render on server:
 ```javascript
 import { serverRender } from 'rerender';
 
-let result = serverRender(html `<instance of=${Application} />`, { store });
+let result = serverRender(jsx `<${Application} />`, { store });
 ```
 
 Render on client:
 ```javascript
 import { clientRender } from 'rerender';
 
-let result = clientRender(html `<instance of=${Application} />`, document.getElementById('application'), { store });
+let result = clientRender(jsx `<${Application} />`, document.getElementById('application'), { store });
 ```
 
 Full isomorphic example [see here](https://github.com/rerender/rerender-todos).

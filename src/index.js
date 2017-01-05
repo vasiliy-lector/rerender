@@ -6,5 +6,5 @@ export { default as Store } from './Store';
 export { default as Events } from './Events';
 export { serverRender, clientRender } from './render';
 export { getHash, isSameProps } from './utils';
-export { default as html } from './html';
+export { default as jsx } from './jsx';
 export { debug, performanceStart, performanceEnd } from './debug';
