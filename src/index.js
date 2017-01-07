@@ -4,7 +4,6 @@ export { default as connect } from './connect';
 export { default as Component } from './Component';
 export { default as Store } from './Store';
 export { default as Events } from './Events';
-export { serverRender, clientRender } from './render';
+export { render } from './render';
 export { getHash, isSameProps } from './utils';
-export { default as jsx } from './jsx';
 export { debug, performanceStart, performanceEnd } from './debug';
