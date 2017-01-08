@@ -174,7 +174,7 @@ var parser = require('nano-parser'),
                 return jsx.renderComponent(
                     typeof result[1] === 'function' ? result[1](values) : result[1],
                     result[2](values),
-                    function(position) { return typeof result[4] === 'function' ? result[4](values, position) : result[4] },
+                    typeof result[4] === 'function' ? function(position) { return result[4](values, position) } : result[4],
                     position
                 );
             }}),

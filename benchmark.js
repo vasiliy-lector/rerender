@@ -112,6 +112,60 @@ function rerender() {
     return rerenderTemplate.exec('.0');
 }
 
+var rerenderTemplate = jsx.createTemplate(position =>
+    jsx.renderComponent('div', { className: 'block', id: 'id1' }, [
+        jsx.renderComponent('form', { action: '../' }, [
+            jsx.renderComponent('ul', { className: 'li1' }, [
+                jsx.renderComponent('input', { type: 'checkbox', value: 'value1', name: 'name1', checked: true }, [], position + '0.0.0.0'),
+                jsx.renderText('Some text 1')
+            ], position + '0.0.0'),
+            jsx.renderComponent('ul', { className: 'li2' }, [
+                jsx.renderComponent('input', { type: 'checkbox', value: 'value2', name: 'name2', checked: true }, [], position + '0.0.1.0'),
+                jsx.renderText('Some text 2')
+            ], position + '0.0.1'),
+            jsx.renderComponent('ul', { className: 'li3' }, [
+                jsx.renderComponent('input', { type: 'checkbox', value: 'value3', name: 'name3', checked: true }, [], position + '0.0.2.0'),
+                jsx.renderText('Some text 3')
+            ], position + '0.0.2'),
+            jsx.renderComponent('ul', { className: 'li4' }, [
+                jsx.renderComponent('input', { type: 'checkbox', value: 'value4', name: 'name4', checked: true }, [], position + '0.0.3.0'),
+                jsx.renderText('Some text 4')
+            ], position + '0.0.3')
+        ], position + '.0.0')
+    ], position + '.0')
+);
+
+function rerendercachedtemplate() {
+    return rerenderTemplate.exec('.0');
+}
+
+function rerendernopos() {
+    var rerenderTemplate = jsx.createTemplate(position =>
+        jsx.renderComponent('div', { className: 'block', id: 'id1' }, position => [
+            jsx.renderComponent('form', { action: '../' }, position => [
+                jsx.renderComponent('ul', { className: 'li1' }, position => [
+                    jsx.renderComponent('input', { type: 'checkbox', value: 'value1', name: 'name1', checked: true }, []),
+                    jsx.renderText('Some text 1')
+                ]),
+                jsx.renderComponent('ul', { className: 'li2' }, position => [
+                    jsx.renderComponent('input', { type: 'checkbox', value: 'value2', name: 'name2', checked: true }, []),
+                    jsx.renderText('Some text 2')
+                ]),
+                jsx.renderComponent('ul', { className: 'li3' }, position => [
+                    jsx.renderComponent('input', { type: 'checkbox', value: 'value3', name: 'name3', checked: true }, []),
+                    jsx.renderText('Some text 3')
+                ]),
+                jsx.renderComponent('ul', { className: 'li4' }, position => [
+                    jsx.renderComponent('input', { type: 'checkbox', value: 'value4', name: 'name4', checked: true }, []),
+                    jsx.renderText('Some text 4')
+                ])
+            ])
+        ])
+    );
+
+    return rerenderTemplate.exec('.0');
+}
+
 function rerenderjsx() {
     return (jsx `<div className="block" id="${'id1'}">
         <form action="${'../'}">
@@ -286,6 +340,8 @@ suite
 .add('t7', t7Fn)
 .add('pure', pure)
 .add('rerender', rerender)
+.add('rerendernopos', rerendernopos)
+.add('rerendercachedtemplate', rerendercachedtemplate)
 .add('rerenderjsx', rerenderjsx)
 .add('pureReact jsx', pureReact)
 .on('cycle', function(event) {
