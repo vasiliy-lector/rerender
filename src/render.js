@@ -1,19 +1,19 @@
 import Events from './Events';
 import { nextTick } from './utils';
 import { createInstance } from './jsx';
-import renderComponent from './renderComponent';
+import { renderComponent, renderText, renderValue, createTemplate } from './renderComponent';
 
 let rerenderTrigger;
 const
     events = new Events(),
     RENDER_THROTTLE = 50,
     getJsx = function getJsx(config) {
-        const outputMethod = renderComponent(config),
-            jsx = createInstance({
-                outputMethod
-            });
+        const jsx = createInstance();
 
-        jsx.renderComponent = outputMethod;
+        jsx.renderComponent = renderComponent(config, jsx);
+        jsx.renderText = renderText(config, jsx);
+        jsx.renderValue = renderValue;
+        jsx.createTemplate = createTemplate;
 
         return jsx;
     },
@@ -53,4 +53,4 @@ const
         }
     };
 
-export { render, scheduleUpdate, RENDER_THROTTLE };
+export { render, getJsx, scheduleUpdate, RENDER_THROTTLE };
