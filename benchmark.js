@@ -139,68 +139,43 @@ function rerendercachedtemplate() {
     return rerenderTemplate.exec('.0');
 }
 
-function rerendernopos() {
-    var rerenderTemplate = jsx.createTemplate(position =>
-        jsx.renderComponent('div', { className: 'block', id: 'id1' }, position => [
-            jsx.renderComponent('form', { action: '../' }, position => [
-                jsx.renderComponent('ul', { className: 'li1' }, position => [
-                    jsx.renderComponent('input', { type: 'checkbox', value: 'value1', name: 'name1', checked: true }, []),
-                    jsx.renderText('Some text 1')
-                ]),
-                jsx.renderComponent('ul', { className: 'li2' }, position => [
-                    jsx.renderComponent('input', { type: 'checkbox', value: 'value2', name: 'name2', checked: true }, []),
-                    jsx.renderText('Some text 2')
-                ]),
-                jsx.renderComponent('ul', { className: 'li3' }, position => [
-                    jsx.renderComponent('input', { type: 'checkbox', value: 'value3', name: 'name3', checked: true }, []),
-                    jsx.renderText('Some text 3')
-                ]),
-                jsx.renderComponent('ul', { className: 'li4' }, position => [
-                    jsx.renderComponent('input', { type: 'checkbox', value: 'value4', name: 'name4', checked: true }, []),
-                    jsx.renderText('Some text 4')
-                ])
-            ])
-        ])
-    );
-
-    return rerenderTemplate.exec('.0');
-}
+var cachedjsx = jsx `<div className="block" id="${'id1'}">
+    <form action="${'../'}">
+        <ul className='ulclass'>
+            <li className=${'li1'}>
+                <input type="checkbox"
+                    value="${'value1'}"
+                    name=${'name1'}
+                    checked
+                /> Some text 1
+            </li>
+            <li className=${'li1'}>
+                <input type="checkbox"
+                    value="${'value2'}"
+                    name=${'name2'}
+                    checked
+                /> Some text 2
+            </li>
+            <li className=${'li1'}>
+                <input type="checkbox"
+                    value="${'value3'}"
+                    name=${'name3'}
+                    checked
+                /> Some text 3
+            </li>
+            <li className=${'li1'}>
+                <input type="checkbox"
+                    value="${'value4'}"
+                    name=${'name4'}
+                    checked
+                /> Some text 4
+            </li>
+        </ul>
+    </form>
+</div>`
 
 function rerenderjsx() {
-    return (jsx `<div className="block" id="${'id1'}">
-        <form action="${'../'}">
-            <ul className='ulclass'>
-                <li className=${'li1'}>
-                    <input type="checkbox"
-                        value="${'value1'}"
-                        name=${'name1'}
-                        checked
-                    /> Some text 1
-                </li>
-                <li className=${'li1'}>
-                    <input type="checkbox"
-                        value="${'value2'}"
-                        name=${'name2'}
-                        checked
-                    /> Some text 2
-                </li>
-                <li className=${'li1'}>
-                    <input type="checkbox"
-                        value="${'value3'}"
-                        name=${'name3'}
-                        checked
-                    /> Some text 3
-                </li>
-                <li className=${'li1'}>
-                    <input type="checkbox"
-                        value="${'value4'}"
-                        name=${'name4'}
-                        checked
-                    /> Some text 4
-                </li>
-            </ul>
-        </form>
-    </div>`).exec('.0');
+    return cachedjsx.exec('.0');
 }
 
 function pure() {
@@ -332,6 +307,7 @@ console.log('es6xFn', es6xFn()); // eslint-disable-line no-console
 console.log('t7Fn', t7Fn()); // eslint-disable-line no-console
 console.log('pure', JSON.stringify(pure())); // eslint-disable-line no-console
 console.log('rerender', JSON.stringify(rerender())); // eslint-disable-line no-console
+console.log('rerendercachedtemplate', JSON.stringify(rerendercachedtemplate())); // eslint-disable-line no-console
 console.log('rerenderjsx', JSON.stringify(rerenderjsx())); // eslint-disable-line no-console
 console.log('pureReact', pureReact()); // eslint-disable-line no-console
 
@@ -340,7 +316,6 @@ suite
 .add('t7', t7Fn)
 .add('pure', pure)
 .add('rerender', rerender)
-.add('rerendernopos', rerendernopos)
 .add('rerendercachedtemplate', rerendercachedtemplate)
 .add('rerenderjsx', rerenderjsx)
 .add('pureReact jsx', pureReact)
