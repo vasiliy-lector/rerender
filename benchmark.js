@@ -115,22 +115,24 @@ function rerender() {
 var rerenderTemplate = jsx.createTemplate(position =>
     jsx.renderComponent('div', { className: 'block', id: 'id1' }, [
         jsx.renderComponent('form', { action: '../' }, [
-            jsx.renderComponent('ul', { className: 'li1' }, [
-                jsx.renderComponent('input', { type: 'checkbox', value: 'value1', name: 'name1', checked: true }, [], position + '0.0.0.0'),
-                jsx.renderText('Some text 1')
-            ], position + '0.0.0'),
-            jsx.renderComponent('ul', { className: 'li2' }, [
-                jsx.renderComponent('input', { type: 'checkbox', value: 'value2', name: 'name2', checked: true }, [], position + '0.0.1.0'),
-                jsx.renderText('Some text 2')
-            ], position + '0.0.1'),
-            jsx.renderComponent('ul', { className: 'li3' }, [
-                jsx.renderComponent('input', { type: 'checkbox', value: 'value3', name: 'name3', checked: true }, [], position + '0.0.2.0'),
-                jsx.renderText('Some text 3')
-            ], position + '0.0.2'),
-            jsx.renderComponent('ul', { className: 'li4' }, [
-                jsx.renderComponent('input', { type: 'checkbox', value: 'value4', name: 'name4', checked: true }, [], position + '0.0.3.0'),
-                jsx.renderText('Some text 4')
-            ], position + '0.0.3')
+            jsx.renderComponent('ul', { className: 'ulclass' }, [
+                jsx.renderComponent('li', { className: 'li1' }, [
+                    jsx.renderComponent('input', { type: 'checkbox', value: 'value1', name: 'name1', checked: true }, [], position + '0.0.0.0.0'),
+                    jsx.renderText('Some text 1')
+                ], position + '0.0.0.0'),
+                jsx.renderComponent('li', { className: 'li2' }, [
+                    jsx.renderComponent('input', { type: 'checkbox', value: 'value2', name: 'name2', checked: true }, [], position + '0.0.0.1.0'),
+                    jsx.renderText('Some text 2')
+                ], position + '0.0.0.1'),
+                jsx.renderComponent('li', { className: 'li3' }, [
+                    jsx.renderComponent('input', { type: 'checkbox', value: 'value3', name: 'name3', checked: true }, [], position + '0.0.2.0'),
+                    jsx.renderText('Some text 3')
+                ], position + '0.0.0.2'),
+                jsx.renderComponent('li', { className: 'li4' }, [
+                    jsx.renderComponent('input', { type: 'checkbox', value: 'value4', name: 'name4', checked: true }, [], position + '0.0.0.3.0'),
+                    jsx.renderText('Some text 4')
+                ], position + '0.0.0.3')
+            ], position + '0.0.0')
         ], position + '.0.0')
     ], position + '.0')
 );
