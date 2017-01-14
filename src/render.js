@@ -9,13 +9,15 @@ const
     renderClient = function(render, store, domNode) {
         const
             nextMounted = {},
+            allInstances = {},
             jsx = createInstance({
                 store,
                 joinTextNodes: true,
                 stringify: false,
-                nextMounted
+                nextMounted,
+                allInstances
             }),
-            vDom = render({ jsx });
+            vDom = render({ jsx }).exec('__r__');
 
         // check domNode hash
         // listen events 'rerender' and call with throttle rerendering
@@ -27,7 +29,7 @@ const
             stringify: true
         });
 
-        return render({ jsx });
+        return render({ jsx }).exec('__r__');
     },
 
     scheduleUpdate = function(/* { position } */) {

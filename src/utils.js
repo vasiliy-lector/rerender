@@ -1,5 +1,13 @@
 import crypto from 'crypto';
 
+const getFunctionName = (function getFunctionName() {
+    if (getFunctionName.name) {
+        return fn => fn.name;
+    } else {
+        return fn => fn.toString().match(/^function\s*([^\s(]+)/)[1];
+    }
+})();
+
 const SKIP_HOIST = {
         defaults: true,
         required: true,
@@ -68,31 +76,31 @@ function escapeAttr(value) {
 }
 
 // Objects same if them have same properties (arrays property same if same all items)
-function isSameProps(nextProps, props) {
-    if (nextProps === props) {
+function shallowEqual(obj1, obj2) {
+    if (obj1 === obj2) {
         return true;
-    } else if (typeof nextProps !== typeof props) {
+    } else if (typeof obj1 !== typeof obj2) {
         return false;
     } else {
-        const nextPropsKeys = Object.keys(nextProps);
+        const obj1Keys = Object.keys(obj1);
 
-        for (let i = 0, l = nextPropsKeys.length; i < l; i++) {
-            let name = nextPropsKeys[i];
+        for (let i = 0, l = obj1Keys.length; i < l; i++) {
+            let name = obj1Keys[i];
 
-            if (nextProps[name] === props[name]) {
+            if (obj1[name] === obj2[name]) {
                 continue;
-            } else if (typeof nextProps[name] !== typeof props[name]) {
+            } else if (typeof obj1[name] !== typeof obj2[name]) {
                 return false;
-            } else if (Array.isArray(nextProps[name]) && Array.isArray(props[name])) {
-                if (nextProps[name].length !== props[name].length) {
+            } else if (Array.isArray(obj1[name]) && Array.isArray(obj2[name])) {
+                if (obj1[name].length !== obj2[name].length) {
                     return false;
                 }
 
-                let nextArr = nextProps[name],
-                    arr = props[name];
+                let array1 = obj1[name],
+                    array2 = obj2[name];
 
-                for (let i = 0, l = nextArr.length; i < l; i++) {
-                    if (nextArr[i] !== arr[i]) {
+                for (let i = 0, l = array1.length; i < l; i++) {
+                    if (array1[i] !== array2[i]) {
                         return false;
                     }
                 }
@@ -149,9 +157,10 @@ function throttle(fn, milliseconds, { leading }) {
 export {
     escapeAttr,
     escapeHtml,
+    getFunctionName,
     getHash,
     hoistStatics,
-    isSameProps,
     nextTick,
+    shallowEqual,
     throttle
 };

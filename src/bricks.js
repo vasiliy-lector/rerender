@@ -1,5 +1,7 @@
-import { escapeAttr, escapeHtml } from './utils.js';
+import { escapeAttr, escapeHtml, getFunctionName } from './utils.js';
 import Component from './Component';
+import VNode from 'virtual-dom/vnode/vnode';
+import VText from 'virtual-dom/vnode/vtext';
 
 function Template(template) {
     this.template = template;
@@ -12,43 +14,74 @@ Template.prototype = {
     type: 'Template'
 };
 
-function VText(value) {
-    this.value = value;
-}
-
-VText.prototype = {
-    type: 'VText'
-};
-
-function VNode(tag, attrs, children) {
-    this.tag = tag;
-    this.attrs = attrs;
-    this.children = children;
-}
-
-VNode.prototype = {
-    type: 'VNode'
-};
+// function VText(value) {
+//     this.value = value;
+// }
+//
+// VText.prototype = {
+//     type: 'VText'
+// };
+//
+// function VNode(tag, attrs, children) {
+//     this.tag = tag;
+//     this.attrs = attrs;
+//     this.children = children;
+// }
+//
+// VNode.prototype = {
+//     type: 'VNode'
+// };
 
 function template(template) {
     return new Template(template);
 }
 
 function component(config, jsx) {
+    if (config.stringify) {
+        return componentStringify(config, jsx);
+    } else {
+        return componentDom(config, jsx);
+    }
+}
+
+function componentDom({ allInstances }, jsx) {
     return function(tag, attrs, children, position) {
-        // TODO all logic with should update
+        const current = allInstances[position];
+
         // FIXME find faster way to determine Component
-        if (tag instanceof Component) {
-            var instance = new tag(attrs, children, { position, jsx });
+        if (tag.prototype instanceof Component) {
+            const instance = new tag(attrs, children, { position, jsx });
             return instance.render(instance);
         } else {
-            return tag({
-                props: attrs,
-                children,
-                jsx
-            });
+            return jsx.tag(tag, attrs, children, position);
         }
     };
+}
+
+function componentStringify(config, jsx) {
+    return function(tag, attrs, children, position) {
+        position = calcComponentPosition(tag, attrs, position);
+
+        if (tag.prototype instanceof Component) {
+            const instance = new tag(attrs, children, { position, jsx });
+            Component.beforeRender(instance);
+
+            return instance.render(instance);
+        } else {
+            return jsx.tag(tag, attrs, children, position);
+        }
+    };
+}
+
+function calcComponentPosition(tag, attrs, position) {
+    // TODO warning if many instances of singleton or with same key
+    if (tag.singleton) {
+        return `__s__${getFunctionName(tag)}`;
+    } else if (attrs.key) {
+        return `__k__${attrs.key}`;
+    } else {
+        return `${position}${getFunctionName(tag)}`;
+    }
 }
 
 function tag(config) {
