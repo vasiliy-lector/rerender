@@ -71,7 +71,7 @@ function tagStringify() {
     return function (tag, attrs, children, position) {
         let attrsString = '';
 
-        for (let i = 0, attrsKeys = Object.keys(attrs), l = attrsKeys; i < l; i++) {
+        for (let i = 0, attrsKeys = Object.keys(attrs), l = attrsKeys.length; i < l; i++) {
             const key = attrsKeys[i];
 
             // TODO key === 'key'?

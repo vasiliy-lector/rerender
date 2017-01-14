@@ -11,6 +11,32 @@ var jsx = createInstance({ stringify: true });
 
 var suite = new Benchmark.Suite;
 
+function rerender() {
+    return jsx.template(position =>
+        jsx.tag('div', { className: 'block', id: 'id1' }, [
+            jsx.tag('form', { action: '../' }, [
+                jsx.tag('ul', { className: 'ulclass' }, [
+                    jsx.tag('li', { className: 'li1' }, [
+                        jsx.tag('input', { type: 'checkbox', value: 'value1', name: 'name1', checked: true }, [], position + '0.0.0.0.0'),
+                        jsx.text('Some text 1')
+                    ], position + '0.0.0.0'),
+                    jsx.tag('li', { className: 'li2' }, [
+                        jsx.tag('input', { type: 'checkbox', value: 'value2', name: 'name2', checked: true }, [], position + '0.0.0.1.0'),
+                        jsx.text('Some text 2')
+                    ], position + '0.0.0.1'),
+                    jsx.tag('li', { className: 'li3' }, [
+                        jsx.tag('input', { type: 'checkbox', value: 'value3', name: 'name3', checked: true }, [], position + '0.0.0.2.0'),
+                        jsx.text('Some text 3')
+                    ], position + '0.0.0.2'),
+                    jsx.tag('li', { className: 'li4' }, [
+                        jsx.tag('input', { type: 'checkbox', value: 'value4', name: 'name4', checked: true }, [], position + '0.0.0.3.0'),
+                        jsx.text('Some text 4')
+                    ], position + '0.0.0.3')
+                ], position + '0.0.0')
+            ], position + '.0.0')
+        ], position + '.0')
+    ).exec('.0');
+}
 var rerenderTemplate = jsx.template(position =>
     jsx.tag('div', { className: 'block', id: 'id1' }, [
         jsx.tag('form', { action: '../' }, [
@@ -40,43 +66,41 @@ function rerendercachedtemplate() {
     return rerenderTemplate.exec('.0');
 }
 
-var cachedjsx = jsx `<div className="block" id="${'id1'}">
-    <form action="${'../'}">
-        <ul className='ulclass'>
-            <li className=${'li1'}>
-                <input type="checkbox"
-                    value="${'value1'}"
-                    name=${'name1'}
-                    checked
-                /> Some text 1
-            </li>
-            <li className=${'li1'}>
-                <input type="checkbox"
-                    value="${'value2'}"
-                    name=${'name2'}
-                    checked
-                /> Some text 2
-            </li>
-            <li className=${'li1'}>
-                <input type="checkbox"
-                    value="${'value3'}"
-                    name=${'name3'}
-                    checked
-                /> Some text 3
-            </li>
-            <li className=${'li1'}>
-                <input type="checkbox"
-                    value="${'value4'}"
-                    name=${'name4'}
-                    checked
-                /> Some text 4
-            </li>
-        </ul>
-    </form>
-</div>`;
-
 function rerenderjsx() {
-    return cachedjsx.exec('.0');
+    return (jsx `<div className="block" id="${'id1'}">
+        <form action="${'../'}">
+            <ul className='ulclass'>
+                <li className=${'li1'}>
+                    <input type="checkbox"
+                        value="${'value1'}"
+                        name=${'name1'}
+                        checked
+                    /> Some text 1
+                </li>
+                <li className=${'li1'}>
+                    <input type="checkbox"
+                        value="${'value2'}"
+                        name=${'name2'}
+                        checked
+                    /> Some text 2
+                </li>
+                <li className=${'li1'}>
+                    <input type="checkbox"
+                        value="${'value3'}"
+                        name=${'name3'}
+                        checked
+                    /> Some text 3
+                </li>
+                <li className=${'li1'}>
+                    <input type="checkbox"
+                        value="${'value4'}"
+                        name=${'name4'}
+                        checked
+                    /> Some text 4
+                </li>
+            </ul>
+        </form>
+    </div>`).exec('.0');
 }
 
 function pureReact() {
@@ -116,14 +140,16 @@ function pureReact() {
     ));
 }
 
-console.log('rerendercachedtemplate', JSON.stringify(rerendercachedtemplate())); // eslint-disable-line no-console
-console.log('rerenderjsx', JSON.stringify(rerenderjsx())); // eslint-disable-line no-console
+console.log('rerender', rerender()); // eslint-disable-line no-console
+console.log('rerenderjsx', rerenderjsx()); // eslint-disable-line no-console
 console.log('pureReact', pureReact()); // eslint-disable-line no-console
+console.log('rerendercachedtemplate', rerendercachedtemplate()); // eslint-disable-line no-console
 
 suite
-.add('rerendercachedtemplate', rerendercachedtemplate)
+.add('rerender', rerender)
 .add('rerenderjsx', rerenderjsx)
 .add('pureReact jsx', pureReact)
+.add('rerendercachedtemplate', rerendercachedtemplate)
 .on('cycle', function(event) {
     console.log(String(event.target)); // eslint-disable-line no-console
 })
