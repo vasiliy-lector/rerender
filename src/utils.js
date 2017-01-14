@@ -16,22 +16,55 @@ function getHash(string) {
         .digest('hex');
 }
 
-function escapeHtml(data) {
-    return typeof data === 'string'
-        ? data
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-        : escapeHtml(data + '');
+const REGEXP_ATTR = /[<>"&]/;
+const REGEXP_HTML = /[<>]/;
+
+function escapeHtmlHeavy(value) {
+    return value
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
 }
 
-function escape(data) {
-    return typeof data === 'string'
-        ? data
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-        : escape(data + '');
+function escapeHtml(value) {
+    const string = String(value);
+
+    if (string.length > 10) {
+        return REGEXP_HTML.test(string) ? escapeHtmlHeavy(string) : string;
+    } else {
+        for (var i = 0, l = string.length; i < l; i++) {
+            var char = string[i];
+            if (char === '<' || char === '>') {
+                return escapeHtmlHeavy(string);
+            }
+        }
+    }
+
+    return string;
+}
+
+function escapeAttrHeavy(value) {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function escapeAttr(value) {
+    const string = String(value);
+
+    if (string.length > 10) {
+        return REGEXP_ATTR.test(string) ? escapeAttrHeavy(string) : string;
+    } else {
+        for (var i = 0, l = string.length; i < l; i++) {
+            var char = string[i];
+            if (char === '<' || char === '>' || char === '"' || char === '&') {
+                return escapeAttrHeavy(string);
+            }
+        }
+    }
+
+    return string;
 }
 
 // Objects same if them have same properties (arrays property same if same all items)
@@ -114,7 +147,7 @@ function throttle(fn, milliseconds, { leading }) {
 }
 
 export {
-    escape,
+    escapeAttr,
     escapeHtml,
     getHash,
     hoistStatics,

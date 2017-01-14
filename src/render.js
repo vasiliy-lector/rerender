@@ -1,7 +1,7 @@
 import Events from './Events';
 import { nextTick } from './utils';
 import { createInstance } from './jsx';
-import { renderComponent, renderText, renderValue, createTemplate } from './renderComponent';
+import { tag, component, text, childValue, template } from './bricks';
 
 let rerenderTrigger;
 const
@@ -10,10 +10,11 @@ const
     getJsx = function getJsx(config) {
         const jsx = createInstance();
 
-        jsx.renderComponent = renderComponent(config, jsx);
-        jsx.renderText = renderText(config, jsx);
-        jsx.renderValue = renderValue;
-        jsx.createTemplate = createTemplate;
+        jsx.component = component(config, jsx);
+        jsx.tag = tag(config, jsx);
+        jsx.text = text(config, jsx);
+        jsx.childValue = childValue;
+        jsx.template = template;
 
         return jsx;
     },
