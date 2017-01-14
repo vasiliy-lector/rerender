@@ -2,7 +2,7 @@ import { scheduleUpdate } from './render';
 import { isSameProps } from './utils';
 
 class Component {
-    constructor(props, children, { isDom, position }) {
+    constructor(props, children, { isDom, jsx, position }) {
         let {
             autoBind = []
             // initActions = []
@@ -15,6 +15,7 @@ class Component {
         }
 
         this.isDom = isDom;
+        this.jsx = jsx;
         this.state = {};
         this.position = position;
 

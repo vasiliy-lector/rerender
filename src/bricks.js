@@ -49,7 +49,7 @@ function component(config, jsx) {
     }
 }
 
-function componentDom({ allInstances, nextMounted }, jsx) {
+function componentDom({ allInstances }, jsx) {
     return function(tag, props, children, position) {
         position = calcComponentPosition(tag, props, position);
         let current = allInstances[position];
