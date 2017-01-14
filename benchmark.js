@@ -1,14 +1,14 @@
 var Benchmark = require('benchmark'),
     React = require('react'),
     t7 = require('t7'),
-    getJsx = require('./lib/render').getJsx,
+    createInstance = require('./lib/jsx').createInstance,
     es6x = require('es6x');
 
 // global.React = React;
 // t7.setOutput(t7.Outputs.React);
 // es6x.setOutputMethod(React.createElement);
 
-var jsx = getJsx({ stringify: false });
+var jsx = createInstance({ stringify: false });
 
 var suite = new Benchmark.Suite;
 function es6xFn() {

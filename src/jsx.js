@@ -2,7 +2,10 @@ import { tag, component, text, childValue, template } from './bricks';
 import { any, end, find, next, optional, repeat, required, test, sequence, defer } from 'nano-parser';
 
 const getValuesFromArguments = function getValuesFromArguments(args) {
-        for (let i = 1, l = args.length, values = Array(l - 1); i < l; i++) {
+        const l = args.length;
+        let values = values = Array(l - 1);
+
+        for (let i = 1; i < l; i++) {
             values[i - 1] = args[i];
         }
 
@@ -64,8 +67,8 @@ const getValuesFromArguments = function getValuesFromArguments(args) {
                             return;
                         }
 
-                        const keys = Object.keys(value),
-                            i = keys.length;
+                        const keys = Object.keys(value);
+                        let i = keys.length;
 
                         while (i--) {
                             if (attrNameRegexp.test(keys[i])) {
@@ -92,7 +95,7 @@ const getValuesFromArguments = function getValuesFromArguments(args) {
 
                 return memo;
             }),
-            component = sequence(
+            node = sequence(
                 find('<').not(find('</')),
                 required(any(
                     tagName,
@@ -114,7 +117,7 @@ const getValuesFromArguments = function getValuesFromArguments(args) {
                         optionalWhiteSpace,
                         optional(any(
                             sequence(
-                                repeat(defer(() => component), optionalWhiteSpace),
+                                repeat(defer(() => node), optionalWhiteSpace),
                                 test(find(/^\s*<\//))
                             ).then(result => result[0]).not(find(/^[^<]+/)),
                             repeat(any(
@@ -124,7 +127,7 @@ const getValuesFromArguments = function getValuesFromArguments(args) {
                                 textNode.then(result => () => {
                                     return jsx.text(result);
                                 }),
-                                defer(() => component)
+                                defer(() => node)
                             ))
                         )),
                         optionalWhiteSpace,
@@ -162,9 +165,9 @@ const getValuesFromArguments = function getValuesFromArguments(args) {
                 );
             }),
 
-            root = sequence(
+            rootNode = sequence(
                 optionalWhiteSpace,
-                component,
+                node,
                 optionalWhiteSpace,
                 end()
             ).useCache().then((result, values) => {
@@ -172,7 +175,7 @@ const getValuesFromArguments = function getValuesFromArguments(args) {
             });
 
         function jsx(templates) {
-            return root.parse(templates, getValuesFromArguments(arguments));
+            return rootNode.parse(templates, getValuesFromArguments(arguments));
         }
 
         jsx.template = template;
