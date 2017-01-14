@@ -1,89 +1,15 @@
 var Benchmark = require('benchmark'),
     React = require('react'),
-    t7 = require('t7'),
-    createInstance = require('./lib/jsx').createInstance,
-    es6x = require('es6x');
+    ReactDOMServer = require('react-dom/server'),
+    createInstance = require('./lib/jsx').createInstance;
 
 // global.React = React;
 // t7.setOutput(t7.Outputs.React);
 // es6x.setOutputMethod(React.createElement);
 
-var jsx = createInstance({ stringify: false });
+var jsx = createInstance({ stringify: true });
 
 var suite = new Benchmark.Suite;
-function es6xFn() {
-    return es6x `<div className="block" id="${'id1'}">
-        <form action="${'../'}">
-            <ul className='ulclass'>
-                <li className=${'li1'}>
-                    <input type="checkbox"
-                        value="${'value1'}"
-                        name=${'name1'}
-                        checked
-                    /> Some text 1
-                </li>
-                <li className=${'li1'}>
-                    <input type="checkbox"
-                        value="${'value2'}"
-                        name=${'name2'}
-                        checked
-                    /> Some text 2
-                </li>
-                <li className=${'li1'}>
-                    <input type="checkbox"
-                        value="${'value3'}"
-                        name=${'name3'}
-                        checked
-                    /> Some text 3
-                </li>
-                <li className=${'li1'}>
-                    <input type="checkbox"
-                        value="${'value4'}"
-                        name=${'name4'}
-                        checked
-                    /> Some text 4
-                </li>
-            </ul>
-        </form>
-    </div>`;
-}
-
-function t7Fn() {
-    return t7 `<div className="block" id="${'id1'}">
-        <form action="${'../'}">
-            <ul className='ulclass'>
-                <li className=${'li1'}>
-                    <input type="checkbox"
-                        value="${'value1'}"
-                        name=${'name1'}
-                        checked
-                    /> Some text 1
-                </li>
-                <li className=${'li1'}>
-                    <input type="checkbox"
-                        value="${'value2'}"
-                        name=${'name2'}
-                        checked
-                    /> Some text 2
-                </li>
-                <li className=${'li1'}>
-                    <input type="checkbox"
-                        value="${'value3'}"
-                        name=${'name3'}
-                        checked
-                    /> Some text 3
-                </li>
-                <li className=${'li1'}>
-                    <input type="checkbox"
-                        value="${'value4'}"
-                        name=${'name4'}
-                        checked
-                    /> Some text 4
-                </li>
-            </ul>
-        </form>
-    </div>`;
-}
 
 var rerenderTemplate = jsx.template(position =>
     jsx.tag('div', { className: 'block', id: 'id1' }, [
@@ -147,102 +73,14 @@ var cachedjsx = jsx `<div className="block" id="${'id1'}">
             </li>
         </ul>
     </form>
-</div>`
+</div>`;
 
 function rerenderjsx() {
     return cachedjsx.exec('.0');
 }
 
-function pure() {
-    return {
-        tag: 'div',
-        attrs: {
-            className: 'block',
-            id: 'id1'
-        },
-        children: [{
-            tag: 'form',
-            attrs: {
-                action: '../'
-            },
-            children: [{
-                tag: 'ul',
-                attrs: {
-                    className: 'ulclass'
-                },
-                children: [
-                    {
-                        tag: 'li',
-                        attrs: {
-                            className: 'li1'
-                        },
-                        children: [{
-                            tag: 'input',
-                            attrs: {
-                                type: 'checkbox',
-                                value: 'value1',
-                                name: 'name1',
-                                checked: true
-                            },
-                            children: ['Some text 1']
-                        }]
-                    },
-                    {
-                        tag: 'li',
-                        attrs: {
-                            className: 'li1'
-                        },
-                        children: [{
-                            tag: 'input',
-                            attrs: {
-                                type: 'checkbox',
-                                value: 'value1',
-                                name: 'name1',
-                                checked: true
-                            },
-                            children: ['Some text 1']
-                        }]
-                    },
-                    {
-                        tag: 'li',
-                        attrs: {
-                            className: 'li1'
-                        },
-                        children: [{
-                            tag: 'input',
-                            attrs: {
-                                type: 'checkbox',
-                                value: 'value1',
-                                name: 'name1',
-                                checked: true
-                            },
-                            children: ['Some text 1']
-                        }]
-                    },
-                    {
-                        tag: 'li',
-                        attrs: {
-                            className: 'li1'
-                        },
-                        children: [{
-                            tag: 'input',
-                            attrs: {
-                                type: 'checkbox',
-                                value: 'value1',
-                                name: 'name1',
-                                checked: true
-                            },
-                            children: ['Some text 1']
-                        }]
-                    }
-                ]
-            }]
-        }]
-    };
-}
-
 function pureReact() {
-    return React.createElement('div', { className: 'block', id: 'id1' },
+    return ReactDOMServer.renderToString(React.createElement('div', { className: 'block', id: 'id1' },
         React.createElement('form', { action: '../' },
             React.createElement('ul', { className: 'ulclass' },
                 React.createElement('li', { className: 'li1' },
@@ -275,22 +113,16 @@ function pureReact() {
                 )
             )
         )
-    );
+    ));
 }
 
 console.log('rerendercachedtemplate', JSON.stringify(rerendercachedtemplate())); // eslint-disable-line no-console
 console.log('rerenderjsx', JSON.stringify(rerenderjsx())); // eslint-disable-line no-console
-console.log('es6xFn', es6xFn()); // eslint-disable-line no-console
-console.log('t7Fn', t7Fn()); // eslint-disable-line no-console
-console.log('pure', JSON.stringify(pure())); // eslint-disable-line no-console
 console.log('pureReact', pureReact()); // eslint-disable-line no-console
 
 suite
 .add('rerendercachedtemplate', rerendercachedtemplate)
 .add('rerenderjsx', rerenderjsx)
-.add('es6x', es6xFn)
-.add('t7', t7Fn)
-.add('pure', pure)
 .add('pureReact jsx', pureReact)
 .on('cycle', function(event) {
     console.log(String(event.target)); // eslint-disable-line no-console
