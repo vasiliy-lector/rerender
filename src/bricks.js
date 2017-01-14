@@ -1,4 +1,5 @@
 import { escapeAttr, escapeHtml } from './utils.js';
+import Component from './Component';
 
 function Template(template) {
     this.template = template;
@@ -29,46 +30,15 @@ VNode.prototype = {
     type: 'VNode'
 };
 
-function text(config) {
-    if (config.stringify) {
-        return textStringify;
-    } else {
-        return textDom;
-    }
-}
-
-function textStringify(value) {
-    return escapeHtml(value);
-}
-
-function textDom(value) {
-    return new VText(value);
-}
-
 function template(template) {
     return new Template(template);
-}
-
-function childValue(value, config, position) {
-    if (Array.isArray(value)) {
-        for (var i = 0, l = value.length, expanded = []; i < l; i++) {
-            expanded.push(childValue(value[i], config, `${position}.${i}`));
-        }
-
-        return expanded;
-    } else if (typeof value === 'string') {
-        return config.text(value);
-    } else if (typeof value === 'function') {
-        return value.type === 'Template' ? value.exec(position) : childValue(value(), config, position);
-    } else {
-        return config.text(!value ? '' : value + '');
-    }
 }
 
 function component(config, jsx) {
     return function(tag, attrs, children, position) {
         // TODO all logic with should update
-        if (tag.prototype.render) {
+        // FIXME find faster way to determine Component
+        if (tag instanceof Component) {
             var instance = new tag(attrs, children, { position, jsx });
             return instance.render(instance);
         } else {
@@ -97,10 +67,6 @@ function tagDom() {
     };
 }
 
-function convertAttrName(name) {
-    return name === 'className' ? 'class' : name;
-}
-
 function tagStringify() {
     return function (tag, attrs, children, position) {
         let attrsString = '';
@@ -108,6 +74,7 @@ function tagStringify() {
         for (let i = 0, attrsKeys = Object.keys(attrs), l = attrsKeys; i < l; i++) {
             const key = attrsKeys[i];
 
+            // TODO key === 'key'?
             if (key.substr(0, 2) === 'on' || key === 'ref') {
                 continue;
             } else if (key === 'dataset') {
@@ -129,6 +96,46 @@ function tagStringify() {
                 ? '>' + childrenString + '</' + tag + '>'
                 : ' />');
     };
+}
+
+function text(config) {
+    if (config.stringify) {
+        return textStringify;
+    } else {
+        return textDom;
+    }
+}
+
+function textStringify(value) {
+    return escapeHtml(value);
+}
+
+function textDom(value) {
+    return new VText(value);
+}
+
+function childValue(config, jsx) {
+    return function(value, position) {
+        if (Array.isArray(value)) {
+            for (var i = 0, l = value.length, expanded = []; i < l; i++) {
+                expanded.push(childValue(value[i], `${position}.${i}`));
+            }
+
+            return config.stringify ? expanded.join('') : expanded;
+        } else if (typeof value === 'string') {
+            return jsx.text(value);
+        } else if (typeof value === 'function') {
+            return value.type === 'Template'
+                ? value.exec(position)
+                : childValue(value(), position);
+        } else {
+            return jsx.text(!value ? '' : value + '');
+        }
+    };
+}
+
+function convertAttrName(name) {
+    return name === 'className' ? 'class' : name;
 }
 
 export { component, childValue, text, template, tag };
