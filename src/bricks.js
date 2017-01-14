@@ -1,4 +1,4 @@
-import { escapeAttr, escapeHtml, getFunctionName } from './utils.js';
+import { escapeAttr, escapeHtml, getFunctionName, shallowEqual } from './utils.js';
 import Component from './Component';
 import VNode from 'virtual-dom/vnode/vnode';
 import VText from 'virtual-dom/vnode/vtext';
@@ -36,6 +36,11 @@ function template(template) {
     return new Template(template);
 }
 
+// FIXME find faster way to determine Component
+function isComponent(tag) {
+    return tag.prototype instanceof Component;
+}
+
 function component(config, jsx) {
     if (config.stringify) {
         return componentStringify(config, jsx);
@@ -44,43 +49,80 @@ function component(config, jsx) {
     }
 }
 
-function componentDom({ allInstances }, jsx) {
-    return function(tag, attrs, children, position) {
-        const current = allInstances[position];
+function componentDom({ allInstances, nextMounted }, jsx) {
+    return function(tag, props, children, position) {
+        position = calcComponentPosition(tag, props, position);
+        let current = allInstances[position];
 
-        // FIXME find faster way to determine Component
-        if (tag.prototype instanceof Component) {
-            const instance = new tag(attrs, children, { position, jsx });
-            return instance.render(instance);
+        // was rendered
+        if (current !== undefined) {
+            let sameOuter = shallowEqual(current.props, props) && children === current.children;
+
+            if (isComponent(tag)) {
+                Component.beforeRender(current.instance);
+                if (!sameOuter || current.instance.state !== current.state) {
+                    current.props = props;
+                    current.children = children;
+                    current.state = current.instance.state;
+                    if (!sameOuter) {
+                        Component.setProps(current.instance, props, children);
+                    }
+                    current.lastRender = Component.render(current.instance)(position);
+                }
+            } else if (!sameOuter) {
+                current = {
+                    tag,
+                    props,
+                    children,
+                    lastRender: tag({ props, children, jsx })(position)
+                };
+            }
         } else {
-            return jsx.tag(tag, attrs, children, position);
+            current = { tag, props, children };
+
+            if (isComponent(tag)) {
+                current.instance = new tag(props, children, { position, jsx });
+                if (props.ref && !tag.wrapper && typeof props.ref === 'function') {
+                    props.ref(current.instance);
+                }
+                Component.beforeRender(current.instance);
+                current.lastRender = Component.render(current.instance)(position);
+                current.state = current.instance.state;
+            } else {
+                current.lastRender = tag({ props, children, jsx })(position);
+            }
+
+            allInstances[position] = current;
         }
+
+        return current.lastRender;
     };
 }
 
 function componentStringify(config, jsx) {
-    return function(tag, attrs, children, position) {
-        position = calcComponentPosition(tag, attrs, position);
+    return function(tag, props, children, position) {
+        // TODO it seems no need right position on server?
+        // position = calcComponentPosition(tag, props, position);
 
         if (tag.prototype instanceof Component) {
-            const instance = new tag(attrs, children, { position, jsx });
+            const instance = new tag(props, children, { position, jsx });
             Component.beforeRender(instance);
 
-            return instance.render(instance);
+            return instance.render(instance)(position);
         } else {
-            return jsx.tag(tag, attrs, children, position);
+            return tag({ props, children, jsx })(position);
         }
     };
 }
 
-function calcComponentPosition(tag, attrs, position) {
+function calcComponentPosition(tag, props, position) {
     // TODO warning if many instances of singleton or with same key
     if (tag.singleton) {
         return `__s__${getFunctionName(tag)}`;
-    } else if (attrs.key) {
-        return `__k__${attrs.key}`;
+    } else if (props.key) {
+        return `__k__${props.key}`;
     } else {
-        return `${position}${getFunctionName(tag)}`;
+        return `${position}.${getFunctionName(tag)}`;
     }
 }
 
@@ -96,7 +138,7 @@ function tagDom() {
     return function (tag, attrs, children, position) {
         return new VNode(tag, attrs, typeof children === 'function'
             ? children(position)
-            : children);
+            : children, position);
     };
 }
 
