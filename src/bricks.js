@@ -52,7 +52,9 @@ function component(config, jsx) {
 function componentDom({ allInstances }, jsx) {
     return function(tag, props, children, position) {
         position = calcComponentPosition(tag, props, position);
-        let current = allInstances[position];
+        let current = allInstances[position],
+            changed = true,
+            lastRender;
 
         if (current === undefined || current.tag !== tag) {
             current = { tag, props, children };
@@ -63,35 +65,37 @@ function componentDom({ allInstances }, jsx) {
                     props.ref(current.instance);
                 }
                 Component.beforeRender(current.instance);
-                current.lastRender = Component.render(current.instance).exec(position);
+                lastRender = Component.render(current.instance);
                 current.state = current.instance.state;
             } else {
-                current.lastRender = tag({ props, children, jsx }).exec(position);
+                lastRender = tag({ props, children, jsx });
             }
-
-            allInstances[position] = current;
         } else {
             let sameOuter = shallowEqual(current.props, props) && children === current.children;
 
             if (isComponent(tag)) {
                 Component.beforeRender(current.instance);
                 if (!sameOuter || current.instance.state !== current.state) {
-                    current.props = props;
-                    current.children = children;
-                    current.state = current.instance.state;
+                    let instance = current.instance;
+                    current = { tag, props, children, instance, state: instance.state };
                     if (!sameOuter) {
-                        Component.setProps(current.instance, props, children);
+                        Component.setProps(instance, props, children);
                     }
-                    current.lastRender = Component.render(current.instance).exec(position);
+                    lastRender = Component.render(instance);
+                } else {
+                    changed = false;
                 }
             } else if (!sameOuter) {
-                current = {
-                    tag,
-                    props,
-                    children,
-                    lastRender: tag({ props, children, jsx }).exec(position)
-                };
+                current = { tag, props, children };
+                lastRender = tag({ props, children, jsx });
+            } else {
+                changed = false;
             }
+        }
+
+        if (changed) {
+            current.lastRender = lastRender ? lastRender.exec(position) : jsx.text('');
+            allInstances[position] = current;
         }
 
         return current.lastRender;
@@ -102,15 +106,18 @@ function componentStringify(config, jsx) {
     return function(tag, props, children, position) {
         // TODO it seems no need right position on server?
         // position = calcComponentPosition(tag, props, position);
+        let renderResult;
 
         if (tag.prototype instanceof Component) {
             const instance = new tag(props, children, { position, jsx });
             Component.beforeRender(instance);
 
-            return instance.render(instance).exec(position);
+            renderResult = instance.render(instance);
         } else {
-            return tag({ props, children, jsx }).exec(position);
+            renderResult = tag({ props, children, jsx });
         }
+
+        return renderResult ? renderResult.exec(position) : jsx.text('');
     };
 }
 
@@ -137,7 +144,8 @@ function tagDom() {
     return function (tag, attrs, children, position) {
         return new VNode(tag, attrs, typeof children === 'function'
             ? children(position)
-            : children, position);
+            : children
+        , position);
     };
 }
 
