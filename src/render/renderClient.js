@@ -1,9 +1,9 @@
-import Events from './Events';
-import Component from './Component';
-import { throttle } from './utils';
-import { createInstance } from './jsx';
 import { patch, diff } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
+import Events from '../Events';
+import Component from '../Component';
+import { throttle } from '../utils';
+import { createInstance } from './jsx';
 
 const RENDER_THROTTLE = 50;
 
@@ -94,13 +94,4 @@ function unmount(instances) {
     }
 }
 
-function renderServer(render, store) {
-    const jsx = createInstance({
-        store,
-        stringify: true
-    });
-
-    return render({ jsx }).exec('__r__');
-}
-
-export { renderClient, renderServer, RENDER_THROTTLE };
+export default renderClient;

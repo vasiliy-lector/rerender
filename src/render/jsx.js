@@ -1,4 +1,8 @@
-import { tag, component, text, childValue, template } from './bricks';
+import tag from './tag';
+import component from './component';
+import text from './text';
+import childValue from './childValue';
+import template from './template';
 import { any, end, find, next, optional, repeat, required, test, sequence, defer } from 'nano-parser';
 
 const getValuesFromArguments = function getValuesFromArguments(args) {
