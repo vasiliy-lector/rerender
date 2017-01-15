@@ -6,5 +6,5 @@ export { default as Store } from './Store';
 export { default as Events } from './Events';
 export { default as renderClient } from './render/renderClient';
 export { default as renderServer } from './render/renderServer';
-export { getHash, isSameProps } from './utils';
+export { getHash, shallowEqual } from './utils';
 export { debug, performanceStart, performanceEnd } from './debug';
