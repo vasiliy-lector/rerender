@@ -89,6 +89,7 @@ function unmount(instances) {
         if (instance.type === 'Component') {
             // TODO singleton and key logic here (+ timelife static prop feature)
             Component.unmount(instance);
+            Component.destroy(instance);
         }
     }
 }

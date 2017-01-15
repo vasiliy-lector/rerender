@@ -16,7 +16,7 @@ class Component {
 
         this.isDom = isDom;
         this.jsx = jsx;
-        this.events = events;
+        this._events = events;
         this.state = {};
 
         this.props = props;
@@ -68,7 +68,7 @@ class Component {
 
         if (!shallowEqual(nextState, this.state)) {
             this.state = nextState;
-            this._componentMounted && !this._settingProps && this.events.emitNextTick('rerender');
+            Component.emitStateChange(this);
         }
     }
 
@@ -82,6 +82,12 @@ Component.beforeRender = function(instance) {
         instance.componentWillMount();
     }
 };
+
+Component.emitStateChange = function(instance) {
+    if (instance._componentMounted && !instance._settingProps) {
+        instance._events.emitNextTick('rerender');
+    }
+}
 
 Component.destroy = function(instance) {
     if (typeof instance.componentWillDestroy !== 'undefined') {
