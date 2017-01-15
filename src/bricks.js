@@ -1,4 +1,4 @@
-import { escapeAttr, escapeHtml, getFunctionName, shallowEqual } from './utils.js';
+import { escapeAttr, escapeHtml, getFunctionName, shallowEqual, shallowEqualArray } from './utils.js';
 import Component from './Component';
 import VNode from 'virtual-dom/vnode/vnode';
 import VText from 'virtual-dom/vnode/vtext';
@@ -49,10 +49,10 @@ function component(config, jsx) {
     }
 }
 
-function componentDom({ allInstances }, jsx) {
+function componentDom({ instances, nextInstances, nextNewInstances }, jsx) {
     return function(tag, props, children, position) {
         position = calcComponentPosition(tag, props, position);
-        let current = allInstances[position],
+        let current = instances[position],
             changed = true,
             lastRender;
 
@@ -61,6 +61,7 @@ function componentDom({ allInstances }, jsx) {
 
             if (isComponent(tag)) {
                 current.instance = new tag(props, children, { position, jsx });
+                nextNewInstances[position] = current.instance;
                 if (props.ref && !tag.wrapper && typeof props.ref === 'function') {
                     props.ref(current.instance);
                 }
@@ -71,7 +72,8 @@ function componentDom({ allInstances }, jsx) {
                 lastRender = tag({ props, children, jsx });
             }
         } else {
-            let sameOuter = shallowEqual(current.props, props) && children === current.children;
+            // TODO shallowEqualArray really need?
+            let sameOuter = shallowEqual(current.props, props) && shallowEqualArray(current.children, children);
 
             if (isComponent(tag)) {
                 Component.beforeRender(current.instance);
@@ -95,8 +97,10 @@ function componentDom({ allInstances }, jsx) {
 
         if (changed) {
             current.lastRender = lastRender ? lastRender.exec(position) : jsx.text('');
-            allInstances[position] = current;
         }
+
+        nextInstances[position] = current;
+        delete instances[position];
 
         return current.lastRender;
     };
@@ -126,7 +130,7 @@ function calcComponentPosition(tag, props, position) {
     if (tag.singleton) {
         return `__s__${getFunctionName(tag)}`;
     } else if (props.key) {
-        return `__k__${props.key}`;
+        return `__k__${props.key}${getFunctionName(tag)}`;
     } else {
         return `${position}.${getFunctionName(tag)}`;
     }
@@ -142,10 +146,7 @@ function tag(config) {
 
 function tagDom() {
     return function (tag, attrs, children, position) {
-        return new VNode(tag, attrs, typeof children === 'function'
-            ? children(position)
-            : children
-        , position);
+        return new VNode(tag, attrs, children, position);
     };
 }
 

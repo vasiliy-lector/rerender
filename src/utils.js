@@ -92,12 +92,12 @@ function shallowEqual(obj1, obj2) {
             } else if (typeof obj1[name] !== typeof obj2[name]) {
                 return false;
             } else if (Array.isArray(obj1[name]) && Array.isArray(obj2[name])) {
-                if (obj1[name].length !== obj2[name].length) {
-                    return false;
-                }
-
                 let array1 = obj1[name],
                     array2 = obj2[name];
+
+                if (array1.length !== array2.length) {
+                    return false;
+                }
 
                 for (let i = 0, l = array1.length; i < l; i++) {
                     if (array1[i] !== array2[i]) {
@@ -113,6 +113,23 @@ function shallowEqual(obj1, obj2) {
     }
 }
 
+function shallowEqualArray(array1, array2) {
+    if (array1 === array2) {
+        return true;
+    }
+
+    if (array1.length !== array2.length) {
+        return false;
+    }
+
+    for (let i = 0, l = array1.length; i < l; i++) {
+        if (array1[i] !== array2[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 function hoistStatics(Target, Source) {
     for( let name in Source ) {
@@ -162,5 +179,6 @@ export {
     hoistStatics,
     nextTick,
     shallowEqual,
+    shallowEqualArray,
     throttle
 };

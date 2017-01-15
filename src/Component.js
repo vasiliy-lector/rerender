@@ -1,8 +1,8 @@
-import { scheduleUpdate } from './render';
-import { isSameProps } from './utils';
+import { shallowEqual } from './utils';
 
 class Component {
-    constructor(props, children, { isDom, jsx, position }) {
+    // TODO isDom -> enableInitActions or move to jsx.component
+    constructor(props, children, { isDom, jsx, events }) {
         let {
             autoBind = []
             // initActions = []
@@ -16,8 +16,8 @@ class Component {
 
         this.isDom = isDom;
         this.jsx = jsx;
+        this.events = events;
         this.state = {};
-        this.position = position;
 
         this.props = props;
         this.children = children;
@@ -50,6 +50,8 @@ class Component {
 
     }
 
+    type: 'Component'
+
     _autoBindMethods(methods) {
         for (let i = 0, l = methods.length; i < l; i++) {
             let name = methods[i];
@@ -61,19 +63,17 @@ class Component {
     }
 
     setState(changes) {
+        // FIXME no Object.assign
         let nextState = Object.assign({}, this.state, changes);
 
-        if (!isSameProps(nextState, this.state)) {
+        if (!shallowEqual(nextState, this.state)) {
             this.state = nextState;
-            this._componentMounted && !this._settingProps && scheduleUpdate({
-                position: this.position,
-                instance: this
-            });
+            this._componentMounted && !this._settingProps && this.events.emitNextTick('rerender');
         }
     }
 
     render() {
-        return '';
+        return;
     }
 }
 

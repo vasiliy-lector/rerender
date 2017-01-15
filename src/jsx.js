@@ -100,7 +100,7 @@ const getValuesFromArguments = function getValuesFromArguments(args) {
                 required(any(
                     tagName,
                     placeholder.then(index => values => {
-                        return typeof values[index] !== 'string' || tagNameRegexp.test(values[index]) ? values[index] : 'div';
+                        return typeof values[index] === 'string' || !tagNameRegexp.test(values[index]) ? 'div' : values[index];
                     })
                 )),
                 optional(sequence(

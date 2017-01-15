@@ -1,6 +1,9 @@
+import { nextTick } from './utils';
+
 class Events {
     constructor() {
         this.callbacks = {};
+        this.nextTickTriggers = {};
     }
 
     onEvent(eventName, callback) {
@@ -20,6 +23,17 @@ class Events {
         let { [eventName]: callbacks = [] } = this.callbacks;
 
         callbacks.forEach(callback => callback(payload, eventName));
+    }
+
+    emitNextTick(eventName, payload) {
+        if (!this.nextTickTriggers[eventName]) {
+            nextTick(() => {
+                delete this.nextTickTriggers[eventName];
+                const { [eventName]: callbacks = [] } = this.callbacks;
+
+                callbacks.forEach(callback => callback(payload, eventName));
+            });
+        }
     }
 
     on(eventNames, callback) {
