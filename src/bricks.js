@@ -54,8 +54,23 @@ function componentDom({ allInstances }, jsx) {
         position = calcComponentPosition(tag, props, position);
         let current = allInstances[position];
 
-        // was rendered
-        if (current !== undefined) {
+        if (current === undefined || current.tag !== tag) {
+            current = { tag, props, children };
+
+            if (isComponent(tag)) {
+                current.instance = new tag(props, children, { position, jsx });
+                if (props.ref && !tag.wrapper && typeof props.ref === 'function') {
+                    props.ref(current.instance);
+                }
+                Component.beforeRender(current.instance);
+                current.lastRender = Component.render(current.instance).exec(position);
+                current.state = current.instance.state;
+            } else {
+                current.lastRender = tag({ props, children, jsx }).exec(position);
+            }
+
+            allInstances[position] = current;
+        } else {
             let sameOuter = shallowEqual(current.props, props) && children === current.children;
 
             if (isComponent(tag)) {
@@ -67,32 +82,16 @@ function componentDom({ allInstances }, jsx) {
                     if (!sameOuter) {
                         Component.setProps(current.instance, props, children);
                     }
-                    current.lastRender = Component.render(current.instance)(position);
+                    current.lastRender = Component.render(current.instance).exec(position);
                 }
             } else if (!sameOuter) {
                 current = {
                     tag,
                     props,
                     children,
-                    lastRender: tag({ props, children, jsx })(position)
+                    lastRender: tag({ props, children, jsx }).exec(position)
                 };
             }
-        } else {
-            current = { tag, props, children };
-
-            if (isComponent(tag)) {
-                current.instance = new tag(props, children, { position, jsx });
-                if (props.ref && !tag.wrapper && typeof props.ref === 'function') {
-                    props.ref(current.instance);
-                }
-                Component.beforeRender(current.instance);
-                current.lastRender = Component.render(current.instance)(position);
-                current.state = current.instance.state;
-            } else {
-                current.lastRender = tag({ props, children, jsx })(position);
-            }
-
-            allInstances[position] = current;
         }
 
         return current.lastRender;
@@ -108,9 +107,9 @@ function componentStringify(config, jsx) {
             const instance = new tag(props, children, { position, jsx });
             Component.beforeRender(instance);
 
-            return instance.render(instance)(position);
+            return instance.render(instance).exec(position);
         } else {
-            return tag({ props, children, jsx })(position);
+            return tag({ props, children, jsx }).exec(position);
         }
     };
 }
