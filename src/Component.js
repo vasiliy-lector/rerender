@@ -2,23 +2,23 @@ import { shallowEqual } from './utils';
 
 class Component {
     // TODO isDom -> enableInitActions or move to jsx.component
-    constructor(props, children, { isDom, jsx, events }) {
-        let {
-            autoBind = []
-            // initActions = []
-        } = this.constructor;
-
+    constructor(props, children, { isDom, jsx, events, antibind }) {
         this._componentMounted = false;
 
-        if (autoBind.length) {
-            this._autoBindMethods(autoBind);
+        if (antibind && Array.isArray(antibind)) {
+            for (let i = 0, l = antibind.length; i < l; i++) {
+                let name = antibind[i];
+
+                if (typeof this[name] === 'function') {
+                    this[name] = this[name].bind(this);
+                }
+            }
         }
 
         this.isDom = isDom;
-        this.jsx = jsx;
         this._events = events;
+        this.jsx = jsx;
         this.state = {};
-
         this.props = props;
         this.children = children;
 
@@ -52,16 +52,6 @@ class Component {
 
     type: 'Component'
 
-    _autoBindMethods(methods) {
-        for (let i = 0, l = methods.length; i < l; i++) {
-            let name = methods[i];
-
-            if (typeof this[name] === 'function') {
-                this[name] = this[name].bind(this);
-            }
-        }
-    }
-
     setState(changes) {
         // FIXME no Object.assign
         let nextState = Object.assign({}, this.state, changes);
@@ -87,7 +77,7 @@ Component.emitStateChange = function(instance) {
     if (instance._componentMounted && !instance._settingProps) {
         instance._events.emitNextTick('rerender');
     }
-}
+};
 
 Component.destroy = function(instance) {
     if (typeof instance.componentWillDestroy !== 'undefined') {

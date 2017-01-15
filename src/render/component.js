@@ -14,18 +14,28 @@ function component(config, jsx) {
     }
 }
 
-function componentDom({ instances, nextInstances, nextNewInstances }, jsx) {
+function componentDom({ instances, nextInstances, nextNewInstances, events }, jsx) {
     return function(tag, props, children, position) {
         position = calcComponentPosition(tag, props, position);
         let current = instances[position],
             changed = true,
             lastRender;
 
+        if (tag.defaults && typeof tag.defaults === 'object') {
+            const defaultsKeys = Object.keys(tag.defaults);
+
+            for (let i = 0, l = defaultsKeys.length; i < l; i++) {
+                if (props[defaultsKeys[i]] === undefined) {
+                    props[defaultsKeys[i]] = tag.defaults[defaultsKeys[i]];
+                }
+            }
+        }
+
         if (current === undefined || current.tag !== tag) {
             current = { tag, props, children };
 
             if (isComponent(tag)) {
-                current.instance = new tag(props, children, { position, jsx });
+                current.instance = new tag(props, children, { jsx, events, antibind: tag.antibind });
                 nextNewInstances[position] = current.instance;
                 if (props.ref && !tag.wrapper && typeof props.ref === 'function') {
                     props.ref(current.instance);
