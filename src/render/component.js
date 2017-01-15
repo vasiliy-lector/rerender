@@ -81,14 +81,14 @@ function componentDom({ instances, nextInstances, nextNewInstances, store, event
     };
 }
 
-function componentStringify(config, jsx) {
+function componentStringify({ store }, jsx) {
     return function(tag, props, children, position) {
         // TODO it seems no need right position on server?
         // position = calcComponentPosition(tag, props, position);
         let renderResult;
 
         if (tag.prototype instanceof Component) {
-            const instance = new tag(props, children, { position, jsx });
+            const instance = new tag(props, children, { position, jsx, store, antibind: tag.antibind });
             Component.beforeRender(instance);
 
             renderResult = instance.render(instance);
