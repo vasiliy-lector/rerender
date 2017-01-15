@@ -34,6 +34,7 @@ class Store extends Events {
             reallyChangedKeys = Object.keys(reallyChanged);
 
         if (reallyChangedKeys.length) {
+            // FIXME: no Object.assign
             this.state = Object.assign({}, this.state, changes);
             reallyChangedKeys.forEach(key => this.emit(key));
             this.emit('change');
