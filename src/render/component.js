@@ -1,5 +1,5 @@
-import { getFunctionName, shallowEqual, shallowEqualArray } from './utils.js';
-import Component from './Component';
+import { getFunctionName, shallowEqual, shallowEqualArray } from '../utils.js';
+import Component from '../Component';
 
 // FIXME find faster way to determine Component
 function isComponent(tag) {
@@ -14,7 +14,7 @@ function component(config, jsx) {
     }
 }
 
-function componentDom({ instances, nextInstances, nextNewInstances, events }, jsx) {
+function componentDom({ instances, nextInstances, nextNewInstances, store, events }, jsx) {
     return function(tag, props, children, position) {
         position = calcComponentPosition(tag, props, position);
         let current = instances[position],
@@ -35,7 +35,7 @@ function componentDom({ instances, nextInstances, nextNewInstances, events }, js
             current = { tag, props, children };
 
             if (isComponent(tag)) {
-                current.instance = new tag(props, children, { jsx, events, antibind: tag.antibind });
+                current.instance = new tag(props, children, { jsx, store, events, antibind: tag.antibind });
                 nextNewInstances[position] = current.instance;
                 if (props.ref && !tag.wrapper && typeof props.ref === 'function') {
                     props.ref(current.instance);

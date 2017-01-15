@@ -1,4 +1,4 @@
-import { escapeHtml } from './utils.js';
+import { escapeHtml } from '../utils.js';
 import VText from 'virtual-dom/vnode/vtext';
 
 function text(config) {

@@ -1,4 +1,4 @@
-import { escapeAttr } from './utils.js';
+import { escapeAttr } from '../utils.js';
 import VNode from 'virtual-dom/vnode/vnode';
 
 function tag(config) {
