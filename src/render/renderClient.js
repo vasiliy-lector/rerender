@@ -73,11 +73,11 @@ function rerenderClient({
     }, RENDER_THROTTLE, { leading: true });
 }
 
-function mount(nextNewInstances) {
-    const keys = Object.keys(nextNewInstances);
+function mount(instances) {
+    const keys = Object.keys(instances);
 
     for (let i = 0, l = keys.length; i < l; i++) {
-        Component.mount(nextNewInstances[keys[i]]);
+        Component.mount(instances[keys[i]]);
     }
 }
 

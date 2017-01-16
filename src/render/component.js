@@ -15,8 +15,9 @@ function component(config, jsx) {
 }
 
 function componentDom({ instances, nextInstances, nextNewInstances, store, events }, jsx) {
-    return function(tag, props, children, position) {
+    return function(tag, props, childrenFn, position) {
         position = calcComponentPosition(tag, props, position);
+        const children = childrenFn(position);
         let current = instances[position],
             changed = true,
             lastRender;
@@ -82,10 +83,11 @@ function componentDom({ instances, nextInstances, nextNewInstances, store, event
 }
 
 function componentStringify({ store }, jsx) {
-    return function(tag, props, children, position) {
+    return function(tag, props, childrenFn, position) {
         // TODO it seems no need right position on server?
         // position = calcComponentPosition(tag, props, position);
         let renderResult;
+        const children = childrenFn(position);
 
         if (tag.prototype instanceof Component) {
             const instance = new tag(props, children, { position, jsx, store, antibind: tag.antibind });

@@ -16,7 +16,7 @@ function tagDom() {
 }
 
 function tagStringify() {
-    return function (tag, attrs, children, position) {
+    return function (tag, attrs, children) {
         let attrsString = '';
 
         for (let i = 0, attrsKeys = Object.keys(attrs), l = attrsKeys.length; i < l; i++) {
@@ -37,7 +37,7 @@ function tagStringify() {
             }
         }
 
-        const childrenString = (typeof children === 'function' ? children(position) : children).join('');
+        const childrenString = children.join('');
 
         return '<' + tag + attrsString +
             (childrenString !== ''

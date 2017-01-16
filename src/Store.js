@@ -1,5 +1,5 @@
 import Events from './Events';
-import { isSameProps } from './utils';
+import { shallowEqual } from './utils';
 import { debug } from './debug';
 
 class Store extends Events {
@@ -23,7 +23,7 @@ class Store extends Events {
 
     setState(changes) {
         let reallyChanged = Object.keys(changes).reduce((memo, key) => {
-                if (!this.state[key] || !isSameProps(changes[key], this.state[key])) {
+                if (!this.state[key] || !shallowEqual(changes[key], this.state[key])) {
                     memo[key] = changes[key];
                 } else {
                     debug.warn(`Store setState: value with property "${key}" of new state is same as previous. So event with name "${key}" will not triggered. It is recommended to transfer only the changed values and do not mutate objects.`);

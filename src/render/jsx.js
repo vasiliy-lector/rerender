@@ -115,7 +115,7 @@ const getValuesFromArguments = function getValuesFromArguments(args) {
                 }),
                 optionalWhiteSpace,
                 required(any(
-                    find('/>').then(() => []),
+                    find('/>').then(() => () => []),
                     sequence(
                         required(find('>')),
                         optionalWhiteSpace,
@@ -150,9 +150,16 @@ const getValuesFromArguments = function getValuesFromArguments(args) {
 
                         for (let i = 0, l = items.length; i < l; i++) {
                             const item = items[i];
-                            memo[i] = typeof item === 'function'
-                                ? item(values, `${position}.${i}`)
-                                : item;
+                            if (typeof item === 'function') {
+                                const result = item(values, `${position}.${i}`);
+                                if (Array.isArray(result)) {
+                                    Array.prototype.push.apply(memo, result);
+                                } else {
+                                    memo.push(result);
+                                }
+                            } else {
+                                memo.push(item.exec(`${position}.${i}`));
+                            }
                         }
 
                         return memo;
@@ -161,12 +168,21 @@ const getValuesFromArguments = function getValuesFromArguments(args) {
             ).then(result => (values, position) => {
                 const tag = typeof result[1] === 'function' ? result[1](values) : result[1];
 
-                return (typeof tag === 'string' ? jsx.tag : jsx.component)(
-                    tag,
-                    result[2](values),
-                    typeof result[4] === 'function' ? position => result[4](values, position) : result[4],
-                    position
-                );
+                if (typeof tag === 'string') {
+                    return jsx.tag(
+                        tag,
+                        result[2](values),
+                        result[4](values, position),
+                        position
+                    );
+                } else {
+                    return jsx.component(
+                        tag,
+                        result[2](values),
+                        position => result[4](values, position),
+                        position
+                    );
+                }
             }),
 
             rootNode = sequence(
