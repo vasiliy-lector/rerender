@@ -179,7 +179,8 @@ const getValuesFromArguments = function getValuesFromArguments(args) {
                     return jsx.component(
                         tag,
                         result[2](values),
-                        position => result[4](values, position),
+                        // FIXME jsx.template or new type?
+                        jsx.template(position => result[4](values, position)),
                         position
                     );
                 }

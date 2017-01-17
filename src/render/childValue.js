@@ -10,11 +10,13 @@ function childValue(config, jsx) {
 function childValueStringify(config, jsx) {
     return function(value, position) {
         if (Array.isArray(value)) {
-            for (var i = 0, l = value.length, expanded = []; i < l; i++) {
-                expanded.push(jsx.childValue(value[i], `${position}.${i}`));
+            const memo = [];
+
+            for (let i = 0, l = value.length; i < l; i++) {
+                memo.push(jsx.childValue(value[i], `${position}.${i}`));
             }
 
-            return expanded.join('');
+            return memo.join('');
         } else if (typeof value === 'function') {
             return jsx.childValue(value(), position);
         } else if (typeof value === 'object' && value.type === 'Template') {
@@ -29,7 +31,20 @@ function childValueStringify(config, jsx) {
 
 function childValueDom(config, jsx) {
     return function(value, position) {
-        if (typeof value === 'object') {
+        if (Array.isArray(value)) {
+            const memo = [];
+
+            for (let i = 0, l = value.length; i < l; i++) {
+                const result = jsx.childValue(value[i],`${position}.${i}`);
+                if (Array.isArray(result)) {
+                    Array.prototype.push.apply(memo, result);
+                } else {
+                    memo.push(result);
+                }
+            }
+
+            return memo;
+        } else if (typeof value === 'object') {
             if (value.type === 'Template') {
                 return value.exec(position);
             } else {
@@ -39,18 +54,8 @@ function childValueDom(config, jsx) {
             return jsx.text(value);
         } else if (typeof value === 'function') {
             return jsx.childValue(value(), position);
-        } else if (Array.isArray(value)) {
-            for (var i = 0, l = value.length, expanded = []; i < l; i++) {
-                if (typeof value[i] === 'object' && value[i].type === 'Template') {
-                    expanded.push(value[i].exec(`${position}.${i}`));
-                }
-            }
-
-            return expanded;
-        } else if (!value) {
-            return jsx.text('');
         } else {
-            return value;
+            return jsx.text('');
         }
     };
 }
