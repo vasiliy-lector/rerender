@@ -25,10 +25,11 @@ function getHash(string) {
 }
 
 const REGEXP_ATTR = /[<>"&]/;
-const REGEXP_HTML = /[<>]/;
+const REGEXP_HTML = /[<>&]/;
 
 function escapeHtmlHeavy(value) {
     return value
+        .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
 }

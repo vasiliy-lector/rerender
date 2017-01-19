@@ -65,7 +65,6 @@ describe('jsx', () => {
             });
         });
 
-
         it('should render component with one child', () => {
             expect(jsx `<${Block} text="Text of block">
                 <p>Text from parent</p>
@@ -89,18 +88,20 @@ describe('jsx', () => {
         });
 
         it('should escape string values', () => {
-            expect(jsx `<${Block} text="Text of block">
-                ${[
-                    '<text>',
-                    jsx `<p>${'<text>'}</p>`,
-                    [
-                        '<text>'
-                    ]
-                ]}
-            </${Block}>`.exec(ROOT))
+            expect(jsx `<div>${'<text&nbsp;>'}</div>`.exec(ROOT))
+                .toBe('<div>&lt;text&amp;nbsp;&gt;</div>');
+
+            expect(jsx `<${Block} text="Text of block">${'<text>'}${[
+                '<text&nbsp;>',
+                jsx `<p>${'<text>'}</p>`,
+                [
+                    '<text>'
+                ]
+            ]}</${Block}>`.exec(ROOT))
                 .toBe('<div class="block">' +
                     '<p>Text of block</p>' +
-                    '&lt;text&gt;<p>&lt;text&gt;</p>&lt;text&gt;' +
+                    '&lt;text&gt;' +
+                    '&lt;text&amp;nbsp;&gt;<p>&lt;text&gt;</p>&lt;text&gt;' +
                 '</div>');
         });
     });

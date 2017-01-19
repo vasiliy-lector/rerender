@@ -91,7 +91,7 @@ function componentStringify({ store }, jsx) {
             const instance = new tag(props, children, { position, jsx, store, antibind: tag.antibind });
             Component.beforeRender(instance);
 
-            renderResult = instance.render(instance);
+            renderResult = Component.render(instance);
         } else {
             renderResult = tag({ props, children, jsx });
         }

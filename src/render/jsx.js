@@ -24,7 +24,7 @@ const getValuesFromArguments = function getValuesFromArguments(args) {
             tagNameRegexp = /^[a-zA-Z][a-zA-Z0-9]*/,
             tagName = find(tagNameRegexp),
             placeholder = next(),
-            attrNameRegexp = /^[a-zA-Z_][a-zA-Z0-9]*/,
+            attrNameRegexp = /^[a-zA-Z\-][a-zA-Z0-9\-]*/,
             attrName = find(attrNameRegexp),
             booleanAttr = attrName.then(result => [result, true]),
             quotedAttr = sequence(
@@ -104,7 +104,11 @@ const getValuesFromArguments = function getValuesFromArguments(args) {
                 required(any(
                     tagName,
                     placeholder.then(index => values => {
-                        return typeof values[index] === 'string' || !tagNameRegexp.test(values[index]) ? 'div' : values[index];
+                        if (typeof values[index] === 'string' && tagNameRegexp.test(values[index])) {
+                            return tagNameRegexp.test(values[index]) ? values[index] : 'div';
+                        }
+
+                        return values[index];
                     })
                 )),
                 optional(sequence(
