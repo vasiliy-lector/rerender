@@ -5,211 +5,228 @@ import childValue from './childValue';
 import template from './template';
 import { any, end, find, next, optional, repeat, required, test, sequence, defer } from 'nano-parser';
 
-const getValuesFromArguments = function getValuesFromArguments(args) {
-        const l = args.length;
-        let values = values = Array(l - 1);
+function getValuesFromArguments(args) {
+    const l = args.length;
+    let values = values = Array(l - 1);
 
-        for (let i = 1; i < l; i++) {
-            values[i - 1] = args[i];
-        }
+    for (let i = 1; i < l; i++) {
+        values[i - 1] = args[i];
+    }
 
-        return values;
-    },
+    return values;
+}
 
-    createInstance = function createInstance(config) {
-        const
-            whiteSpace = find(/^\s+/),
-            optionalWhiteSpace = optional(whiteSpace),
-            textNode = find(/^[^<]+/),
-            tagNameRegexp = /^[a-zA-Z][a-zA-Z0-9]*/,
-            tagName = find(tagNameRegexp),
-            placeholder = next(),
-            attrNameRegexp = /^[a-zA-Z\-][a-zA-Z0-9\-]*/,
-            attrName = find(attrNameRegexp),
-            booleanAttr = attrName.then(result => [result, true]),
-            quotedAttr = sequence(
-                attrName,
-                find('='),
-                any(
-                    sequence(
-                        find('\''),
-                        find(/[^']*/),
-                        required(find('\''))
-                    ),
-                    sequence(
-                        find('"'),
-                        find(/[^"]*/),
-                        required(find('"'))
-                    )
-                )
-            ).then(result => [result[0], result[2][1]]),
-            attrWithPlaceholder = sequence(
-                attrName,
-                find('='),
-                any(
-                    placeholder,
-                    sequence(
-                        find('\''),
-                        placeholder,
-                        required(find('\''))
-                    ).then(result => result[1]),
-                    sequence(
-                        find('"'),
-                        placeholder,
-                        required(find('"'))
-                    ).then(result => result[1])
-                )
-            ).then(result => (obj, values) => {
-                obj[result[0]] = values[result[2]];
-            }),
-            attrs = repeat(
-                any(
-                    placeholder.then(index => (obj, values) => {
-                        const value = values[index];
+let parser;
 
-                        if (typeof value !== 'object') {
-                            return;
-                        }
-
-                        const keys = Object.keys(value);
-                        let i = keys.length;
-
-                        while (i--) {
-                            if (attrNameRegexp.test(keys[i])) {
-                                obj[keys[i]] = value[keys[i]];
-                            }
-                        }
-                    }),
-                    attrWithPlaceholder,
-                    quotedAttr,
-                    booleanAttr
+function createParser() {
+    const
+        whiteSpace = find(/^\s+/),
+        optionalWhiteSpace = optional(whiteSpace),
+        textNode = find(/^[^<]+/),
+        tagNameRegexp = /^[a-zA-Z][a-zA-Z0-9]*/,
+        tagName = find(tagNameRegexp),
+        placeholder = next(),
+        attrNameRegexp = /^[a-zA-Z\-][a-zA-Z0-9\-]*/,
+        attrName = find(attrNameRegexp),
+        booleanAttr = attrName.then(result => [result, true]),
+        quotedAttr = sequence(
+            attrName,
+            find('='),
+            any(
+                sequence(
+                    find('\''),
+                    find(/[^']*/),
+                    required(find('\''))
                 ),
-                whiteSpace
-            ).then(results => values => {
-                const memo = {};
+                sequence(
+                    find('"'),
+                    find(/[^"]*/),
+                    required(find('"'))
+                )
+            )
+        ).then(result => [result[0], result[2][1]]),
+        attrWithPlaceholder = sequence(
+            attrName,
+            find('='),
+            any(
+                placeholder,
+                sequence(
+                    find('\''),
+                    placeholder,
+                    required(find('\''))
+                ).then(result => result[1]),
+                sequence(
+                    find('"'),
+                    placeholder,
+                    required(find('"'))
+                ).then(result => result[1])
+            )
+        ).then(result => (obj, values) => {
+            obj[result[0]] = values[result[2]];
+        }),
+        attrs = repeat(
+            any(
+                placeholder.then(index => (obj, values) => {
+                    const value = values[index];
 
-                for (let i = 0, l = results.length; i < l; i++) {
-                    const result = results[i];
-                    if (typeof result === 'function') {
-                        result(memo, values);
-                    } else {
-                        memo[result[0]] = result[1];
+                    if (typeof value !== 'object') {
+                        return;
                     }
-                }
 
-                return memo;
-            }),
-            node = sequence(
-                find('<').not(find('</')),
-                required(any(
-                    tagName,
-                    placeholder.then(index => values => {
-                        if (typeof values[index] === 'string' && tagNameRegexp.test(values[index])) {
-                            return tagNameRegexp.test(values[index]) ? values[index] : 'div';
+                    const keys = Object.keys(value);
+                    let i = keys.length;
+
+                    while (i--) {
+                        if (attrNameRegexp.test(keys[i])) {
+                            obj[keys[i]] = value[keys[i]];
                         }
-
-                        return values[index];
-                    })
-                )),
-                optional(sequence(
-                    whiteSpace,
-                    attrs
-                )).then(result => values => {
-                    return result ? result[1](values) : {};
+                    }
                 }),
-                optionalWhiteSpace,
-                required(any(
-                    find('/>').then(() => () => []),
-                    sequence(
-                        required(find('>')),
-                        optionalWhiteSpace,
-                        optional(any(
-                            sequence(
-                                repeat(defer(() => node), optionalWhiteSpace),
-                                test(find(/^\s*<\//))
-                            ).then(result => result[0]).not(find(/^[^<]+/)),
-                            repeat(any(
-                                placeholder.then(index => (values, position) => {
-                                    return jsx.childValue(values[index], position);
-                                }),
-                                textNode.then(result => () => {
-                                    return jsx.text(result);
-                                }),
-                                defer(() => node)
-                            ))
-                        )),
-                        optionalWhiteSpace,
-                        required(sequence(
-                            find('</'),
-                            any(
-                                tagName,
-                                placeholder
-                            ),
-                            optionalWhiteSpace,
-                            find('>')
-                        ))
-                    ).then(result => (values, position) => {
-                        const memo = [],
-                            items = result[2] || [];
+                attrWithPlaceholder,
+                quotedAttr,
+                booleanAttr
+            ),
+            whiteSpace
+        ).then(results => values => {
+            const memo = {};
 
-                        for (let i = 0, l = items.length; i < l; i++) {
-                            const item = items[i];
-                            if (typeof item === 'function') {
-                                const result = item(values, `${position}.${i}`);
-                                if (Array.isArray(result)) {
-                                    Array.prototype.push.apply(memo, result);
-                                } else {
-                                    memo.push(result);
-                                }
-                            } else {
-                                memo.push(item.exec(`${position}.${i}`));
-                            }
-                        }
-
-                        return memo;
-                    })
-                ))
-            ).then(result => (values, position) => {
-                const tag = typeof result[1] === 'function' ? result[1](values) : result[1];
-
-                if (typeof tag === 'string') {
-                    return jsx.tag(
-                        tag,
-                        result[2](values),
-                        result[4](values, position),
-                        position
-                    );
+            for (let i = 0, l = results.length; i < l; i++) {
+                const result = results[i];
+                if (typeof result === 'function') {
+                    result(memo, values);
                 } else {
-                    return jsx.component(
-                        tag,
-                        result[2](values),
-                        // FIXME jsx.template or new type?
-                        jsx.template(position => result[4](values, position)),
-                        position
-                    );
+                    memo[result[0]] = result[1];
                 }
+            }
+
+            return memo;
+        }),
+        node = sequence(
+            find('<').not(find('</')),
+            required(any(
+                tagName,
+                placeholder.then(index => values => {
+                    if (typeof values[index] === 'string' && tagNameRegexp.test(values[index])) {
+                        return tagNameRegexp.test(values[index]) ? values[index] : 'div';
+                    }
+
+                    return values[index];
+                })
+            )),
+            optional(sequence(
+                whiteSpace,
+                attrs
+            )).then(result => values => {
+                return result ? result[1](values) : {};
             }),
+            optionalWhiteSpace,
+            required(any(
+                find('/>').then(() => () => []),
+                sequence(
+                    required(find('>')),
+                    optionalWhiteSpace,
+                    optional(any(
+                        sequence(
+                            repeat(defer(() => node), optionalWhiteSpace),
+                            test(find(/^\s*<\//))
+                        ).then(result => result[0]).not(find(/^[^<]+/)),
+                        repeat(any(
+                            placeholder.then(index => (values, position, jsx) => {
+                                return jsx.childValue(values[index], position);
+                            }),
+                            textNode.then(result => (values, position, jsx) => {
+                                return jsx.text(result);
+                            }),
+                            defer(() => node)
+                        ))
+                    )),
+                    optionalWhiteSpace,
+                    required(sequence(
+                        find('</'),
+                        any(
+                            tagName,
+                            placeholder
+                        ),
+                        optionalWhiteSpace,
+                        find('>')
+                    ))
+                ).then(result => (values, position, jsx) => {
+                    const memo = [],
+                        items = result[2] || [];
 
-            rootNode = sequence(
-                optionalWhiteSpace,
-                node,
-                optionalWhiteSpace,
-                end()
-            ).useCache().then((result, values) => {
-                return jsx.template(position => result[1](values, position));
-            });
+                    for (let i = 0, l = items.length; i < l; i++) {
+                        const item = items[i];
+                        if (typeof item === 'function') {
+                            const result = item(values, `${position}.${i}`, jsx);
+                            if (Array.isArray(result)) {
+                                Array.prototype.push.apply(memo, result);
+                            } else {
+                                memo.push(result);
+                            }
+                        } else {
+                            memo.push(item.exec(`${position}.${i}`));
+                        }
+                    }
 
-        function jsx(templates) {
-            return rootNode.parse(templates, getValuesFromArguments(arguments));
-        }
+                    return memo;
+                })
+            ))
+        ).then(result => (values, position, jsx) => {
+            const tag = typeof result[1] === 'function' ? result[1](values) : result[1];
 
-        jsx.template = template;
-        jsx.component = component(config, jsx);
-        jsx.tag = tag(config, jsx);
-        jsx.text = text(config);
-        jsx.childValue = childValue(config, jsx);
+            if (typeof tag === 'string') {
+                return jsx.tag(
+                    tag,
+                    result[2](values),
+                    result[4](values, position, jsx),
+                    position
+                );
+            } else {
+                return jsx.component(
+                    tag,
+                    result[2](values),
+                    // FIXME jsx.template or new type?
+                    jsx.template(position => result[4](values, position, jsx)),
+                    position
+                );
+            }
+        });
 
-        return jsx;
-    };
+    return sequence(
+        optionalWhiteSpace,
+        node,
+        optionalWhiteSpace,
+        end()
+    ).useCache();
+}
+
+function execCached(result, { jsx, values }) {
+    return jsx.template(position => result[1](values, position, jsx));
+}
+
+function createInstanceParser() {
+    return (parser || (parser = createParser())).then(execCached);
+}
+
+function createInstance(config, warmUp) {
+    let instanceParser;
+
+    function jsx(templates) {
+        return (instanceParser || (instanceParser = createInstanceParser()))
+            .parse(templates, { jsx, values: getValuesFromArguments(arguments)});
+    }
+
+    jsx.template = template;
+    jsx.component = component(config, jsx);
+    jsx.tag = tag(config, jsx);
+    jsx.text = text(config, jsx);
+    jsx.childValue = childValue(config, jsx);
+
+    if (warmUp) {
+        instanceParser = createInstanceParser();
+    }
+
+    return jsx;
+}
 
 export { createInstance };
