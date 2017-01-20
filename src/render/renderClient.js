@@ -8,28 +8,30 @@ import { createInstance } from './jsx';
 const RENDER_THROTTLE = 50;
 
 function renderClient(render, store, domNode) {
-    const
-        events = new Events(),
-        instances = {},
-        nextInstances = {},
-        nextNewInstances = {},
-        jsx = createInstance({
-            store,
-            events,
-            // FIXME
-            // joinTextNodes: true,
-            stringify: false,
-            instances,
-            nextInstances,
-            nextNewInstances
-        }),
-        vDom = render({ jsx }).exec('__r__');
+    const start = performance.now();
+    const events = new Events();
+    const instances = {};
+    const nextInstances = {};
+    const nextNewInstances = {};
+    const jsx = createInstance({
+        store,
+        events,
+        // FIXME
+        // joinTextNodes: true,
+        stringify: false,
+        instances,
+        nextInstances,
+        nextNewInstances
+    });
+    const vDom = render({ jsx }).exec('__r__');
 
     let rootNode = createElement(vDom);
     // TODO check hashsum from server and use server markup
     domNode.innerHTML = '';
     domNode.appendChild(rootNode);
     mount(nextNewInstances);
+    const end = performance.now();
+    console.log('first render: ', (end - start).toFixed(3)); // eslint-disable-line no-console
 
     events.on('rerender', rerenderClient({
         render,
@@ -65,7 +67,9 @@ function rerenderClient({
                 nextNewInstances
             }),
             nextVDom = render({ jsx }).exec('__r__');
+
         unmount(instances);
+        instances = nextInstances;
         // TODO blur problem when moving component with focus
         rootNode = patch(rootNode, diff(vDom, nextVDom));
         vDom = nextVDom;
@@ -87,7 +91,7 @@ function unmount(instances) {
     for (let i = 0, l = keys.length; i < l; i++) {
         let instance = instances[keys[i]];
         if (instance.type === 'Component') {
-            // TODO singleton and key logic here (+ timelife static prop feature)
+            // TODO singleton and uniqid logic here (+ timelife static prop feature)
             Component.unmount(instance);
             Component.destroy(instance);
         }
