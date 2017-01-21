@@ -19,41 +19,27 @@ function tagStringify() {
     return function (tag, attrs, children) {
         let attrsString = '';
 
-        for (let i = 0, attrsKeys = Object.keys(attrs), l = attrsKeys.length; i < l; i++) {
-            const key = attrsKeys[i];
+        if (attrs !== null) {
+            for (var key in attrs) {
+                // TODO key === 'key'?
+                if (key.substr(0, 2) === 'on' || key === 'ref') {
+                    continue;
+                } else if (key === 'dataset') {
+                    const value = attrs[key],
+                        datasetKeys = Object.keys(value);
 
-            // TODO key === 'key'?
-            if (key.substr(0, 2) === 'on' || key === 'ref') {
-                continue;
-            } else if (key === 'dataset') {
-                const value = attrs[key],
-                    datasetKeys = Object.keys(value);
-
-                for (let i = 0, l = datasetKeys.length; i < l; i++) {
-                    attrsString += ` data-${datasetKeys[i]}="${escapeAttr(value[datasetKeys[i]])}"`;
-                }
-            } else if (key === 'style') {
-                const value = attrs[key];
-                let styleString;
-
-                if (typeof value === 'object') {
-                    const styleKeys = Object.keys(value);
-                    styleString = '';
-
-                    for (let j = 0, l1 = styleKeys.length; j < l1; j++) {
-                        styleString += convertStyleKey(styleKeys[j]) + `:${value[styleKeys[j]]};`;
+                    for (let i = 0, l = datasetKeys.length; i < l; i++) {
+                        attrsString += ` data-${datasetKeys[i]}="${escapeAttr(value[datasetKeys[i]])}"`;
                     }
+                } else if (key === 'style') {
+                    attrsString += ` style="${escapeStyle(attrs[key])}"`;
                 } else {
-                    styleString = value;
+                    const value = attrs[key];
+
+                    attrsString += ' ' + convertAttrName(key) + (value ===  true
+                        ? ''
+                        : `="${escapeAttr(value)}"`);
                 }
-
-                attrsString += ` style="${escapeAttr(styleString)}"`;
-            } else {
-                const value = attrs[key];
-
-                attrsString += ' ' + convertAttrName(key) + (value ===  true
-                    ? ''
-                    : `="${escapeAttr(value)}"`);
             }
         }
 
@@ -64,6 +50,22 @@ function tagStringify() {
                 ? '>' + childrenString + '</' + tag + '>'
                 : ' />');
     };
+}
+
+function escapeStyle(value) {
+    let styleString;
+
+    if (typeof value === 'object') {
+        styleString = '';
+
+        for (var prop in value) {
+            styleString += convertStyleKey(prop) + `:${value[prop]};`;
+        }
+    } else {
+        styleString = value;
+    }
+
+    return escapeAttr(styleString);
 }
 
 function convertAttrName(name) {
@@ -157,3 +159,4 @@ function convertUpper(match) {
 }
 
 export default tag;
+export { escapeStyle };

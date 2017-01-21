@@ -1,5 +1,5 @@
-import VNode from 'virtual-dom/vnode/vnode';
-import VText from 'virtual-dom/vnode/vtext';
+import VNode from '../../src/dom/VNode';
+import VText from '../../src/dom/VText';
 import Component from '../../src/Component';
 import { createInstance } from '../../src/render/jsx';
 

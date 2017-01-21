@@ -1,12 +1,10 @@
-function createElement(node, document = self.document) {
+function createElement(node, document) {
     if (node.type === 'VNode') {
         const elem = document.createElement(node.tag);
-        const attrKeys = Object.keys(node.attrs);
 
-        for (let i = 0, l = attrKeys.length; i < l; i++) {
-            const name = attrKeys[i];
-            if (name.substr(0, 2) !== 'on') {
-                elem.setAttribute(name, node.attrs[name]);
+        if (node.attrs !== null) {
+            for (let name in node.attrs) {
+                elem[name] = node.attrs[name];
             }
         }
 

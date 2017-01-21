@@ -4,33 +4,58 @@ import Component from '../Component';
 import { throttle } from '../utils';
 import { createInstance } from './jsx';
 
-const RENDER_THROTTLE = 50;
+const RENDER_THROTTLE = 16;
 
-function renderClient(render, store, domNode) {
-    const start = performance.now();
+function renderClient(render, store, domNode, { document = self.document } = {}) {
+    let vDom;
+    let rootNode;
     const events = new Events();
     const instances = {};
     const nextInstances = {};
     const nextNewInstances = {};
-    const jsx = createInstance({
-        store,
-        events,
-        // FIXME
-        // joinTextNodes: true,
-        stringify: false,
-        instances,
-        nextInstances,
-        nextNewInstances
-    });
-    const vDom = render({ jsx }).exec('__r__');
+    const disableCheck = domNode.getAttribute('data-rerender-disable-check');
+    // for speed
+    if (disableCheck) {
+        const jsx = createInstance({
+            store,
+            events,
+            stringify: false,
+            instances,
+            nextInstances,
+            nextNewInstances
+        });
+        const start = performance.now();
+        vDom = render({ jsx }).exec('r');
+        domNode.innerHTML = '';
+        domNode.appendChild(rootNode);
+        const end = performance.now();
+        console.log((end - start).toFixed(3), 'ms'); // eslint-disable-line no-console
+    } else {
+        const checkSum = domNode.getAttribute('data-rerender-checksum');
+        // true check
+        if (checkSum) {
 
-    let rootNode = createElement(vDom);
-    // TODO check hashsum from server and use server markup
-    domNode.innerHTML = '';
-    domNode.appendChild(rootNode);
+        // no server side code, just client
+        } else {
+            const jsx = createInstance({
+                store,
+                events,
+                stringify: false,
+                instances,
+                nextInstances,
+                nextNewInstances
+            });
+            // const start = performance.now();
+            vDom = render({ jsx }).exec('r');
+            rootNode = createElement(vDom);
+            domNode.innerHTML = '';
+            domNode.appendChild(rootNode);
+            // const end = performance.now();
+            // console.log((end - start).toFixed(3), 'ms'); // eslint-disable-line no-console
+        }
+    }
+
     mount(nextNewInstances);
-    const end = performance.now();
-    console.log('first render: ', (end - start).toFixed(3)); // eslint-disable-line no-console
 
     events.on('rerender', rerenderClient({
         render,
@@ -41,6 +66,39 @@ function renderClient(render, store, domNode) {
         prevInstances: nextInstances
     }));
 }
+
+// function renderClient(render, store, domNode) {
+//     const events = new Events();
+//     const instances = {};
+//     const nextInstances = {};
+//     const nextNewInstances = {};
+//     const jsx = createInstance({
+//         store,
+//         events,
+//         // FIXME
+//         // joinTextNodes: true,
+//         stringify: false,
+//         instances,
+//         nextInstances,
+//         nextNewInstances
+//     });
+//
+//     const vDom = render({ jsx }).exec('__r__');
+//     let rootNode = createElement(vDom);
+//     // TODO check hashsum from server and use server markup
+//     domNode.innerHTML = '';
+//     domNode.appendChild(rootNode);
+//     mount(nextNewInstances);
+//
+//     events.on('rerender', rerenderClient({
+//         render,
+//         store,
+//         events,
+//         prevVDom: vDom,
+//         prevRootNode: rootNode,
+//         prevInstances: nextInstances
+//     }));
+// }
 
 function rerenderClient({
     render,

@@ -154,6 +154,7 @@ function createParser() {
                     const memo = [],
                         items = result[2] || [];
 
+                    // TODO here that one place were traversing once all childs
                     for (let i = 0, l = items.length; i < l; i++) {
                         const item = items[i];
                         if (typeof item === 'function') {
