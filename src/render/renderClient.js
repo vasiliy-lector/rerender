@@ -1,5 +1,4 @@
-import { patch, diff } from 'virtual-dom';
-import createElement from 'virtual-dom/create-element';
+import createElement from '../dom/createElement';
 import Events from '../Events';
 import Component from '../Component';
 import { throttle } from '../utils';

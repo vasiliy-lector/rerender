@@ -1,5 +1,5 @@
-import { escapeHtml } from '../utils.js';
-import VText from 'virtual-dom/vnode/vtext';
+import { escapeHtml } from '../utils';
+import VText from '../dom/VText';
 
 function text(config) {
     if (config.stringify) {

@@ -9,24 +9,6 @@ Template.prototype = {
     type: 'Template'
 };
 
-// function VText(value) {
-//     this.value = value;
-// }
-//
-// VText.prototype = {
-//     type: 'VText'
-// };
-//
-// function VNode(tag, attrs, children) {
-//     this.tag = tag;
-//     this.attrs = attrs;
-//     this.children = children;
-// }
-//
-// VNode.prototype = {
-//     type: 'VNode'
-// };
-
 function template(template) {
     return new Template(template);
 }

@@ -1,5 +1,5 @@
-import { escapeAttr } from '../utils.js';
-import VNode from 'virtual-dom/vnode/vnode';
+import { escapeAttr } from '../utils';
+import VNode from '../dom/VNode';
 
 function tag(config) {
     if (config.stringify) {
