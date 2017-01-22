@@ -94,14 +94,12 @@ describe('jsx', () => {
             expect(jsx `<${Block} text="Text of block">${'<text>'}${[
                 '<text&nbsp;>',
                 jsx `<p>${'<text>'}</p>`,
-                [
-                    '<text>'
-                ]
+                ['<text>', ['<text>']]
             ]}</${Block}>`.exec(ROOT))
                 .toBe('<div class="block">' +
                     '<p>Text of block</p>' +
                     '&lt;text&gt;' +
-                    '&lt;text&amp;nbsp;&gt;<p>&lt;text&gt;</p>&lt;text&gt;' +
+                    '&lt;text&amp;nbsp;&gt;<p>&lt;text&gt;</p>&lt;text&gt;&lt;text&gt;' +
                 '</div>');
         });
     });
