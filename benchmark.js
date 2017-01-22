@@ -77,7 +77,7 @@ function rerenderjsx() {
 }
 
 function rerenderPrecompiled() {
-    return `<div class="block" id="${escapeAttr('id1')}">
+    return jsx.template(() => `<div class="block" id="${escapeAttr('id1')}">
         <form action="${escapeAttr('../')}">
             <ul class="ulclass">
                 <li class="${escapeAttr('li1')}">
@@ -110,7 +110,7 @@ function rerenderPrecompiled() {
                 </li>
             </ul>
         </form>
-    </div>`;
+    </div>`).exec('');
 }
 
 function pureReact() {
