@@ -4,7 +4,8 @@ import Component from '../Component';
 import { throttle } from '../utils';
 import { createInstance } from './jsx';
 
-const RENDER_THROTTLE = 16;
+const RENDER_THROTTLE = 16,
+    ROOT_POSITION = 'r';
 
 function renderClient(render, store, domNode, { document = self.document } = {}) {
     let vDom;
@@ -13,46 +14,38 @@ function renderClient(render, store, domNode, { document = self.document } = {})
     const instances = {};
     const nextInstances = {};
     const nextNewInstances = {};
-    const disableCheck = domNode.getAttribute('data-rerender-disable-check');
-    // for speed
-    if (disableCheck) {
+    const checkSum = domNode.getAttribute('data-rerender-checksum');
+    // true check
+    if (checkSum) {
         const jsx = createInstance({
             store,
             events,
-            stringify: false,
+            method: 'reuse',
             instances,
             nextInstances,
             nextNewInstances
         });
         const start = performance.now();
-        vDom = render({ jsx }).exec('r');
-        domNode.innerHTML = '';
-        domNode.appendChild(rootNode);
+        vDom = render({ jsx }).exec(ROOT_POSITION);
         const end = performance.now();
         console.log((end - start).toFixed(3), 'ms'); // eslint-disable-line no-console
+    // no server side code, just client
     } else {
-        const checkSum = domNode.getAttribute('data-rerender-checksum');
-        // true check
-        if (checkSum) {
-
-        // no server side code, just client
-        } else {
-            const jsx = createInstance({
-                store,
-                events,
-                stringify: false,
-                instances,
-                nextInstances,
-                nextNewInstances
-            });
-            // const start = performance.now();
-            vDom = render({ jsx }).exec('r');
-            rootNode = createElement(vDom);
-            domNode.innerHTML = '';
-            domNode.appendChild(rootNode);
-            // const end = performance.now();
-            // console.log((end - start).toFixed(3), 'ms'); // eslint-disable-line no-console
-        }
+        const jsx = createInstance({
+            store,
+            events,
+            method: 'create',
+            instances,
+            nextInstances,
+            nextNewInstances
+        });
+        // const start = performance.now();
+        vDom = render({ jsx }).exec(ROOT_POSITION);
+        rootNode = createElement(vDom);
+        domNode.innerHTML = '';
+        domNode.appendChild(rootNode);
+        // const end = performance.now();
+        // console.log((end - start).toFixed(3), 'ms'); // eslint-disable-line no-console
     }
 
     mount(nextNewInstances);
@@ -118,12 +111,12 @@ function rerenderClient({
             jsx = createInstance({
                 store,
                 events,
-                stringify: false,
+                method: 'diff',
                 instances,
                 nextInstances,
                 nextNewInstances
             }),
-            nextVDom = render({ jsx }).exec('__r__');
+            nextVDom = render({ jsx }).exec(ROOT_POSITION);
 
         unmount(instances);
         instances = nextInstances;

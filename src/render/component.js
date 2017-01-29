@@ -1,4 +1,4 @@
-import { getFunctionName, shallowEqual, shallowEqualArray } from '../utils.js';
+import { getFunctionName, shallowEqual } from '../utils.js';
 import Component from '../Component';
 
 // FIXME find faster way to determine Component
@@ -51,8 +51,8 @@ function componentDom({ instances, nextInstances, nextNewInstances, store, event
                 lastRender = tag({ props, children, jsx });
             }
         } else {
-            // TODO shallowEqualArray really need?
-            let sameOuter = shallowEqual(current.props, props) && shallowEqualArray(current.children, children);
+            const sameOuter = shallowEqual(current.props, props)
+                && (current.children === children || (current.children.length === 0 && children.length === 0));
 
             if (isComponent(tag)) {
                 Component.beforeRender(current.instance);
