@@ -32,10 +32,10 @@ function componentDom({ instances, nextInstances, nextNewInstances, store, event
         }
 
         if (current === undefined || current.tag !== tag) {
-            current = { tag, props, children };
+            current = { tag, props };
 
             if (isComponent(tag)) {
-                current.instance = new tag(props, children, { jsx, store, events, antibind: tag.antibind });
+                current.instance = new tag(props, { jsx, store, events, antibind: tag.antibind });
                 nextNewInstances[position] = current.instance;
                 if (props.ref && !tag.wrapper && typeof props.ref === 'function') {
                     props.ref(current.instance);
@@ -44,7 +44,7 @@ function componentDom({ instances, nextInstances, nextNewInstances, store, event
                 lastRender = Component.render(current.instance);
                 current.state = current.instance.state;
             } else {
-                lastRender = tag({ props, children, jsx });
+                lastRender = tag({ props, jsx });
             }
         } else {
             const sameOuter = shallowEqual(current.props, props) && current.children === children;

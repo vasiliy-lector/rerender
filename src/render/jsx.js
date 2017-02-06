@@ -131,8 +131,13 @@ function createParser() {
                             test(find(/^\s*<\//))
                         ).then(result => result[0]).not(find(/^[^<]+/)),
                         repeat(any(
-                            placeholder.then(index => (values, position, jsx) => {
-                                return jsx.childValue(values[index], position);
+                            placeholder.then(index => (values, position, jsx, liftDataObj) => {
+                                if (typeof values[index] === 'object' && values[index].type === 'children') {
+                                    liftDataObj.childrenPosition = position;
+                                    return null;
+                                } else {
+                                    return jsx.childValue(values[index], position);
+                                }
                             }),
                             textNode.then(result => (values, position, jsx) => {
                                 return jsx.text(result);
@@ -150,7 +155,7 @@ function createParser() {
                         optionalWhiteSpace,
                         find('>')
                     ))
-                ).then(result => (values, position, jsx) => {
+                ).then(result => (values, position, jsx, liftDataObj) => {
                     const memo = [],
                         items = result[2] || [];
 
@@ -158,7 +163,7 @@ function createParser() {
                     for (let i = 0, l = items.length; i < l; i++) {
                         const item = items[i];
                         if (typeof item === 'function') {
-                            const result = item(values, `${position}.${i}`, jsx);
+                            const result = item(values, `${position}.${i}`, jsx, liftDataObj);
                             if (Array.isArray(result)) {
                                 Array.prototype.push.apply(memo, result);
                             } else {
@@ -172,14 +177,14 @@ function createParser() {
                     return memo;
                 })
             ))
-        ).then(result => (values, position, jsx) => {
+        ).then(result => (values, position, jsx, liftDataObj) => {
             const tag = typeof result[1] === 'function' ? result[1](values) : result[1];
 
             if (typeof tag === 'string') {
                 return jsx.tag(
                     tag,
                     result[2](values),
-                    result[4](values, position, jsx),
+                    result[4](values, position, jsx, liftDataObj),
                     position
                 );
             } else {
@@ -187,7 +192,7 @@ function createParser() {
                     tag,
                     result[2](values),
                     // FIXME jsx.template or new type?
-                    jsx.template(position => result[4](values, position, jsx)),
+                    jsx.template(position => result[4](values, position, jsx, liftDataObj)),
                     position
                 );
             }
@@ -202,7 +207,7 @@ function createParser() {
 }
 
 function execCached(result, { jsx, values }) {
-    return jsx.template(position => result[1](values, position, jsx));
+    return jsx.template((position, liftDataObj) => result[1](values, position, jsx, liftDataObj));
 }
 
 function createInstanceParser() {
