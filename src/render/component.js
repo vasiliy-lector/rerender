@@ -1,4 +1,4 @@
-import { getFunctionName, shallowEqual } from '../utils.js';
+import { shallowEqual } from '../utils';
 import Component from '../Component';
 
 // FIXME find faster way to determine Component
@@ -101,12 +101,14 @@ function componentStringify({ store }, jsx) {
 
 function calcComponentPosition(tag, props, position) {
     // TODO warning if many instances of singleton or with same key
-    if (tag.singleton) {
-        return `__s__${getFunctionName(tag)}`;
+    if (tag.uniqid) {
+        return `u${tag.uniqid}`;
+    } else if (props.uniqid) {
+        return `u${props.uniqid}`;
     } else if (props.key) {
-        return `__k__${props.key}${getFunctionName(tag)}`;
+        return `position.k${props.key}`;
     } else {
-        return `${position}.${getFunctionName(tag)}`;
+        return `${position}.c`;
     }
 }
 

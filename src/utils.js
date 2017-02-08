@@ -10,10 +10,8 @@ const getFunctionName = (function getFunctionName() {
 
 const SKIP_HOIST = {
         defaults: true,
-        required: true,
-        types: true,
-        singleton: true,
-        autoBind: true
+        uniqid: true,
+        antibind: true
     },
     NEXT_TICK_TIMEOUT = 0;
 
