@@ -74,42 +74,22 @@ function escapeAttr(value) {
     return string;
 }
 
-// Objects same if them have same properties (arrays property same if same all items)
 function shallowEqual(obj1, obj2) {
     if (obj1 === obj2) {
         return true;
     } else if (typeof obj1 !== typeof obj2) {
         return false;
-    } else {
-        const obj1Keys = Object.keys(obj1);
-
-        for (let i = 0, l = obj1Keys.length; i < l; i++) {
-            let name = obj1Keys[i];
-
-            if (obj1[name] === obj2[name]) {
-                continue;
-            } else if (typeof obj1[name] !== typeof obj2[name]) {
-                return false;
-            } else if (Array.isArray(obj1[name]) && Array.isArray(obj2[name])) {
-                let array1 = obj1[name],
-                    array2 = obj2[name];
-
-                if (array1.length !== array2.length) {
-                    return false;
-                }
-
-                for (let i = 0, l = array1.length; i < l; i++) {
-                    if (array1[i] !== array2[i]) {
-                        return false;
-                    }
-                }
-            } else {
-                return false;
-            }
-        }
-
-        return true;
+    } else if (Object.keys(obj1).length !== Object.keys(obj2).length) {
+        return false;
     }
+
+    for (let name in obj1) {
+        if (obj1[name] !== obj2[name]) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 function shallowEqualArray(array1, array2) {
