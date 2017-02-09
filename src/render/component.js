@@ -19,7 +19,7 @@ function componentDom({ instances, nextInstances, nextNewInstances, store, event
         position = calcComponentPosition(tag, props, position);
         let current = instances[position],
             changed = true,
-            lastRender;
+            componentTemplate;
 
         if (tag.defaults && typeof tag.defaults === 'object') {
             const defaultsKeys = Object.keys(tag.defaults);
@@ -31,8 +31,11 @@ function componentDom({ instances, nextInstances, nextNewInstances, store, event
             }
         }
 
+        jsx.index = 0;
         if (current === undefined || current.tag !== tag) {
-            current = { tag, props, children };
+            current = { tag, props, children, cachedTemplates: [] };
+
+            jsx.cachedTemplates = current.cachedTemplates;
 
             if (isComponent(tag)) {
                 current.instance = new tag(props, children, { jsx, store, events, antibind: tag.antibind });
@@ -41,13 +44,14 @@ function componentDom({ instances, nextInstances, nextNewInstances, store, event
                     props.ref(current.instance);
                 }
                 Component.beforeRender(current.instance);
-                lastRender = Component.render(current.instance);
+                componentTemplate = Component.render(current.instance);
                 current.state = current.instance.state;
             } else {
-                lastRender = tag({ props, children, jsx });
+                componentTemplate = tag({ props, children, jsx });
             }
         } else {
             const sameOuter = shallowEqual(current.props, props) && current.children === children;
+            jsx.cachedTemplates = current.cachedTemplates;
 
             if (isComponent(tag)) {
                 Component.beforeRender(current.instance);
@@ -57,26 +61,26 @@ function componentDom({ instances, nextInstances, nextNewInstances, store, event
                     if (!sameOuter) {
                         Component.setProps(instance, props, children);
                     }
-                    lastRender = Component.render(instance);
+                    componentTemplate = Component.render(instance);
                 } else {
                     changed = false;
                 }
             } else if (!sameOuter) {
                 current = { tag, props, children };
-                lastRender = tag({ props, children, jsx });
+                componentTemplate = tag({ props, children, jsx });
             } else {
                 changed = false;
             }
         }
 
         if (changed) {
-            current.lastRender = lastRender ? lastRender.exec(position + '.0') : jsx.text('');
+            current.componentTemplate = componentTemplate;
         }
 
         nextInstances[position] = current;
         delete instances[position];
 
-        return current.lastRender;
+        return current.componentTemplate.exec(position + '.0');
     };
 }
 

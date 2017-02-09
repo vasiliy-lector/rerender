@@ -186,8 +186,7 @@ function createParser() {
                 return jsx.component(
                     tag,
                     result[2](values),
-                    // FIXME jsx.template or new type?
-                    jsx.template(position => result[4](values, position, jsx)),
+                    jsx.template(result[4], values),
                     position
                 );
             }
@@ -202,7 +201,7 @@ function createParser() {
 }
 
 function execCached(result, { jsx, values }) {
-    return jsx.template(position => result[1](values, position, jsx));
+    return jsx.template(result[1], values);
 }
 
 function createInstanceParser() {
