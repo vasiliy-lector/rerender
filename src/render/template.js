@@ -13,16 +13,20 @@ Template.prototype = {
     type: 'Template'
 };
 
-function template(fn, values) {
-    const index = ++this.index;
-    const cachedTemplate = this.cachedTemplates[index];
+function template(config, jsx) {
+    const { nextInstances } = config;
 
-    if (!cachedTemplate || cachedTemplate.fn !== fn || !shallowEqual(cachedTemplate.values, values)) {
-        return (this.cachedTemplates[index] = new Template(fn, values, this));
-    } else {
-        return cachedTemplate;
-    }
+    return function(fn, values) {
+        const { currentOwnerPosition, currentTemplateIndex } = config;
+        const cachedTemplate = nextInstances[currentOwnerPosition].cachedTemplates[currentTemplateIndex];
 
+        config.currentTemplateIndex++;
+        if (!cachedTemplate || cachedTemplate.fn !== fn || !shallowEqual(cachedTemplate.values, values)) {
+            return (nextInstances[currentOwnerPosition].cachedTemplates[currentTemplateIndex] = new Template(fn, values, jsx));
+        } else {
+            return cachedTemplate;
+        }
+    };
 }
 
 export default template;

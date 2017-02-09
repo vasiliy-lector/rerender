@@ -14,12 +14,17 @@ function component(config, jsx) {
     }
 }
 
-function componentDom({ instances, nextInstances, nextNewInstances, store, events }, jsx) {
+function componentDom(config, jsx) {
+    const { instances, nextInstances, nextNewInstances, store, events } = config;
+
     return function(tag, props, children, position) {
         position = calcComponentPosition(tag, props, position);
         let current = instances[position],
             changed = true,
             componentTemplate;
+
+        config.currentOwnerPosition = position;
+        config.currentTemplateIndex = 0;
 
         if (tag.defaults && typeof tag.defaults === 'object') {
             const defaultsKeys = Object.keys(tag.defaults);
@@ -31,11 +36,9 @@ function componentDom({ instances, nextInstances, nextNewInstances, store, event
             }
         }
 
-        jsx.index = 0;
         if (current === undefined || current.tag !== tag) {
             current = { tag, props, children, cachedTemplates: [] };
-
-            jsx.cachedTemplates = current.cachedTemplates;
+            nextInstances[position] = current;
 
             if (isComponent(tag)) {
                 current.instance = new tag(props, children, { jsx, store, events, antibind: tag.antibind });
@@ -51,13 +54,13 @@ function componentDom({ instances, nextInstances, nextNewInstances, store, event
             }
         } else {
             const sameOuter = shallowEqual(current.props, props) && current.children === children;
-            jsx.cachedTemplates = current.cachedTemplates;
 
             if (isComponent(tag)) {
                 Component.beforeRender(current.instance);
                 if (!sameOuter || current.instance.state !== current.state) {
                     let instance = current.instance;
                     current = { tag, props, children, instance, state: instance.state };
+                    nextInstances[position] = current;
                     if (!sameOuter) {
                         Component.setProps(instance, props, children);
                     }
@@ -67,6 +70,7 @@ function componentDom({ instances, nextInstances, nextNewInstances, store, event
                 }
             } else if (!sameOuter) {
                 current = { tag, props, children };
+                nextInstances[position] = current;
                 componentTemplate = tag({ props, children, jsx });
             } else {
                 changed = false;
@@ -77,7 +81,6 @@ function componentDom({ instances, nextInstances, nextNewInstances, store, event
             current.componentTemplate = componentTemplate;
         }
 
-        nextInstances[position] = current;
         delete instances[position];
 
         return current.componentTemplate.exec(position + '.0');

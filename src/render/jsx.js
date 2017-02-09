@@ -216,7 +216,7 @@ function createInstance(config, warmUp) {
             .parse(templates, { jsx, values: getValuesFromArguments(arguments)});
     }
 
-    jsx.template = template;
+    jsx.template = template(config, jsx);
     jsx.component = component(config, jsx);
     jsx.tag = tag(config, jsx);
     jsx.text = text(config, jsx);
