@@ -14,6 +14,8 @@ function renderClient(render, store, domNode, { document = self.document } = {})
     const instances = {};
     const nextInstances = {};
     const nextNewInstances = {};
+    const cachedNodes = {};
+    const nextCachedNodes = {};
     const checkSum = domNode.getAttribute('data-rerender-checksum');
     // true check
     if (checkSum) {
@@ -23,6 +25,8 @@ function renderClient(render, store, domNode, { document = self.document } = {})
             method: 'reuse',
             instances,
             nextInstances,
+            cachedNodes,
+            nextCachedNodes,
             nextNewInstances
         });
         const start = performance.now();
@@ -37,6 +41,8 @@ function renderClient(render, store, domNode, { document = self.document } = {})
             method: 'create',
             instances,
             nextInstances,
+            cachedNodes,
+            nextCachedNodes,
             nextNewInstances
         });
         // const start = performance.now();
@@ -56,6 +62,7 @@ function renderClient(render, store, domNode, { document = self.document } = {})
         events,
         prevVDom: vDom,
         prevRootNode: rootNode,
+        prevCachedNodes: nextCachedNodes,
         prevInstances: nextInstances
     }));
 }
@@ -98,22 +105,27 @@ function rerenderClient({
     store,
     events,
     prevVDom,
+    prevCachedNodes,
     prevRootNode,
     prevInstances
 }) {
     let instances = prevInstances,
         vDom = prevVDom,
+        cachedNodes = prevCachedNodes,
         rootNode = prevRootNode;
 
     return throttle(function() {
         const nextInstances = {},
             nextNewInstances = {},
+            nextCachedNodes = {},
             jsx = createInstance({
                 store,
                 events,
                 method: 'diff',
                 instances,
                 nextInstances,
+                cachedNodes,
+                nextCachedNodes,
                 nextNewInstances
             }),
             nextVDom = render({ jsx }).exec(ROOT_POSITION);

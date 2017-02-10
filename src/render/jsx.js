@@ -1,3 +1,4 @@
+import node from './node';
 import tag from './tag';
 import component from './component';
 import text from './text';
@@ -173,23 +174,7 @@ function createParser() {
                 })
             ))
         ).then(result => (values, position, jsx) => {
-            const tag = typeof result[1] === 'function' ? result[1](values) : result[1];
-
-            if (typeof tag === 'string') {
-                return jsx.tag(
-                    tag,
-                    result[2](values),
-                    result[4](values, position, jsx),
-                    position
-                );
-            } else {
-                return jsx.component(
-                    tag,
-                    result[2](values),
-                    jsx.template(result[4], values),
-                    position
-                );
-            }
+            return jsx.node(result, values, position);
         });
 
     return sequence(
@@ -217,6 +202,7 @@ function createInstance(config, warmUp) {
     }
 
     jsx.template = template(config, jsx);
+    jsx.node = node(config, jsx);
     jsx.component = component(config, jsx);
     jsx.tag = tag(config, jsx);
     jsx.text = text(config, jsx);
