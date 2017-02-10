@@ -26,16 +26,6 @@ function componentDom(config, jsx) {
         config.currentOwnerPosition = position;
         config.currentTemplateIndex = 0;
 
-        if (tag.defaults && typeof tag.defaults === 'object') {
-            const defaultsKeys = Object.keys(tag.defaults);
-
-            for (let i = 0, l = defaultsKeys.length; i < l; i++) {
-                if (props[defaultsKeys[i]] === undefined) {
-                    props[defaultsKeys[i]] = tag.defaults[defaultsKeys[i]];
-                }
-            }
-        }
-
         if (current === undefined || current.tag !== tag) {
             current = { tag, props, children, cachedTemplates: [] };
             nextInstances[position] = current;
@@ -53,7 +43,11 @@ function componentDom(config, jsx) {
                 componentTemplate = tag({ props, children, jsx });
             }
         } else {
-            const sameOuter = shallowEqual(current.props, props) && current.children === children;
+            const sameProps = shallowEqual(current.props, props);
+            if (sameProps) {
+                props = current.props;
+            }
+            const sameOuter = sameProps && current.children === children;
 
             if (isComponent(tag)) {
                 Component.beforeRender(current.instance);

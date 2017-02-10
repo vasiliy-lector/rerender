@@ -24,6 +24,16 @@ function node({ nextCachedNodes, cachedNodes }, jsx) {
                 position
             );
         } else {
+            if (tag.defaults && typeof tag.defaults === 'object') {
+                const defaultsKeys = Object.keys(tag.defaults);
+
+                for (let i = 0, l = defaultsKeys.length; i < l; i++) {
+                    if (props[defaultsKeys[i]] === undefined) {
+                        props[defaultsKeys[i]] = tag.defaults[defaultsKeys[i]];
+                    }
+                }
+            }
+
             return jsx.component(
                 tag,
                 props,
