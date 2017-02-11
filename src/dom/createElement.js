@@ -18,8 +18,6 @@ function createElement(node, document) {
         return elem;
     } else if (node.type === 'VText') {
         return document.createTextNode(node.value);
-    } else if (node.type === 'VComment') {
-        return document.createComment('');
     }
 }
 
