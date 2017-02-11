@@ -18,22 +18,22 @@ function componentDom(config, jsx) {
     const { store, events } = config;
 
     return function(tag, props, children, position) {
-        position = calcComponentPosition(tag, props, position);
+        position = position.updateOwner(position.absolute);
         const { instances, nextInstances, nextNewInstances } = config;
-        let current = instances[position],
+        let current = instances[position.absolute],
             changed = true,
             componentTemplate;
 
-        config.currentOwnerPosition = position;
+        config.currentOwnerPosition = position.absolute;
         config.currentTemplateIndex = 0;
 
         if (current === undefined || current.tag !== tag) {
             current = { tag, props, children, cachedTemplates: [] };
-            nextInstances[position] = current;
+            nextInstances[position.absolute] = current;
 
             if (isComponent(tag)) {
                 current.instance = new tag(props, children, { jsx, store, events, antibind: tag.antibind });
-                nextNewInstances[position] = current.instance;
+                nextNewInstances[position.absolute] = current.instance;
                 if (props.ref && !tag.wrapper && typeof props.ref === 'function') {
                     props.ref(current.instance);
                 }
@@ -55,7 +55,7 @@ function componentDom(config, jsx) {
                 if (!sameOuter || current.instance.state !== current.state) {
                     let instance = current.instance;
                     current = { tag, props, children, instance, state: instance.state };
-                    nextInstances[position] = current;
+                    nextInstances[position.absolute] = current;
                     if (!sameOuter) {
                         Component.setProps(instance, props, children);
                     }
@@ -65,7 +65,7 @@ function componentDom(config, jsx) {
                 }
             } else if (!sameOuter) {
                 current = { tag, props, children };
-                nextInstances[position] = current;
+                nextInstances[position.absolute] = current;
                 componentTemplate = tag({ props, children, jsx });
             } else {
                 changed = false;
@@ -76,9 +76,9 @@ function componentDom(config, jsx) {
             current.componentTemplate = componentTemplate;
         }
 
-        delete instances[position];
+        delete instances[position.absolute];
 
-        return current.componentTemplate.exec(position + '.0');
+        return current.componentTemplate.exec(position.updateAbsolute(position.absolute + '.0'));
     };
 }
 
@@ -99,19 +99,6 @@ function componentStringify({ store }, jsx) {
 
         return renderResult ? renderResult.exec(position + '.0') : jsx.text('');
     };
-}
-
-function calcComponentPosition(tag, props, position) {
-    // TODO warning if many instances of singleton or with same key
-    if (tag.uniqid) {
-        return `u${tag.uniqid}`;
-    } else if (props.uniqid) {
-        return `u${props.uniqid}`;
-    } else if (props.key) {
-        return `position.k${props.key}`;
-    } else {
-        return `${position}.c`;
-    }
 }
 
 export default component;

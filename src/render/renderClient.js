@@ -1,11 +1,12 @@
 import createElement from '../dom/createElement';
 import Events from '../Events';
 import Component from '../Component';
+import Position from './Position';
 import { throttle } from '../utils';
 import { createInstance } from './jsx';
 
 const RENDER_THROTTLE = 16,
-    ROOT_POSITION = 'r';
+    ROOT_POSITION = new Position('r', 'domNode.childNodes', -1);
 
 function renderClient(render, store, domNode, { document = self.document } = {}) {
     let vDom;
@@ -42,6 +43,7 @@ function renderClient(render, store, domNode, { document = self.document } = {})
         render,
         store,
         events,
+        domNode,
         prevVDom: vDom,
         prevRootNode: rootNode,
         prevCachedNodes: nextCachedNodes,
@@ -53,6 +55,7 @@ function rerenderClient({
     render,
     store,
     events,
+    domNode,
     prevVDom,
     prevCachedNodes,
     prevRootNode,

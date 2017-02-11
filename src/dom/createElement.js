@@ -8,8 +8,8 @@ function createElement(node, document) {
             }
         }
 
-        for (let i = 0, l = node.children.length; i < l; i++) {
-            const child = createElement(node.children[i]);
+        for (let i = 0, l = node.childNodes.length; i < l; i++) {
+            const child = createElement(node.childNodes[i], document);
             if (child !== undefined) {
                 elem.appendChild(child);
             }

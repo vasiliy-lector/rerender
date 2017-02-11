@@ -13,8 +13,10 @@ function textStringify(value) {
     return escapeHtml(value);
 }
 
-function textDom(value) {
-    return new VText(value);
+function textDom(value, position) {
+    position.incrementInstant();
+
+    return new VText(value, position.absolute, position.getInstant());
 }
 
 export default text;

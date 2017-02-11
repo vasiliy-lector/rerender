@@ -1,7 +1,9 @@
-function VNode(tag, attrs, children) {
+function VNode(tag, attrs, children, absolutePosition, instantPosition) {
     this.tag = tag;
     this.attrs = attrs;
-    this.children = children;
+    this.childNodes = children;
+    this.absolutePosition = absolutePosition;
+    this.instantPosition = instantPosition;
 }
 
 VNode.prototype = {
