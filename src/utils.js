@@ -77,6 +77,8 @@ function escapeAttr(value) {
 function shallowEqual(obj1, obj2) {
     if (obj1 === obj2) {
         return true;
+    } else if (typeof obj1 !== 'object' || typeof obj2 !== 'object') {
+        return false;
     } else if (Object.keys(obj1).length !== Object.keys(obj2).length) {
         return false;
     }

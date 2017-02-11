@@ -16,43 +16,25 @@ function renderClient(render, store, domNode, { document = self.document } = {})
     const nextNewInstances = {};
     const cachedNodes = {};
     const nextCachedNodes = {};
-    const checkSum = domNode.getAttribute('data-rerender-checksum');
+    const jsx = createInstance({
+        store,
+        events,
+        method: 'create',
+        instances,
+        nextInstances,
+        cachedNodes,
+        nextCachedNodes,
+        nextNewInstances
+    });
+    // const start = performance.now();
+    vDom = render({ jsx }).exec(ROOT_POSITION);
+    // const checkSum = domNode.getAttribute('data-rerender-checksum');
     // true check
-    if (checkSum) {
-        const jsx = createInstance({
-            store,
-            events,
-            method: 'reuse',
-            instances,
-            nextInstances,
-            cachedNodes,
-            nextCachedNodes,
-            nextNewInstances
-        });
-        const start = performance.now();
-        vDom = render({ jsx }).exec(ROOT_POSITION);
-        const end = performance.now();
-        console.log((end - start).toFixed(3), 'ms'); // eslint-disable-line no-console
-    // no server side code, just client
-    } else {
-        const jsx = createInstance({
-            store,
-            events,
-            method: 'create',
-            instances,
-            nextInstances,
-            cachedNodes,
-            nextCachedNodes,
-            nextNewInstances
-        });
-        // const start = performance.now();
-        vDom = render({ jsx }).exec(ROOT_POSITION);
-        rootNode = createElement(vDom);
-        domNode.innerHTML = '';
-        domNode.appendChild(rootNode);
-        // const end = performance.now();
-        // console.log((end - start).toFixed(3), 'ms'); // eslint-disable-line no-console
-    }
+    rootNode = createElement(vDom);
+    domNode.innerHTML = '';
+    domNode.appendChild(rootNode);
+    // const end = performance.now();
+    // console.log((end - start).toFixed(3), 'ms'); // eslint-disable-line no-console
 
     mount(nextNewInstances);
 
@@ -67,39 +49,6 @@ function renderClient(render, store, domNode, { document = self.document } = {})
     }));
 }
 
-// function renderClient(render, store, domNode) {
-//     const events = new Events();
-//     const instances = {};
-//     const nextInstances = {};
-//     const nextNewInstances = {};
-//     const jsx = createInstance({
-//         store,
-//         events,
-//         // FIXME
-//         // joinTextNodes: true,
-//         stringify: false,
-//         instances,
-//         nextInstances,
-//         nextNewInstances
-//     });
-//
-//     const vDom = render({ jsx }).exec('__r__');
-//     let rootNode = createElement(vDom);
-//     // TODO check hashsum from server and use server markup
-//     domNode.innerHTML = '';
-//     domNode.appendChild(rootNode);
-//     mount(nextNewInstances);
-//
-//     events.on('rerender', rerenderClient({
-//         render,
-//         store,
-//         events,
-//         prevVDom: vDom,
-//         prevRootNode: rootNode,
-//         prevInstances: nextInstances
-//     }));
-// }
-
 function rerenderClient({
     render,
     store,
@@ -109,33 +58,32 @@ function rerenderClient({
     prevRootNode,
     prevInstances
 }) {
-    let instances = prevInstances,
-        vDom = prevVDom,
-        cachedNodes = prevCachedNodes,
-        rootNode = prevRootNode;
+    let instances = prevInstances;
+    let vDom = prevVDom;
+    let cachedNodes = prevCachedNodes;
+    let rootNode = prevRootNode;
+    const config = {
+        store,
+        events,
+        method: 'diff'
+    };
+    const jsx = createInstance(config);
 
     return throttle(function() {
-        const nextInstances = {},
-            nextNewInstances = {},
-            nextCachedNodes = {},
-            jsx = createInstance({
-                store,
-                events,
-                method: 'diff',
-                instances,
-                nextInstances,
-                cachedNodes,
-                nextCachedNodes,
-                nextNewInstances
-            }),
-            nextVDom = render({ jsx }).exec(ROOT_POSITION);
+        config.nextInstances = {};
+        config.nextNewInstances = {};
+        config.nextCachedNodes = {};
+        config.cachedNodes = cachedNodes;
+        config.instances = instances;
+        const nextVDom = render({ jsx }).exec(ROOT_POSITION);
 
         unmount(instances);
-        instances = nextInstances;
+        cachedNodes = config.nextCachedNodes;
+        instances = config.nextInstances;
         // TODO blur problem when moving component with focus
-        rootNode = patch(rootNode, diff(vDom, nextVDom));
+        // rootNode = patch(rootNode, diff(vDom, nextVDom));
         vDom = nextVDom;
-        mount(nextNewInstances);
+        mount(config.nextNewInstances);
     }, RENDER_THROTTLE, { leading: true });
 }
 

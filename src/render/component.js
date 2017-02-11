@@ -15,10 +15,11 @@ function component(config, jsx) {
 }
 
 function componentDom(config, jsx) {
-    const { instances, nextInstances, nextNewInstances, store, events } = config;
+    const { store, events } = config;
 
     return function(tag, props, children, position) {
         position = calcComponentPosition(tag, props, position);
+        const { instances, nextInstances, nextNewInstances } = config;
         let current = instances[position],
             changed = true,
             componentTemplate;
