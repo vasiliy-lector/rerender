@@ -1,7 +1,7 @@
-import createElement from '../dom/createElement';
 import Events from '../Events';
 import Component from '../Component';
 import Position from './Position';
+import Patch from './Patch';
 import { throttle } from '../utils';
 import { createInstance } from './jsx';
 
@@ -9,31 +9,34 @@ const RENDER_THROTTLE = 16,
     ROOT_POSITION = new Position('r', 'domNode.childNodes', -1);
 
 function renderClient(render, store, domNode, { document = self.document } = {}) {
-    let vDom;
     let rootNode;
     const events = new Events();
     const instances = {};
     const nextInstances = {};
     const nextNewInstances = {};
-    const cachedNodes = {};
-    const nextCachedNodes = {};
+    const nodes = {};
+    const nextNodes = {};
+    const normalizePatch = new Patch();
     const jsx = createInstance({
         store,
         events,
         method: 'create',
         instances,
+        normalizePatch,
         nextInstances,
-        cachedNodes,
-        nextCachedNodes,
-        nextNewInstances
+        nodes,
+        nextNodes,
+        nextNewInstances,
+        document
     });
     // const start = performance.now();
-    vDom = render({ jsx }).exec(ROOT_POSITION);
-    // const checkSum = domNode.getAttribute('data-rerender-checksum');
-    // true check
-    rootNode = createElement(vDom);
-    domNode.innerHTML = '';
-    domNode.appendChild(rootNode);
+    rootNode = render({ jsx }).exec(ROOT_POSITION);
+    if (domNode.innerHTML !== rootNode.outerHTML) {
+        // TODO: warning here
+        domNode.replaceChild(rootNode);
+    } else {
+        // rootNode = normalizePatch.apply(domNode.childNodes[0]);
+    }
     // const end = performance.now();
     // console.log((end - start).toFixed(3), 'ms'); // eslint-disable-line no-console
 
@@ -44,10 +47,10 @@ function renderClient(render, store, domNode, { document = self.document } = {})
         store,
         events,
         domNode,
-        prevVDom: vDom,
         prevRootNode: rootNode,
-        prevCachedNodes: nextCachedNodes,
-        prevInstances: nextInstances
+        prevNodes: nextNodes,
+        prevInstances: nextInstances,
+        document
     }));
 }
 
@@ -55,19 +58,19 @@ function rerenderClient({
     render,
     store,
     events,
-    domNode,
-    prevVDom,
-    prevCachedNodes,
+    document,
+    // domNode,
+    prevNodes,
     prevRootNode,
     prevInstances
 }) {
     let instances = prevInstances;
-    let vDom = prevVDom;
-    let cachedNodes = prevCachedNodes;
+    let nodes = prevNodes;
     let rootNode = prevRootNode;
     const config = {
         store,
         events,
+        document,
         method: 'diff'
     };
     const jsx = createInstance(config);
@@ -75,17 +78,18 @@ function rerenderClient({
     return throttle(function() {
         config.nextInstances = {};
         config.nextNewInstances = {};
-        config.nextCachedNodes = {};
-        config.cachedNodes = cachedNodes;
+        config.nextNodes = {};
+        config.nodes = nodes;
         config.instances = instances;
-        const nextVDom = render({ jsx }).exec(ROOT_POSITION);
+        config.patch = new Patch();
+
+        render({ jsx }).exec(ROOT_POSITION);
 
         unmount(instances);
-        cachedNodes = config.nextCachedNodes;
+        nodes = config.nextNodes;
         instances = config.nextInstances;
         // TODO blur problem when moving component with focus
-        // rootNode = patch(rootNode, diff(vDom, nextVDom));
-        vDom = nextVDom;
+        rootNode = config.patch.apply(rootNode);
         mount(config.nextNewInstances);
     }, RENDER_THROTTLE, { leading: true });
 }

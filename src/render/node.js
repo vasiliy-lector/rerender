@@ -1,19 +1,19 @@
 import { shallowEqual } from '../utils';
 
-function node({ nextCachedNodes, cachedNodes }, jsx) {
+function node({ nextNodes, nodes }, jsx) {
     return function(result, values, position) {
         const isTag = typeof tag === 'string';
         if (!isTag) {
             position = position.updateAbsolute(calcComponentPosition(tag, props, position.absolute));
         }
-        const prevNode = cachedNodes[position.absolute];
+        const prevNode = nodes[position.absolute];
         let tag, props;
 
         if (prevNode && shallowEqual(prevNode.values, values)) {
             values = prevNode.values;
             tag = prevNode.tag;
             props = prevNode.props;
-            nextCachedNodes[position.absolute] = prevNode;
+            nextNodes[position.absolute] = prevNode;
         } else {
             tag = typeof result[1] === 'function' ? result[1](values) : result[1];
             props = result[2](values);
@@ -28,7 +28,7 @@ function node({ nextCachedNodes, cachedNodes }, jsx) {
                 }
             }
 
-            nextCachedNodes[position.absolute] = { values, tag, props };
+            nextNodes[position.absolute] = { values, tag, props };
         }
 
         if (isTag) {
