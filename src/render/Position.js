@@ -1,16 +1,16 @@
-function Position(absolute, instantPrefix, instantPosition) {
-    this.absolute = absolute;
+function Position(id, instantPrefix, instantPosition) {
+    this.id = id;
     this.instantPrefix = instantPrefix;
     this.instantPosition = instantPosition;
 }
 
 Position.prototype = {
-    updateAbsolute(absolute) {
-        return new Position(absolute, this.instantPrefix, this.instantPosition);
+    updateAbsolute(id) {
+        return new Position(id, this.instantPrefix, this.instantPosition);
     },
 
     addInstantLevel() {
-        return new Position(this.absolute, this.instantPrefix + '.childNodes', -1);
+        return new Position(this.id, this.instantPrefix + '.childNodes', -1);
     },
 
     incrementInstant() {

@@ -18,22 +18,22 @@ function componentDom(config, jsx) {
     const { store, events } = config;
 
     return function(tag, props, children, position) {
-        position = position.updateOwner(position.absolute);
+        position = position.updateOwner(position.id);
         const { instances, nextInstances, nextNewInstances } = config;
-        let current = instances[position.absolute],
+        let current = instances[position.id],
             changed = true,
             componentTemplate;
 
-        config.currentOwnerPosition = position.absolute;
+        config.currentOwnerPosition = position.id;
         config.currentTemplateIndex = 0;
 
         if (current === undefined || current.tag !== tag) {
             current = { tag, props, children, cachedTemplates: [] };
-            nextInstances[position.absolute] = current;
+            nextInstances[position.id] = current;
 
             if (isComponent(tag)) {
                 current.instance = new tag(props, children, { jsx, store, events, antibind: tag.antibind });
-                nextNewInstances[position.absolute] = current.instance;
+                nextNewInstances[position.id] = current.instance;
                 if (props.ref && !tag.wrapper && typeof props.ref === 'function') {
                     props.ref(current.instance);
                 }
@@ -55,7 +55,7 @@ function componentDom(config, jsx) {
                 if (!sameOuter || current.instance.state !== current.state) {
                     let instance = current.instance;
                     current = { tag, props, children, instance, state: instance.state };
-                    nextInstances[position.absolute] = current;
+                    nextInstances[position.id] = current;
                     if (!sameOuter) {
                         Component.setProps(instance, props, children);
                     }
@@ -65,7 +65,7 @@ function componentDom(config, jsx) {
                 }
             } else if (!sameOuter) {
                 current = { tag, props, children };
-                nextInstances[position.absolute] = current;
+                nextInstances[position.id] = current;
                 componentTemplate = tag({ props, children, jsx });
             } else {
                 changed = false;
@@ -76,9 +76,9 @@ function componentDom(config, jsx) {
             current.componentTemplate = componentTemplate;
         }
 
-        delete instances[position.absolute];
+        delete instances[position.id];
 
-        return current.componentTemplate.exec(position.updateAbsolute(position.absolute + '.0'));
+        return current.componentTemplate.exec(position.updateAbsolute(position.id + '.0'));
     };
 }
 

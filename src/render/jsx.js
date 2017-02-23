@@ -159,14 +159,14 @@ function createParser() {
                     for (let i = 0, l = items.length; i < l; i++) {
                         const item = items[i];
                         if (typeof item === 'function') {
-                            const result = item(values, position.updateAbsolute(`${position.absolute}.${i}`), jsx);
+                            const result = item(values, position.updateAbsolute(`${position.id}.${i}`), jsx);
                             if (Array.isArray(result)) {
                                 Array.prototype.push.apply(memo, result);
                             } else {
                                 memo.push(result);
                             }
                         } else {
-                            memo.push(item.exec(position.updateAbsolute(`${position.absolute}.${i}`)));
+                            memo.push(item.exec(position.updateAbsolute(`${position.id}.${i}`)));
                         }
                     }
 

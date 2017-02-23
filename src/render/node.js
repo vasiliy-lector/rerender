@@ -1,19 +1,25 @@
 import { shallowEqual } from '../utils';
 
+function Node(tag, props, values) {
+    this.tag = tag;
+    this.props = props;
+    this.values = values;
+}
+
 function node({ nextNodes, nodes }, jsx) {
     return function(result, values, position) {
         const isTag = typeof tag === 'string';
         if (!isTag) {
-            position = position.updateAbsolute(calcComponentPosition(tag, props, position.absolute));
+            position = position.updateAbsolute(calcComponentPosition(tag, props, position.id));
         }
-        const prevNode = nodes[position.absolute];
+        const prevNode = nodes[position.id];
         let tag, props;
 
         if (prevNode && shallowEqual(prevNode.values, values)) {
             values = prevNode.values;
             tag = prevNode.tag;
             props = prevNode.props;
-            nextNodes[position.absolute] = prevNode;
+            nextNodes[position.id] = prevNode;
         } else {
             tag = typeof result[1] === 'function' ? result[1](values) : result[1];
             props = result[2](values);
@@ -28,7 +34,7 @@ function node({ nextNodes, nodes }, jsx) {
                 }
             }
 
-            nextNodes[position.absolute] = { values, tag, props };
+            nextNodes[position.id] = new Node(tag, props, values);
         }
 
         if (isTag) {

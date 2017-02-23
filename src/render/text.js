@@ -16,7 +16,7 @@ function textStringify(value) {
 function textDom(value, position) {
     position.incrementInstant();
 
-    return new VText(value, position.absolute, position.getInstant());
+    return new VText(value, position.id, position.getInstant());
 }
 
 export default text;

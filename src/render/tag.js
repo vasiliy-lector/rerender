@@ -13,7 +13,7 @@ function tagDom() {
     return function (tag, attrs, children, position) {
         position.incrementInstant();
 
-        return new VNode(tag, attrs, children, position.absolute, position.getInstant());
+        return new VNode(tag, attrs, children, position.id, position.getInstant());
     };
 }
 
