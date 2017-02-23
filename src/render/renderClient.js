@@ -3,6 +3,7 @@ import Component from '../Component';
 import Position from './Position';
 import Patch from './Patch';
 import { throttle } from '../utils';
+import { debug } from '../debug';
 import { createInstance } from './jsx';
 
 const RENDER_THROTTLE = 16,
@@ -34,13 +35,13 @@ function renderClient(render, store, domNode, { document = self.document } = {})
     const rootNode = domNode.childNodes[0];
 
     if (rootNode.outerHTML !== nextRootNode.outerHTML) {
-        // TODO: warning here
+        debug.warn('Server and client html do not match!');
         domNode.replaceChild(rootNode, nextRootNode);
     } else {
         nextRootNode = normalizePatch.apply(rootNode);
     }
     // const end = performance.now();
-    // console.log((end - start).toFixed(3), 'ms'); // eslint-disable-line no-console
+    // debug.log((end - start).toFixed(3), 'ms');
 
     mount(nextNewInstances);
 

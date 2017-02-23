@@ -1,7 +1,8 @@
 import { escapeHtml } from '../utils';
+import { types } from './Patch';
 
 function Text(value, position) {
-    this.value = value;
+    this.value = value || '';
     this.position = position;
 }
 
@@ -19,8 +20,18 @@ function text(config) {
     }
 }
 
-function textDom({ nextNodes, document }) {
+function textDom({ nextNodes, document, normalizePatch }) {
     return function (value, position) {
+        const prevSibling = nextNodes[position.id];
+
+        if (prevSibling.type === 'Text') {
+            normalizePatch.push([
+                types.SPLIT_TEXT,
+                position.id,
+                prevSibling.value.length
+            ]);
+        }
+
         position.incrementPosition();
         nextNodes[position.id] = new Text(value, position);
 
@@ -35,7 +46,11 @@ function textDiff({ nodes, nextNodes, patch }) {
 
         if (!node || node.value !== value) {
             node = new Text(value, position);
-            patch.push(patch.replace(position.getPosition(), node));
+            patch.push([
+                types.REPLACE,
+                position.id,
+                node
+            ]);
         }
 
         nextNodes[position.id] = node;

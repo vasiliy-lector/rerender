@@ -1,3 +1,8 @@
+const types = {
+    REPLACE: 'REPLACE',
+    SPLIT_TEXT: 'SPLIT_TEXT'
+};
+
 function Patch () {
     this.patch = [];
 }
@@ -9,15 +14,8 @@ Patch.prototype = {
 
     push(action) {
         this.patch.push(action);
-    },
-
-    replace(position, node) {
-        return {
-            type: 'replace',
-            position,
-            node
-        };
     }
 };
 
 export default Patch;
+export { types };
