@@ -13,15 +13,14 @@ Template.prototype = {
     type: 'Template'
 };
 
+// FIXME: not just by index, any cached fn may have Symbol or its unchangable index
 function template(config, jsx) {
-    const { nextInstances } = config;
-
     return function(fn, values) {
-        const { currentOwnerPosition, currentTemplateIndex } = config;
+        const { currentOwnerPosition, currentTemplateIndex, nextInstances } = config;
         const cachedTemplate = nextInstances[currentOwnerPosition].cachedTemplates[currentTemplateIndex];
 
         config.currentTemplateIndex++;
-        if (!cachedTemplate || cachedTemplate.fn !== fn || !shallowEqual(cachedTemplate.values, values)) {
+        if (!cachedTemplate || cachedTemplate.fn !== fn || !(cachedTemplate.values === values || shallowEqual(cachedTemplate.values, values))) {
             return (nextInstances[currentOwnerPosition].cachedTemplates[currentTemplateIndex] = new Template(fn, values, jsx));
         } else {
             return cachedTemplate;

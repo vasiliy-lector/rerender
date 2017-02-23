@@ -1,7 +1,7 @@
 import { escapeHtml } from '../utils';
 
-function Text(text, position) {
-    this.text = text;
+function Text(value, position) {
+    this.value = value;
     this.position = position;
 }
 
@@ -22,18 +22,23 @@ function text(config) {
 function textDom({ nextNodes, document }) {
     return function (value, position) {
         position.incrementPosition();
-        nextNodes[position.id] = new Text(value, position.getPosition());
+        nextNodes[position.id] = new Text(value, position);
 
         return document.createTextNode(value);
     };
 }
 
-function textDiff({ nextNodes, document }) {
+function textDiff({ nodes, nextNodes, patch }) {
     return function (value, position) {
         position.incrementPosition();
-        nextNodes[position.id] = new Text(value, position.getPosition());
+        let node = nodes[position.id];
 
-        return document.createTextNode(value);
+        if (!node || node.value !== value) {
+            node = new Text(value, position);
+            patch.push(patch.replace(position.getPosition(), node));
+        }
+
+        nextNodes[position.id] = node;
     };
 }
 

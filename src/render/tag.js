@@ -23,7 +23,7 @@ function tag(config) {
 function tagDom({ nextNodes, document }) {
     return function (tag, attrs, children, position) {
         position.incrementPosition();
-        nextNodes[position.id] = new Tag(tag, attrs, position.getPosition());
+        nextNodes[position.id] = new Tag(tag, attrs, position);
 
         return createElement(tag, attrs, children, document);
     };
@@ -32,7 +32,7 @@ function tagDom({ nextNodes, document }) {
 function tagDiff({ nextNodes, document }) {
     return function (tag, attrs, children, position) {
         position.incrementPosition();
-        nextNodes[position.id] = new Tag(tag, attrs, position.getPosition());
+        nextNodes[position.id] = new Tag(tag, attrs, position);
 
         return createElement(tag, attrs, children, document);
     };

@@ -18,7 +18,6 @@ function componentDom(config, jsx) {
     const { store, events } = config;
 
     return function(tag, props, children, position) {
-        position = position.updateOwner(position.id);
         const { instances, nextInstances, nextNewInstances } = config;
         let current = instances[position.id],
             changed = true,
@@ -54,7 +53,7 @@ function componentDom(config, jsx) {
                 Component.beforeRender(current.instance);
                 if (!sameOuter || current.instance.state !== current.state) {
                     let instance = current.instance;
-                    current = { tag, props, children, instance, state: instance.state };
+                    current = { tag, props, children, instance, state: instance.state, cachedTemplates: current.cachedTemplates || [] };
                     nextInstances[position.id] = current;
                     if (!sameOuter) {
                         Component.setProps(instance, props, children);
@@ -64,7 +63,7 @@ function componentDom(config, jsx) {
                     changed = false;
                 }
             } else if (!sameOuter) {
-                current = { tag, props, children };
+                current = { tag, props, children, cachedTemplates: current.cachedTemplates || [] };
                 nextInstances[position.id] = current;
                 componentTemplate = tag({ props, children, jsx });
             } else {

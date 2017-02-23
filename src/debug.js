@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 let mesuarements = {};
 
 function performanceStart(type) {
@@ -16,7 +17,6 @@ function performanceEnd(type) {
     debug.log(`${type} took ${(performance.now() - mesuarements[type]).toFixed(3)}ms`);
 }
 
-/* eslint-disable no-console */
 const debug = {
     log() {
         console.log.apply(console, arguments);
