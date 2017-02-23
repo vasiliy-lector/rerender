@@ -9,7 +9,7 @@ const RENDER_THROTTLE = 16,
     ROOT_POSITION = new Position('r', 'domNode.childNodes', -1);
 
 function renderClient(render, store, domNode, { document = self.document } = {}) {
-    let rootNode;
+    let nextRootNode;
     const events = new Events();
     const instances = {};
     const nextInstances = {};
@@ -30,12 +30,14 @@ function renderClient(render, store, domNode, { document = self.document } = {})
         document
     });
     // const start = performance.now();
-    rootNode = render({ jsx }).exec(ROOT_POSITION);
-    if (domNode.innerHTML !== rootNode.outerHTML) {
+    nextRootNode = render({ jsx }).exec(ROOT_POSITION);
+    const rootNode = domNode.childNodes[0];
+
+    if (rootNode.outerHTML !== nextRootNode.outerHTML) {
         // TODO: warning here
-        domNode.replaceChild(rootNode);
+        domNode.replaceChild(rootNode, nextRootNode);
     } else {
-        // rootNode = normalizePatch.apply(domNode.childNodes[0]);
+        nextRootNode = normalizePatch.apply(rootNode);
     }
     // const end = performance.now();
     // console.log((end - start).toFixed(3), 'ms'); // eslint-disable-line no-console
@@ -47,7 +49,7 @@ function renderClient(render, store, domNode, { document = self.document } = {})
         store,
         events,
         domNode,
-        prevRootNode: rootNode,
+        prevRootNode: nextRootNode,
         prevNodes: nextNodes,
         prevInstances: nextInstances,
         document
