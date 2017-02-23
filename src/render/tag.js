@@ -4,26 +4,16 @@ import VNode from '../dom/VNode';
 function tag(config) {
     if (config.stringify) {
         return tagStringify(config);
-    } else if (config.method === 'create') {
-        return tagDomCreate(config);
     } else {
-        return tagDomDiff(config);
+        return tagDom(config);
     }
 }
 
-function tagDomCreate() {
+function tagDom() {
     return function (tag, attrs, children, position) {
         position.incrementInstant();
 
         return new VNode(tag, attrs, children, position.absolute, position.getInstant());
-    };
-}
-
-function tagDomDiff() {
-    return function (tag, attrs, children, position) {
-        // position.incrementInstant();
-        //
-        // return new VNode(tag, attrs, children, position.absolute, position.getInstant());
     };
 }
 
