@@ -1,24 +1,24 @@
-function Position(id, instantPrefix, instantPosition) {
+function Position(id, positionPrefix, position) {
     this.id = id;
-    this.instantPrefix = instantPrefix;
-    this.instantPosition = instantPosition;
+    this.positionPrefix = positionPrefix;
+    this.position = position;
 }
 
 Position.prototype = {
-    updateAbsolute(id) {
-        return new Position(id, this.instantPrefix, this.instantPosition);
+    updateId(id) {
+        return new Position(id, this.positionPrefix, this.position);
     },
 
-    addInstantLevel() {
-        return new Position(this.id, this.instantPrefix + '.childNodes', -1);
+    addPositionLevel() {
+        return new Position(this.id, this.positionPrefix + '.childNodes', -1);
     },
 
-    incrementInstant() {
-        this.instantPosition++;
+    incrementPosition() {
+        this.position++;
     },
 
-    getInstant() {
-        return `${this.instantPrefix}.${this.instantPosition}`;
+    getPosition() {
+        return `${this.positionPrefix}.${this.position}`;
     }
 };
 

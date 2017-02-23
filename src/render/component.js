@@ -78,7 +78,7 @@ function componentDom(config, jsx) {
 
         delete instances[position.id];
 
-        return current.componentTemplate.exec(position.updateAbsolute(position.id + '.0'));
+        return current.componentTemplate.exec(position.updateId(position.id + '.0'));
     };
 }
 

@@ -17,7 +17,7 @@ function childValueStringify(config, jsx) {
                 const memo = [];
 
                 for (let i = 0, l = value.length; i < l; i++) {
-                    const result = jsx.childValue(value[i],position.updateAbsolute(`${position.id}.${i}`), false);
+                    const result = jsx.childValue(value[i],position.updateId(`${position.id}.${i}`), false);
                     if (Array.isArray(result)) {
                         for (let j = 0, l1 = result.length; j < l1; j++) {
                             memo.push(result[j]);
@@ -45,7 +45,7 @@ function childValueDom(config, jsx) {
             const memo = [];
 
             for (let i = 0, l = value.length; i < l; i++) {
-                const result = jsx.childValue(value[i],position.updateAbsolute(`${position.id}.${i}`));
+                const result = jsx.childValue(value[i],position.updateId(`${position.id}.${i}`));
                 if (Array.isArray(result)) {
                     for (let j = 0, l1 = result.length; j < l1; j++) {
                         memo.push(result[j]);

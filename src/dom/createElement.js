@@ -1,24 +1,20 @@
-function createElement(node, document) {
-    if (node.type === 'VNode') {
-        const elem = document.createElement(node.tag);
+function createElement(tag, attrs, childNodes, document) {
+    const elem = document.createElement(tag);
 
-        if (node.attrs !== null) {
-            for (let name in node.attrs) {
-                elem[name] = node.attrs[name];
-            }
+    if (attrs !== null) {
+        for (let name in attrs) {
+            elem[name] = attrs[name];
         }
-
-        for (let i = 0, l = node.childNodes.length; i < l; i++) {
-            const child = createElement(node.childNodes[i], document);
-            if (child !== undefined) {
-                elem.appendChild(child);
-            }
-        }
-
-        return elem;
-    } else if (node.type === 'VText') {
-        return document.createTextNode(node.value);
     }
+
+    for (let i = 0, l = childNodes.length; i < l; i++) {
+        const child = createElement(childNodes[i], document);
+        if (child !== undefined) {
+            elem.appendChild(child);
+        }
+    }
+
+    return elem;
 }
 
 export default createElement;

@@ -1,19 +1,40 @@
 import { escapeAttr } from '../utils';
-import VNode from '../dom/VNode';
+
+function Tag(tag, attrs, position) {
+    this.tag = tag;
+    this.attrs = attrs;
+    this.position = position;
+}
+
+Tag.prototype = {
+    type: 'Tag'
+};
 
 function tag(config) {
     if (config.stringify) {
         return tagStringify(config);
-    } else {
+    } else if (config.method === 'create') {
         return tagDom(config);
+    } else {
+        return tagDiff(config);
     }
 }
 
-function tagDom() {
+function tagDom({ nextNodes, document }) {
     return function (tag, attrs, children, position) {
-        position.incrementInstant();
+        position.incrementPosition();
+        nextNodes[position.id] = new Tag(tag, attrs, position.getPosition());
 
-        return new VNode(tag, attrs, children, position.id, position.getInstant());
+        return createElement(tag, attrs, children, document);
+    };
+}
+
+function tagDiff({ nextNodes, document }) {
+    return function (tag, attrs, children, position) {
+        position.incrementPosition();
+        nextNodes[position.id] = new Tag(tag, attrs, position.getPosition());
+
+        return createElement(tag, attrs, children, document);
     };
 }
 
@@ -52,6 +73,24 @@ function tagStringify() {
                 ? '>' + childrenString + '</' + tag + '>'
                 : ' />');
     };
+}
+
+function createElement(tag, attrs, children, document) {
+    const elem = document.createElement(tag);
+
+    if (attrs !== null) {
+        for (let name in attrs) {
+            elem[name] = attrs[name];
+        }
+    }
+
+    for (let i = 0, l = children.length; i < l; i++) {
+        if (children[i]) {
+            elem.appendChild(children[i]);
+        }
+    }
+
+    return elem;
 }
 
 function escapeStyle(value) {

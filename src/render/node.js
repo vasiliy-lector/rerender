@@ -1,25 +1,22 @@
 import { shallowEqual } from '../utils';
 
-function Node(tag, props, values) {
-    this.tag = tag;
-    this.props = props;
-    this.values = values;
-}
-
-function node({ nextNodes, nodes }, jsx) {
+function node({ nodes, nextNodes, instances, nextInstances }, jsx) {
     return function(result, values, position) {
         const isTag = typeof tag === 'string';
-        if (!isTag) {
-            position = position.updateAbsolute(calcComponentPosition(tag, props, position.id));
+        let prevNode;
+
+        if (isTag) {
+            prevNode = nodes[position.id];
+        } else {
+            position = position.updateId(calcComponentPosition(tag, props, position.id));
+            prevNode = instances[position.id];
         }
-        const prevNode = nodes[position.id];
         let tag, props;
 
         if (prevNode && shallowEqual(prevNode.values, values)) {
             values = prevNode.values;
             tag = prevNode.tag;
             props = prevNode.props;
-            nextNodes[position.id] = prevNode;
         } else {
             tag = typeof result[1] === 'function' ? result[1](values) : result[1];
             props = result[2](values);
@@ -33,25 +30,29 @@ function node({ nextNodes, nodes }, jsx) {
                     }
                 }
             }
-
-            nextNodes[position.id] = new Node(tag, props, values);
         }
 
+        let output;
+
         if (isTag) {
-            return jsx.tag(
+            output = jsx.tag(
                 tag,
                 props,
-                result[4](values, position.addInstantLevel(), jsx),
+                result[4](values, position.addPositionLevel(), jsx),
                 position
             );
+            nextNodes[position.id].values = values;
         } else {
-            return jsx.component(
+            output = jsx.component(
                 tag,
                 props,
                 jsx.template(result[4], values),
                 position
             );
+            nextInstances[position.id].values = values;
         }
+
+        return output;
     };
 }
 
