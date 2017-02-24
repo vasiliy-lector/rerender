@@ -1,13 +1,13 @@
 import { escapeAttr } from '../utils';
 
-function Tag(tag, attrs, position) {
+function Node(tag, attrs, position) {
     this.tag = tag;
     this.attrs = attrs;
     this.position = position;
 }
 
-Tag.prototype = {
-    type: 'Tag'
+Node.prototype = {
+    type: 'Node'
 };
 
 function tag(config) {
@@ -22,7 +22,7 @@ function tag(config) {
 
 function tagDom({ nextNodes, document, normalizePatch }) {
     return function (tag, attrs, children, position) {
-        nextNodes[position.id] = new Tag(tag, attrs, position);
+        nextNodes[position.id] = new Node(tag, attrs, position);
 
         if (attrs.events.length > 0) {
             normalizePatch.updateEvents(position.getPosition(), attrs);
@@ -36,11 +36,34 @@ function tagDom({ nextNodes, document, normalizePatch }) {
     };
 }
 
-function tagDiff({ nextNodes, document }) {
+function tagDiff({ nodes, nextNodes, patch }) {
     return function (tag, attrs, children, position) {
-        nextNodes[position.id] = new Tag(tag, attrs, position);
+        const node = nodes[position.id];
+        let nextNode = node;
 
-        return createElement(tag, attrs, children, document);
+        if (!node) {
+            nextNode = new Node(tag, attrs, position);
+            patch.create(position.getPosition(), nextNode);
+        } else if (node.tag !== tag) {
+            nextNode = new Node(tag, attrs, position);
+            patch.replace(position.getPosition(), nextNode);
+        // FIXME: not so easy
+        } else if (node.position !== position) {
+            // root node of component with uniqid
+            if (/u[^.]+\.0$/.test(node.position.id)) {
+                patch.move(node.position.getPosition(), position.getPosition());
+                nextNode.position = position;
+            }
+
+            nextNode = new Node(tag, attrs, position);
+            patch.replace(position.getPosition(), nextNode);
+        } else if (node.attrs !== attrs) {
+            patch.update(position.getPosition(), attrs);
+            nextNode.attrs = attrs;
+        }
+
+        nextNodes[position.id] = nextNode;
+        delete nodes[position.id];
     };
 }
 

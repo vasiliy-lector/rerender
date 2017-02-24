@@ -12,7 +12,7 @@ CacheByValues.prototype = {
     type: 'CacheByValues'
 };
 
-function node({ cacheByValues, nextCacheByValues }, jsx) {
+function node({ cacheByValues, nextCacheByValues, method }, jsx) {
     return function(result, values, position) {
         const prevNode = cacheByValues[position.id];
         let tag, props, isTag, componentId;
@@ -54,12 +54,22 @@ function node({ cacheByValues, nextCacheByValues }, jsx) {
 
         if (isTag) {
             position.incrementPosition();
-            return jsx.tag(
-                tag,
-                props,
-                result[4](values, position.addPositionLevel(), jsx),
-                position
-            );
+            if (method === 'create') {
+                return jsx.tag(
+                    tag,
+                    props,
+                    result[4](values, position.addPositionLevel(), jsx),
+                    position
+                );
+            } else {
+                jsx.tag(
+                    tag,
+                    props,
+                    null,
+                    position
+                );
+                result[4](values, position.addPositionLevel(), jsx);
+            }
         } else {
             position = position.updateId(componentId);
             nextCacheByValues[componentId] = prevNode;
