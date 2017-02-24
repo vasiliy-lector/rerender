@@ -1,5 +1,30 @@
 import { shallowEqual } from '../utils';
 
+let cacheIndex = 0;
+
+function CachedTemplates() {
+    this.byCacheIndex = [];
+}
+
+CachedTemplates.prototype = {
+    set(index, template) {
+        const templates = this.byCacheIndex[index] || (this.byCacheIndex[index] = []);
+        templates.push(template);
+
+        return template;
+    },
+
+    get(index, values) {
+        const candidates = this.byCacheIndex[index];
+
+        for (let i = 0, l = candidates.length; i < l; i++) {
+            if (shallowEqual(candidates[i].values, values)) {
+                return candidates[i];
+            }
+        }
+    }
+};
+
 function Template(fn, values, jsx) {
     this.fn = fn;
     this.values = values;
@@ -13,19 +38,15 @@ Template.prototype = {
     type: 'Template'
 };
 
-// FIXME: not just by index, any cached fn may have Symbol or its unchangable index
 function template(config, jsx) {
     return function(fn, values) {
-        const { currentOwnerPosition, currentTemplateIndex, nextInstances } = config;
-        const cachedTemplate = nextInstances[currentOwnerPosition].cachedTemplates[currentTemplateIndex];
+        const index = fn.cacheIndex || (fn.cacheIndex = ++cacheIndex);
+        const { cachedTemplates, nextCachedTemplates } = config;
+        const cachedTemplate = cachedTemplates && cachedTemplates.get(index, values);
 
-        config.currentTemplateIndex++;
-        if (!cachedTemplate || cachedTemplate.fn !== fn || !(cachedTemplate.values === values || shallowEqual(cachedTemplate.values, values))) {
-            return (nextInstances[currentOwnerPosition].cachedTemplates[currentTemplateIndex] = new Template(fn, values, jsx));
-        } else {
-            return cachedTemplate;
-        }
+        return nextCachedTemplates.set(index, cachedTemplate || new Template(fn, values, jsx));
     };
 }
 
 export default template;
+export { CachedTemplates };

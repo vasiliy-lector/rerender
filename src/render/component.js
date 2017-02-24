@@ -1,5 +1,6 @@
 import { shallowEqual } from '../utils';
 import Component from '../Component';
+import { CachedTemplates } from './template';
 
 // FIXME find faster way to determine Component
 function isComponent(tag) {
@@ -23,11 +24,11 @@ function componentDom(config, jsx) {
             changed = true,
             componentTemplate;
 
-        config.currentOwnerPosition = position.id;
-        config.currentTemplateIndex = 0;
+        config.cachedTemplates = current.cachedTemplates;
+        config.nextCachedTemplates = new CachedTemplates();
 
         if (current === undefined || current.tag !== tag) {
-            current = { tag, props, children, cachedTemplates: [] };
+            current = { tag, props, children };
             nextInstances[position.id] = current;
 
             if (isComponent(tag)) {
@@ -53,7 +54,9 @@ function componentDom(config, jsx) {
                 Component.beforeRender(current.instance);
                 if (!sameOuter || current.instance.state !== current.state) {
                     let instance = current.instance;
-                    current = { tag, props, children, instance, state: instance.state, cachedTemplates: current.cachedTemplates || [] };
+                    current.props = props;
+                    current.children = children;
+                    current.state = instance.state;
                     nextInstances[position.id] = current;
                     if (!sameOuter) {
                         Component.setProps(instance, props.common, children);
@@ -63,7 +66,8 @@ function componentDom(config, jsx) {
                     changed = false;
                 }
             } else if (!sameOuter) {
-                current = { tag, props, children, cachedTemplates: current.cachedTemplates || [] };
+                current.props = props;
+                current.children = children;
                 nextInstances[position.id] = current;
                 componentTemplate = tag({ props: props.common, children, jsx });
             } else {
@@ -73,6 +77,7 @@ function componentDom(config, jsx) {
 
         if (changed) {
             current.componentTemplate = componentTemplate;
+            current.cachedTemplates = config.nextCachedTemplates;
         }
 
         delete instances[position.id];

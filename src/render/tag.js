@@ -27,7 +27,7 @@ function tagDom({ nextNodes, document, normalizePatch }) {
 
         if (attrs.events.length > 0) {
             normalizePatch.push([
-                types.UPDATE,
+                types.UPDATE_EVENTS,
                 position.getPosition(),
                 attrs
             ]);
