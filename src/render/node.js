@@ -15,10 +15,11 @@ CacheByValues.prototype = {
 function node({ cacheByValues, nextCacheByValues }, jsx) {
     return function(result, values, position) {
         const prevNode = cacheByValues[position.id];
-        let tag, props, isTag;
+        let tag, props, isTag, componentId;
 
         if (prevNode && shallowEqual(prevNode.values, values)) {
             values = prevNode.values;
+            componentId = prevNode.componentId;
             tag = prevNode.tag;
             props = prevNode.props;
             isTag = typeof tag === 'string';
@@ -31,19 +32,24 @@ function node({ cacheByValues, nextCacheByValues }, jsx) {
                 props = result[2](new Attrs(), values);
             } else {
                 props = result[2](tag.wrapper ? new PropsWrapper() : new Props(), values);
+                componentId = calcComponentPosition(tag, props.special, position.id);
+                const prevNode = cacheByValues[componentId];
+                if (prevNode && shallowEqual(prevNode.values, values)) {
+                    values = prevNode.values;
+                    props = prevNode.props;
+                } else {
+                    if (tag.defaults && typeof tag.defaults === 'object') {
+                        const defaultsKeys = Object.keys(tag.defaults);
 
-                if (tag.defaults && typeof tag.defaults === 'object') {
-                    const defaultsKeys = Object.keys(tag.defaults);
-
-                    for (let i = 0, l = defaultsKeys.length; i < l; i++) {
-                        if (props.common[defaultsKeys[i]] === undefined) {
-                            props.common[defaultsKeys[i]] = tag.defaults[defaultsKeys[i]];
+                        for (let i = 0, l = defaultsKeys.length; i < l; i++) {
+                            if (props.common[defaultsKeys[i]] === undefined) {
+                                props.common[defaultsKeys[i]] = tag.defaults[defaultsKeys[i]];
+                            }
                         }
                     }
                 }
+                nextCacheByValues[position.id] = new CacheByValues(values, tag, props);
             }
-
-            nextCacheByValues[position.id] = new CacheByValues(values, tag, props);
         }
 
         if (isTag) {
@@ -55,7 +61,8 @@ function node({ cacheByValues, nextCacheByValues }, jsx) {
                 position
             );
         } else {
-            position = position.updateId(calcComponentPosition(tag, props.special, position.id));
+            position = position.updateId(componentId);
+            nextCacheByValues[componentId] = prevNode;
             return jsx.component(
                 tag,
                 props,
