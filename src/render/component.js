@@ -31,19 +31,19 @@ function componentDom(config, jsx) {
             nextInstances[position.id] = current;
 
             if (isComponent(tag)) {
-                current.instance = new tag(props, children, { jsx, store, events, antibind: tag.antibind });
+                current.instance = new tag(props.common, children, { jsx, store, events, antibind: tag.antibind });
                 nextNewInstances[position.id] = current.instance;
-                if (props.ref && !tag.wrapper && typeof props.ref === 'function') {
-                    props.ref(current.instance);
+                if (props.special.ref && typeof props.special.ref === 'function') {
+                    props.special.ref(current.instance);
                 }
                 Component.beforeRender(current.instance);
                 componentTemplate = Component.render(current.instance);
                 current.state = current.instance.state;
             } else {
-                componentTemplate = tag({ props, children, jsx });
+                componentTemplate = tag({ props: props.common, children, jsx });
             }
         } else {
-            const sameProps = shallowEqual(current.props, props);
+            const sameProps = shallowEqual(current.props.common, props.common);
             if (sameProps) {
                 props = current.props;
             }
@@ -56,7 +56,7 @@ function componentDom(config, jsx) {
                     current = { tag, props, children, instance, state: instance.state, cachedTemplates: current.cachedTemplates || [] };
                     nextInstances[position.id] = current;
                     if (!sameOuter) {
-                        Component.setProps(instance, props, children);
+                        Component.setProps(instance, props.common, children);
                     }
                     componentTemplate = Component.render(instance);
                 } else {
@@ -65,7 +65,7 @@ function componentDom(config, jsx) {
             } else if (!sameOuter) {
                 current = { tag, props, children, cachedTemplates: current.cachedTemplates || [] };
                 nextInstances[position.id] = current;
-                componentTemplate = tag({ props, children, jsx });
+                componentTemplate = tag({ props: props.common, children, jsx });
             } else {
                 changed = false;
             }
@@ -82,13 +82,11 @@ function componentDom(config, jsx) {
 }
 
 function componentStringify({ store }, jsx) {
-    return function(tag, props, children, position) {
-        // TODO it seems no need right position on server?
-        // position = calcComponentPosition(tag, props, position);
+    return function(tag, { common: props }, children, position) {
         let renderResult;
 
         if (tag.prototype instanceof Component) {
-            const instance = new tag(props, children, { position, jsx, store, antibind: tag.antibind });
+            const instance = new tag(props, children, { jsx, store, antibind: tag.antibind });
             Component.beforeRender(instance);
 
             renderResult = Component.render(instance);
@@ -96,6 +94,7 @@ function componentStringify({ store }, jsx) {
             renderResult = tag({ props, children, jsx });
         }
 
+        // FIXME: no need exec on server because no position dependency
         return renderResult ? renderResult.exec(position + '.0') : jsx.text('');
     };
 }

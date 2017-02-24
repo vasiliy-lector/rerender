@@ -1,4 +1,5 @@
 import { escapeAttr } from '../utils';
+import { types } from './Patch';
 
 function Tag(tag, attrs, position) {
     this.tag = tag;
@@ -20,10 +21,25 @@ function tag(config) {
     }
 }
 
-function tagDom({ nextNodes, document }) {
+function tagDom({ nextNodes, document, normalizePatch }) {
     return function (tag, attrs, children, position) {
-        position.incrementPosition();
         nextNodes[position.id] = new Tag(tag, attrs, position);
+
+        if (attrs.events.length > 0) {
+            normalizePatch.push([
+                types.UPDATE,
+                position.getPosition(),
+                attrs
+            ]);
+        }
+
+        if (typeof attrs.special.ref === 'function') {
+            normalizePatch.push([
+                types.SET_REF,
+                position.getPosition(),
+                attrs.special.ref
+            ]);
+        }
 
         return createElement(tag, attrs, children, document);
     };
@@ -31,7 +47,6 @@ function tagDom({ nextNodes, document }) {
 
 function tagDiff({ nextNodes, document }) {
     return function (tag, attrs, children, position) {
-        position.incrementPosition();
         nextNodes[position.id] = new Tag(tag, attrs, position);
 
         return createElement(tag, attrs, children, document);
@@ -42,27 +57,24 @@ function tagStringify() {
     return function (tag, attrs, children) {
         let attrsString = '';
 
-        if (attrs !== null) {
-            for (var key in attrs) {
-                // TODO key === 'key'?
-                if (key.substr(0, 2) === 'on' || key === 'ref') {
-                    continue;
-                } else if (key === 'dataset') {
-                    const value = attrs[key],
-                        datasetKeys = Object.keys(value);
+        for (let i = 0, l = attrs.common.length; i < l; i++) {
+            const key = attrs.common[i][0];
 
-                    for (let i = 0, l = datasetKeys.length; i < l; i++) {
-                        attrsString += ` data-${datasetKeys[i]}="${escapeAttr(value[datasetKeys[i]])}"`;
-                    }
-                } else if (key === 'style') {
-                    attrsString += ` style="${escapeStyle(attrs[key])}"`;
-                } else {
-                    const value = attrs[key];
+            if (key === 'dataset') {
+                const value = attrs.common[i][1],
+                    datasetKeys = Object.keys(value);
 
-                    attrsString += ' ' + convertAttrName(key) + (value ===  true
-                        ? ''
-                        : `="${escapeAttr(value)}"`);
+                for (let j = 0, n = datasetKeys.length; j < n; j++) {
+                    attrsString += ` data-${datasetKeys[j]}="${escapeAttr(value[datasetKeys[j]])}"`;
                 }
+            } else if (key === 'style') {
+                attrsString += ` style="${escapeStyle(attrs.common[i][1])}"`;
+            } else {
+                const value = attrs.common[i][1];
+
+                attrsString += ' ' + convertAttrName(key) + (value ===  true
+                    ? ''
+                    : `="${escapeAttr(value)}"`);
             }
         }
 
@@ -78,10 +90,12 @@ function tagStringify() {
 function createElement(tag, attrs, children, document) {
     const elem = document.createElement(tag);
 
-    if (attrs !== null) {
-        for (let name in attrs) {
-            elem[name] = attrs[name];
-        }
+    for (let i = 0, l = attrs.common.length; i < l; i++) {
+        elem[attrs.common[i][0]] = attrs.common[i][1];
+    }
+
+    for (let i = 0, l = attrs.events.length; i < l; i++) {
+        elem[attrs.events[i][0].toLowerCase()] = attrs.events[i][1];
     }
 
     for (let i = 0, l = children.length; i < l; i++) {

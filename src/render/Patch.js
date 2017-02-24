@@ -1,6 +1,7 @@
 const types = {
-    REPLACE: 'REPLACE',
-    SPLIT_TEXT: 'SPLIT_TEXT'
+    UPDATE: 'UPDATE', // update attributes of node
+    REPLACE: 'REPLACE', // replace node
+    SPLIT_TEXT: 'SPLIT_TEXT' // split text nodes to normalize ssr
 };
 
 function Patch () {

@@ -62,12 +62,12 @@ function createParser() {
                     required(find('"'))
                 ).then(result => result[1])
             )
-        ).then(result => (obj, values) => {
-            obj[result[0]] = values[result[2]];
+        ).then(result => (memo, values) => {
+            memo.set(result[0], values[result[2]]);
         }),
         attrs = repeat(
             any(
-                placeholder.then(index => (obj, values) => {
+                placeholder.then(index => (memo, values) => {
                     const value = values[index];
 
                     if (typeof value !== 'object') {
@@ -79,7 +79,7 @@ function createParser() {
 
                     while (i--) {
                         if (attrNameRegexp.test(keys[i])) {
-                            obj[keys[i]] = value[keys[i]];
+                            memo.set(keys[i], value[keys[i]]);
                         }
                     }
                 }),
@@ -88,15 +88,13 @@ function createParser() {
                 booleanAttr
             ),
             whiteSpace
-        ).then(results => values => {
-            const memo = {};
-
+        ).then(results => (memo, values) => {
             for (let i = 0, l = results.length; i < l; i++) {
                 const result = results[i];
                 if (typeof result === 'function') {
                     result(memo, values);
                 } else {
-                    memo[result[0]] = result[1];
+                    memo.set(result[0], result[1]);
                 }
             }
 

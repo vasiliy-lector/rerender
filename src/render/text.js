@@ -27,7 +27,7 @@ function textDom({ nextNodes, document, normalizePatch }) {
         if (prevSibling.type === 'Text') {
             normalizePatch.push([
                 types.SPLIT_TEXT,
-                position.id,
+                position.getPosition(),
                 prevSibling.value.length
             ]);
         }
@@ -48,7 +48,7 @@ function textDiff({ nodes, nextNodes, patch }) {
             node = new Text(value, position);
             patch.push([
                 types.REPLACE,
-                position.id,
+                position.getPosition(),
                 node
             ]);
         }
