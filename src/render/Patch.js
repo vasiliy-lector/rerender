@@ -1,6 +1,9 @@
 const types = {
-    REPLACE: 'REPLACE', // replace node
-    SET_REF: 'SET_REF', // set ref on node
+    CREATE: 'CREATE',
+    MOVE: 'MOVE',
+    REMOVE: 'REMOVE',
+    REPLACE: 'REPLACE',
+    SET_REF: 'SET_REF',
     SPLIT_TEXT: 'SPLIT_TEXT', // split text nodes to normalize ssr
     UPDATE: 'UPDATE', // update attributes of node
     UPDATE_EVENTS: 'UPDATE_EVENTS' // update events only
@@ -13,6 +16,29 @@ function Patch () {
 Patch.prototype = {
     apply(rootNode) {
         return rootNode;
+    },
+
+    create(position, node) {
+        this.patch.push([
+            types.CREATE,
+            position,
+            node
+        ]);
+    },
+
+    move(oldPosition, position) {
+        this.patch.push([
+            types.MOVE,
+            oldPosition,
+            position
+        ]);
+    },
+
+    remove(position) {
+        this.patch.push([
+            types.REMOVE,
+            position
+        ]);
     },
 
     replace(position, node) {
@@ -36,6 +62,14 @@ Patch.prototype = {
             types.SPLIT_TEXT,
             position,
             end
+        ]);
+    },
+
+    update(position, attrs) {
+        this.patch.push([
+            types.UPDATE,
+            position,
+            attrs
         ]);
     },
 

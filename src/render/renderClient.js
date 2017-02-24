@@ -97,6 +97,10 @@ function rerenderClient({
 
         render({ jsx }).exec(ROOT_POSITION);
 
+        for (let id in config.nodes) {
+            config.patch.remove(config.nodes[id].position.getPosition());
+        }
+
         unmount(instances);
         nodes = config.nextNodes;
         instances = config.nextInstances;
