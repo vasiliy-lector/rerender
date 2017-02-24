@@ -1,5 +1,4 @@
 import { escapeAttr } from '../utils';
-import { types } from './Patch';
 
 function Tag(tag, attrs, position) {
     this.tag = tag;
@@ -26,19 +25,11 @@ function tagDom({ nextNodes, document, normalizePatch }) {
         nextNodes[position.id] = new Tag(tag, attrs, position);
 
         if (attrs.events.length > 0) {
-            normalizePatch.push([
-                types.UPDATE_EVENTS,
-                position.getPosition(),
-                attrs
-            ]);
+            normalizePatch.updateEvents(position.getPosition(), attrs);
         }
 
         if (typeof attrs.special.ref === 'function') {
-            normalizePatch.push([
-                types.SET_REF,
-                position.getPosition(),
-                attrs.special.ref
-            ]);
+            normalizePatch.setRef(position.getPosition(), attrs.special.ref);
         }
 
         return createElement(tag, attrs, children, document);
