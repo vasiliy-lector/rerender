@@ -47,16 +47,15 @@ function tagDiff({ nodes, nextNodes, patch }) {
         } else if (node.tag !== tag) {
             nextNode = new Node(tag, attrs, position);
             patch.replace(position.getPosition(), nextNode);
-        // FIXME: not so easy
-        } else if (node.position !== position) {
+        } else if (node.position.getPosition() !== position.getPosition()) {
             // root node of component with uniqid
             if (/u[^.]+\.0$/.test(node.position.id)) {
                 patch.move(node.position.getPosition(), position.getPosition());
                 nextNode.position = position;
+            } else {
+                patch.replace(position.getPosition(), nextNode);
+                nextNode = new Node(tag, attrs, position);
             }
-
-            nextNode = new Node(tag, attrs, position);
-            patch.replace(position.getPosition(), nextNode);
         } else if (node.attrs !== attrs) {
             patch.update(position.getPosition(), attrs);
             nextNode.attrs = attrs;

@@ -11,6 +11,7 @@ const types = {
 
 function Patch () {
     this.patch = [];
+    this.neccessaryNodes = [];
 }
 
 Patch.prototype = {
@@ -27,6 +28,7 @@ Patch.prototype = {
     },
 
     move(oldPosition, position) {
+        this.neccessaryNodes.push(oldPosition);
         this.patch.push([
             types.MOVE,
             oldPosition,
@@ -35,6 +37,7 @@ Patch.prototype = {
     },
 
     remove(position) {
+        this.neccessaryNodes.push(position);
         this.patch.push([
             types.REMOVE,
             position
@@ -42,6 +45,7 @@ Patch.prototype = {
     },
 
     replace(position, node) {
+        this.neccessaryNodes.push(position);
         this.patch.push([
             types.REPLACE,
             position,
@@ -66,6 +70,7 @@ Patch.prototype = {
     },
 
     update(position, attrs) {
+        this.neccessaryNodes.push(position);
         this.patch.push([
             types.UPDATE,
             position,
@@ -74,6 +79,7 @@ Patch.prototype = {
     },
 
     updateEvents(position, events) {
+        this.neccessaryNodes.push(position);
         this.patch.push([
             types.UPDATE_EVENTS,
             position,

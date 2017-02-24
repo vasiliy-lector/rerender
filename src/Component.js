@@ -1,9 +1,9 @@
 import { shallowEqual } from './utils';
 
-// TODO isDom -> enableInitActions or move to jsx.component
-function Component(props, children, { isDom, jsx, events, antibind }) {
+function Component(props, children, { jsx, events, antibind }) {
     this._componentMounted = false;
 
+    // FIXME: move higher when init will be moved
     if (antibind && Array.isArray(antibind)) {
         for (let i = 0, l = antibind.length; i < l; i++) {
             let name = antibind[i];
@@ -14,39 +14,14 @@ function Component(props, children, { isDom, jsx, events, antibind }) {
         }
     }
 
-    this.isDom = isDom;
     this._events = events;
     this.jsx = jsx;
     this.state = {};
     this.props = props;
     this.children = children;
 
+    // FIXME: move to lifecycle methods
     this.init && this.init();
-
-    // this.state = {
-    //     initActionsStatus: 'resolved'
-    // };
-    //
-    // if (isDom && initActions.length) {
-    //     this.state.initActionsStatus = 'pending';
-    //     store.runInitActions(initActions)
-    //         .then(() => this.setState({
-    //             initActionsStatus: 'resolved'
-    //         }), () => this.setState({
-    //             initActionsStatus: 'rejected'
-    //         }));
-    // }
-    //
-    // this.actions = actions.reduce((memo, Action) => {
-    //     memo[Action.name] = isDom
-    //         ? params => {
-    //             return new Action(Object.assign({}, params, { store }));
-    //         }
-    //         : () => {};
-    //
-    //     return memo;
-    // }, {});
-
 }
 
 Component.prototype = {
