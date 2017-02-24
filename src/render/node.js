@@ -2,59 +2,66 @@ import { shallowEqual } from '../utils';
 import Attrs from './Attrs';
 import Props, { PropsWrapper } from './Props';
 
-function node({ nodes, nextNodes, instances, nextInstances }, jsx) {
+function CacheByValues(values, tag, props) {
+    this.values = values;
+    this.tag = tag;
+    this.props = props;
+}
+
+CacheByValues.prototype = {
+    type: 'CacheByValues'
+};
+
+function node({ cacheByValues, nextCacheByValues }, jsx) {
     return function(result, values, position) {
-        const tag = typeof result[1] === 'function' ? result[1](values) : result[1];
+        const prevNode = cacheByValues[position.id];
+        let tag, props, isTag;
 
-        if (typeof tag === 'string') {
-            position.incrementPosition();
-            const prevNode = nodes[position.id];
-            let props;
+        if (prevNode && shallowEqual(prevNode.values, values)) {
+            values = prevNode.values;
+            tag = prevNode.tag;
+            props = prevNode.props;
+            isTag = typeof tag === 'string';
+            nextCacheByValues[position.id] = prevNode;
+        } else {
+            const tag = typeof result[1] === 'function' ? result[1](values) : result[1];
+            isTag = typeof tag === 'string';
 
-            if (prevNode && shallowEqual(prevNode.values, values)) {
-                values = prevNode.values;
-                props = prevNode.props;
-            } else {
+            if (isTag) {
                 props = result[2](new Attrs(), values);
+            } else {
+                props = result[2](tag.wrapper ? new PropsWrapper() : new Props(), values);
+
+                if (tag.defaults && typeof tag.defaults === 'object') {
+                    const defaultsKeys = Object.keys(tag.defaults);
+
+                    for (let i = 0, l = defaultsKeys.length; i < l; i++) {
+                        if (props.common[defaultsKeys[i]] === undefined) {
+                            props.common[defaultsKeys[i]] = tag.defaults[defaultsKeys[i]];
+                        }
+                    }
+                }
             }
 
-            const output = jsx.tag(
+            nextCacheByValues[position.id] = new CacheByValues(values, tag, props);
+        }
+
+        if (isTag) {
+            position.incrementPosition();
+            return jsx.tag(
                 tag,
                 props,
                 result[4](values, position.addPositionLevel(), jsx),
                 position
             );
-            nextNodes[position.id].values = values;
-
-            return output;
         } else {
-            // FIXME: how do not call function always?
-            let props = result[2](tag.wrapper ? new PropsWrapper() : new Props(), values);
             position = position.updateId(calcComponentPosition(tag, props.special, position.id));
-            const prevNode = instances[position.id];
-
-            if (prevNode && shallowEqual(prevNode.values, values)) {
-                values = prevNode.values;
-                props = prevNode.props;
-            } else if (tag.defaults && typeof tag.defaults === 'object') {
-                const defaultsKeys = Object.keys(tag.defaults);
-
-                for (let i = 0, l = defaultsKeys.length; i < l; i++) {
-                    if (props.common[defaultsKeys[i]] === undefined) {
-                        props.common[defaultsKeys[i]] = tag.defaults[defaultsKeys[i]];
-                    }
-                }
-            }
-
-            const output = jsx.component(
+            return jsx.component(
                 tag,
                 props,
                 jsx.template(result[4], values),
                 position
             );
-            nextInstances[position.id].values = values;
-
-            return output;
         }
     };
 }

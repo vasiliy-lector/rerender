@@ -17,17 +17,21 @@ function renderClient(render, store, domNode, { document = self.document } = {})
     const nextNewInstances = {};
     const nodes = {};
     const nextNodes = {};
+    const cacheByValues = {};
+    const nextCacheByValues = {};
     const normalizePatch = new Patch();
     const jsx = createInstance({
         store,
         events,
         method: 'create',
-        instances,
         normalizePatch,
+        instances,
         nextInstances,
+        nextNewInstances,
         nodes,
         nextNodes,
-        nextNewInstances,
+        cacheByValues,
+        nextCacheByValues,
         document
     });
     // const start = performance.now();
@@ -53,6 +57,7 @@ function renderClient(render, store, domNode, { document = self.document } = {})
         prevRootNode: nextRootNode,
         prevNodes: nextNodes,
         prevInstances: nextInstances,
+        prevCacheByValues: nextCacheByValues,
         document
     }));
 }
@@ -65,10 +70,12 @@ function rerenderClient({
     // domNode,
     prevNodes,
     prevRootNode,
-    prevInstances
+    prevInstances,
+    prevCacheByValues
 }) {
     let instances = prevInstances;
     let nodes = prevNodes;
+    let cacheByValues = prevCacheByValues;
     let rootNode = prevRootNode;
     const config = {
         store,
@@ -84,6 +91,8 @@ function rerenderClient({
         config.nextNodes = {};
         config.nodes = nodes;
         config.instances = instances;
+        config.cacheByValues = cacheByValues;
+        config.nextCacheByValues = {};
         config.patch = new Patch();
 
         render({ jsx }).exec(ROOT_POSITION);
@@ -91,6 +100,7 @@ function rerenderClient({
         unmount(instances);
         nodes = config.nextNodes;
         instances = config.nextInstances;
+        cacheByValues = config.nextCacheByValues;
         // TODO blur problem when moving component with focus
         rootNode = config.patch.apply(rootNode);
         mount(config.nextNewInstances);
