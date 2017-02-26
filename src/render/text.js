@@ -39,8 +39,11 @@ function textDiff({ nodes, nextNodes, patch }) {
         position.incrementPosition();
         let node = nodes[position.id];
 
-        if (!node || node.value !== value) {
-            node = new Text(value, position);
+        if (!node) {
+            node = new Text(value, position.getPosition());
+            patch.create(position.getParentPosition(), position.getIndex(), node);
+        } else if (node.value !== value) {
+            node = new Text(value, position.getPosition());
             patch.replace(position.getPosition(), node);
         }
 

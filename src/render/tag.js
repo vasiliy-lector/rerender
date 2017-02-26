@@ -39,25 +39,26 @@ function tagDom({ nextNodes, document, normalizePatch }) {
 function tagDiff({ nodes, nextNodes, patch }) {
     return function (tag, attrs, children, position) {
         const node = nodes[position.id];
+        const nodePosition = position.getPosition();
         let nextNode = node;
 
         if (!node) {
-            nextNode = new Node(tag, attrs, position);
-            patch.create(position.getPosition(), nextNode);
+            nextNode = new Node(tag, attrs, nodePosition);
+            patch.create(position.getParentPosition(), position.getIndex(), nextNode);
         } else if (node.tag !== tag) {
-            nextNode = new Node(tag, attrs, position);
-            patch.replace(position.getPosition(), nextNode);
-        } else if (node.position.getPosition() !== position.getPosition()) {
+            nextNode = new Node(tag, attrs, nodePosition);
+            patch.replace(nodePosition, nextNode);
+        } else if (node.position !== nodePosition) {
             // root node of component with uniqid
             if (/u[^.]+\.0$/.test(node.position.id)) {
-                patch.move(node.position.getPosition(), position.getPosition());
+                patch.move(node.position, nodePosition);
                 nextNode.position = position;
             } else {
-                patch.replace(position.getPosition(), nextNode);
+                patch.replace(nodePosition, nextNode);
                 nextNode = new Node(tag, attrs, position);
             }
         } else if (node.attrs !== attrs) {
-            patch.update(position.getPosition(), attrs);
+            patch.update(nodePosition, attrs);
             nextNode.attrs = attrs;
         }
 
@@ -111,9 +112,11 @@ function createElement(tag, attrs, children, document) {
         elem[attrs.events[i][0].toLowerCase()] = attrs.events[i][1];
     }
 
-    for (let i = 0, l = children.length; i < l; i++) {
-        if (children[i]) {
-            elem.appendChild(children[i]);
+    if (children !== null) {
+        for (let i = 0, l = children.length; i < l; i++) {
+            if (children[i]) {
+                elem.appendChild(children[i]);
+            }
         }
     }
 
@@ -227,4 +230,4 @@ function convertUpper(match) {
 }
 
 export default tag;
-export { escapeStyle };
+export { escapeStyle, Node, createElement };

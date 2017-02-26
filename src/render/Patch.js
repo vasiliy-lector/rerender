@@ -1,43 +1,79 @@
 const types = {
-    CREATE: 'CREATE',
-    MOVE: 'MOVE',
-    REMOVE: 'REMOVE',
-    REPLACE: 'REPLACE',
-    SET_REF: 'SET_REF',
-    SPLIT_TEXT: 'SPLIT_TEXT', // split text nodes to normalize ssr
-    UPDATE: 'UPDATE', // update attributes of node
-    UPDATE_EVENTS: 'UPDATE_EVENTS' // update events only
+    CREATE: 'applyCreate',
+    MOVE: 'applyMove',
+    REMOVE: 'applyRemove',
+    REPLACE: 'applyReplace',
+    SET_REF: 'applySetRef',
+    SPLIT_TEXT: 'applySplitText', // split text nodes to normalize ssr
+    UPDATE: 'applyUpdate', // update attributes of node
+    UPDATE_EVENTS: 'applyUpdateEvents' // update events only
 };
 
-function Patch () {
+function Patch (domNode, document, normalize) {
     this.patch = [];
-    this.neccessaryNodes = [];
+    this.domNode = domNode;
+    this.document = document;
+    this.normalize = normalize;
 }
 
 Patch.prototype = {
-    apply(rootNode) {
-        return rootNode;
+    apply(domNode) {
+        if (!this.normalize) {
+            this._setRefs();
+        }
+
+        for (let i = 0, l = this.patch.length; i < l; i++) {
+            const action = this.patch[i];
+
+            this[action[0]](action, domNode);
+        }
     },
 
-    create(position, node) {
+    applyCreate(action) {
+        // const position = action[1];
+        // const node = action[2];
+        // if (node.type === 'Node') {
+        //     
+        // }
+    },
+    applyMove() {},
+    applyRemove() {},
+    applyReplace() {},
+    applySetRef() {},
+    applySplitText() {},
+    applyUpdate() {},
+    applyUpdateEvents() {},
+
+    _setRefs() {
+        for (let i = 0, l = this.patch.length; i < l; i++) {
+            if (this.patch[i][0] !== types.CREATE) {
+                this.patch[i][1] = this._getRefByPosition(this.patch[i][1]);
+            }
+        }
+    },
+
+    _getRefByPosition(position) {
+        return (new Function('domNode', `return domNode${position};`))(this.domNode);
+    },
+
+    create(parentPosition, index, node) {
         this.patch.push([
             types.CREATE,
-            position,
+            parentPosition,
+            index,
             node
         ]);
     },
 
-    move(oldPosition, position) {
-        this.neccessaryNodes.push(oldPosition);
+    move(position, nextPosition) {
         this.patch.push([
             types.MOVE,
-            oldPosition,
-            position
+            position,
+            nextPosition
         ]);
     },
 
     remove(position) {
-        this.neccessaryNodes.push(position);
         this.patch.push([
             types.REMOVE,
             position
@@ -45,7 +81,6 @@ Patch.prototype = {
     },
 
     replace(position, node) {
-        this.neccessaryNodes.push(position);
         this.patch.push([
             types.REPLACE,
             position,
@@ -70,7 +105,6 @@ Patch.prototype = {
     },
 
     update(position, attrs) {
-        this.neccessaryNodes.push(position);
         this.patch.push([
             types.UPDATE,
             position,
@@ -79,7 +113,6 @@ Patch.prototype = {
     },
 
     updateEvents(position, events) {
-        this.neccessaryNodes.push(position);
         this.patch.push([
             types.UPDATE_EVENTS,
             position,
@@ -89,3 +122,4 @@ Patch.prototype = {
 };
 
 export default Patch;
+export { types };

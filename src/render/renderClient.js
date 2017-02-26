@@ -7,10 +7,9 @@ import { debug } from '../debug';
 import { createInstance } from './jsx';
 
 const RENDER_THROTTLE = 16,
-    ROOT_POSITION = new Position('r', 'domNode.childNodes', -1);
+    ROOT_POSITION = new Position('r', '', -1);
 
 function renderClient(render, store, domNode, { document = self.document } = {}) {
-    let nextRootNode;
     const events = new Events();
     const instances = {};
     const nextInstances = {};
@@ -19,7 +18,7 @@ function renderClient(render, store, domNode, { document = self.document } = {})
     const nextNodes = {};
     const cacheByValues = {};
     const nextCacheByValues = {};
-    const normalizePatch = new Patch();
+    const normalizePatch = new Patch(domNode, document, true);
     const jsx = createInstance({
         store,
         events,
@@ -35,14 +34,14 @@ function renderClient(render, store, domNode, { document = self.document } = {})
         document
     });
     // const start = performance.now();
-    nextRootNode = render({ jsx }).exec(ROOT_POSITION);
+    const nextRootNode = render({ jsx }).exec(ROOT_POSITION);
     const rootNode = domNode.childNodes[0];
 
     if (rootNode.outerHTML !== nextRootNode.outerHTML) {
         debug.warn('Server and client html do not match!');
         domNode.replaceChild(rootNode, nextRootNode);
     } else {
-        nextRootNode = normalizePatch.apply(rootNode);
+        normalizePatch.apply(domNode);
     }
     // const end = performance.now();
     // debug.log((end - start).toFixed(3), 'ms');
@@ -54,7 +53,6 @@ function renderClient(render, store, domNode, { document = self.document } = {})
         store,
         events,
         domNode,
-        prevRootNode: nextRootNode,
         prevNodes: nextNodes,
         prevInstances: nextInstances,
         prevCacheByValues: nextCacheByValues,
@@ -67,16 +65,14 @@ function rerenderClient({
     store,
     events,
     document,
-    // domNode,
+    domNode,
     prevNodes,
-    prevRootNode,
     prevInstances,
     prevCacheByValues
 }) {
     let instances = prevInstances;
     let nodes = prevNodes;
     let cacheByValues = prevCacheByValues;
-    let rootNode = prevRootNode;
     const config = {
         store,
         events,
@@ -93,7 +89,7 @@ function rerenderClient({
         config.instances = instances;
         config.cacheByValues = cacheByValues;
         config.nextCacheByValues = {};
-        config.patch = new Patch();
+        config.patch = new Patch(domNode, document);
 
         render({ jsx }).exec(ROOT_POSITION);
 
@@ -106,7 +102,7 @@ function rerenderClient({
         instances = config.nextInstances;
         cacheByValues = config.nextCacheByValues;
         // TODO blur problem when moving component with focus
-        rootNode = config.patch.apply(rootNode);
+        config.patch.apply(domNode);
         mount(config.nextNewInstances);
     }, RENDER_THROTTLE, { leading: true });
 }
