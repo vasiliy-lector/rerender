@@ -54,22 +54,15 @@ function node({ cacheByValues, nextCacheByValues, method }, jsx) {
 
         if (isTag) {
             position.incrementPosition();
-            if (method === 'create') {
-                return jsx.tag(
-                    tag,
-                    props,
-                    result[4](values, position.addPositionLevel(), jsx),
-                    position
-                );
-            } else {
-                jsx.tag(
-                    tag,
-                    props,
-                    null,
-                    position
-                );
-                result[4](values, position.addPositionLevel(), jsx);
-            }
+
+            return jsx.tag(
+                tag,
+                props,
+                method === 'create'
+                    ? result[4](values, position.addPositionLevel(), jsx)
+                    : () => result[4](values, position.addPositionLevel(), jsx),
+                position
+            );
         } else {
             position = position.updateId(componentId);
             nextCacheByValues[componentId] = prevNode;

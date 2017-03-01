@@ -64,6 +64,7 @@ function tagDiff({ nodes, nextNodes, patch }) {
 
         nextNodes[position.id] = nextNode;
         delete nodes[position.id];
+        children();
     };
 }
 

@@ -1,3 +1,4 @@
+import { createElement } from './tag';
 const types = {
     CREATE: 'applyCreate',
     MOVE: 'applyMove',
@@ -30,11 +31,15 @@ Patch.prototype = {
     },
 
     applyCreate(action) {
-        // const position = action[1];
-        // const node = action[2];
-        // if (node.type === 'Node') {
-        //     
-        // }
+        const node = action[2];
+        let nextDomNode;
+
+        if (node.type === 'Node') {
+            nextDomNode = createElement(node.tag, node.attrs, null, this.document);
+        }
+
+        const parentNode = this._getRefByPosition(action[1]);
+        parentNode.appendChild(nextDomNode);
     },
     applyMove() {},
     applyRemove() {},
