@@ -58,9 +58,7 @@ function node({ cacheByValues, nextCacheByValues, method }, jsx) {
             return jsx.tag(
                 tag,
                 props,
-                method === 'create'
-                    ? result[4](values, position.addPositionLevel(), jsx)
-                    : () => result[4](values, position.addPositionLevel(), jsx),
+                parentNode => result[4](values, position.addPositionLevel(parentNode), jsx),
                 position
             );
         } else {

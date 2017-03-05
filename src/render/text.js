@@ -1,13 +1,6 @@
 import { escapeHtml } from '../utils';
-
-function Text(value, position) {
-    this.value = value || '';
-    this.position = position;
-}
-
-Text.prototype = {
-    type: 'Text'
-};
+import { createText } from './createElement';
+import Text from '../virtualDom/Text';
 
 function text(config) {
     if (config.stringify) {
@@ -28,9 +21,10 @@ function textDom({ nextNodes, document, normalizePatch }) {
         }
 
         position.incrementPosition();
-        nextNodes[position.id] = new Text(value, position);
+        const node = new Text(value, position);
+        nextNodes[position.id] = node;
 
-        return document.createTextNode(value);
+        return createText(node, document);
     };
 }
 
@@ -56,3 +50,4 @@ function textStringify(value) {
 }
 
 export default text;
+export { Text };

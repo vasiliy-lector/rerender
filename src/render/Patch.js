@@ -1,4 +1,4 @@
-import { createElement } from './tag';
+import { createElement } from './createElement';
 const types = {
     CREATE: 'applyCreate',
     MOVE: 'applyMove',
@@ -35,15 +35,28 @@ Patch.prototype = {
         let nextDomNode;
 
         if (node.type === 'Node') {
-            nextDomNode = createElement(node.tag, node.attrs, null, this.document);
+            nextDomNode = createElement(node.tag, node.attrs, action[3], this.document);
         }
 
         const parentNode = this._getRefByPosition(action[1]);
         parentNode.appendChild(nextDomNode);
     },
     applyMove() {},
-    applyRemove() {},
-    applyReplace() {},
+    applyRemove(action) {
+        // should remove refs and etc
+    },
+    applyReplace(action) {
+        const node = action[2];
+        let nextDomNode;
+
+        if (node.type === 'Node') {
+            nextDomNode = createElement(node.tag, node.attrs, action[3], this.document);
+        } else {
+            nextDomNode = this.document.createTextNode(node.value);
+        }
+
+        action[1].replaceWith(nextDomNode);
+    },
     applySetRef() {},
     applySplitText() {},
     applyUpdate() {},

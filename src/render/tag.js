@@ -1,14 +1,5 @@
 import { escapeAttr } from '../utils';
-
-function Node(tag, attrs, position) {
-    this.tag = tag;
-    this.attrs = attrs;
-    this.position = position;
-}
-
-Node.prototype = {
-    type: 'Node'
-};
+import Node from '../virtualDom/Node';
 
 function tag(config) {
     if (config.stringify) {
@@ -20,9 +11,9 @@ function tag(config) {
     }
 }
 
-function tagDom({ nextNodes, document, normalizePatch }) {
+function tagDom({ nextNodes, normalizePatch }) {
     return function (tag, attrs, children, position) {
-        nextNodes[position.id] = new Node(tag, attrs, position);
+        const nextNode = new Node(tag, attrs, position);
 
         if (attrs.events.length > 0) {
             normalizePatch.updateEvents(position.getPosition(), attrs);
@@ -32,7 +23,11 @@ function tagDom({ nextNodes, document, normalizePatch }) {
             normalizePatch.setRef(position.getPosition(), attrs.special.ref);
         }
 
-        return createElement(tag, attrs, children, document);
+        nextNodes[position.id] = nextNode;
+        nextNode.setParentNode(position.getParentNode());
+        nextNode.setChildNodes(children(nextNode));
+
+        return nextNode;
     };
 }
 
@@ -48,23 +43,21 @@ function tagDiff({ nodes, nextNodes, patch }) {
         } else if (node.tag !== tag) {
             nextNode = new Node(tag, attrs, nodePosition);
             patch.replace(nodePosition, nextNode);
-        } else if (node.position !== nodePosition) {
-            // root node of component with uniqid
-            if (/u[^.]+\.0$/.test(node.position.id)) {
-                patch.move(node.position, nodePosition);
-                nextNode.position = position;
-            } else {
-                patch.replace(nodePosition, nextNode);
-                nextNode = new Node(tag, attrs, position);
-            }
+        // root node of component with uniqid
+        } else if (/u[^.]+\.0$/.test(node.position.id) && node.position !== nodePosition) {
+            patch.move(node.position, nodePosition);
+            nextNode.position = position;
         } else if (node.attrs !== attrs) {
             patch.update(nodePosition, attrs);
             nextNode.attrs = attrs;
         }
 
         nextNodes[position.id] = nextNode;
+        nextNode.setParentNode(position.getParentNode());
+        nextNode.setChildNodes(children(nextNode));
         delete nodes[position.id];
-        children();
+
+        return nextNode;
     };
 }
 
@@ -100,28 +93,6 @@ function tagStringify() {
                 ? '>' + childrenString + '</' + tag + '>'
                 : ' />');
     };
-}
-
-function createElement(tag, attrs, children, document) {
-    const elem = document.createElement(tag);
-
-    for (let i = 0, l = attrs.common.length; i < l; i++) {
-        elem[attrs.common[i][0]] = attrs.common[i][1];
-    }
-
-    for (let i = 0, l = attrs.events.length; i < l; i++) {
-        elem[attrs.events[i][0].toLowerCase()] = attrs.events[i][1];
-    }
-
-    if (children !== null) {
-        for (let i = 0, l = children.length; i < l; i++) {
-            if (children[i]) {
-                elem.appendChild(children[i]);
-            }
-        }
-    }
-
-    return elem;
 }
 
 function escapeStyle(value) {
@@ -231,4 +202,4 @@ function convertUpper(match) {
 }
 
 export default tag;
-export { escapeStyle, Node, createElement };
+export { escapeStyle, Node };
