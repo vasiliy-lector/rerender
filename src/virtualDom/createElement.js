@@ -1,14 +1,8 @@
-export default function createElement(node, document) {
-    return node.type === 'Tag'
-        ? createNode(node.tag, node.attrs, document)
-        : createText(node.value);
-}
-
 function createText(node, document) {
     return document.createTextNode(node.value);
 }
 
-function createNode(tag, attrs, document) {
+function createTag(tag, attrs, document) {
     const elem = document.createElement(tag);
 
     for (let i = 0, l = attrs.common.length; i < l; i++) {
@@ -23,20 +17,28 @@ function createNode(tag, attrs, document) {
 }
 
 function createAndAppend(node, parent, document) {
-    const elem = createElement(node.tag, node.attrs, document);
+    const elem = node.type === 'Tag'
+        ? createTagWithChilds(node.tag, node.attrs, node.childNodes, document)
+        : createText(node.value);
     parent.appendChild(elem);
 
     return elem;
 }
 
-function createNodeWithChilds(tag, attrs, children, document) {
-    const elem = createNode(tag, attrs, document);
+function createTagWithChilds(tag, attrs, childNodes, document) {
+    const elem = createTag(tag, attrs, document);
 
-    for (let i = 0, l = children.length; i < l; i++) {
-        createAndAppend(children[i], elem, document);
+    for (let i = 0, l = childNodes.length; i < l; i++) {
+        createAndAppend(childNodes[i], elem, document);
     }
 
     return elem;
 }
 
-export { createAndAppend, createNodeWithChilds };
+export default function createElement(node, document) {
+    const elem = node.type === 'Tag'
+        ? createTagWithChilds(node.tag, node.attrs, node.childNodes, document)
+        : createText(node.value);
+
+    return elem;
+}

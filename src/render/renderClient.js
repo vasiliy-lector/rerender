@@ -5,9 +5,10 @@ import Patch from './Patch';
 import { throttle } from '../utils';
 import { debug } from '../debug';
 import { createInstance } from './jsx';
+import createElement from './virtualDom/createElement';
 
 const RENDER_THROTTLE = 16,
-    ROOT_POSITION = new Position('r', '', -1);
+    ROOT_POSITION = new Position('r', undefined, '', -1);
 
 function renderClient(render, store, domNode, { document = self.document } = {}) {
     const events = new Events();
@@ -34,7 +35,8 @@ function renderClient(render, store, domNode, { document = self.document } = {})
         document
     });
     // const start = performance.now();
-    const nextRootNode = render({ jsx }).exec(ROOT_POSITION);
+    const nextVirtualDom = render({ jsx }).exec(ROOT_POSITION);
+    const nextRootNode = createElement(nextVirtualDom, document);
     const rootNode = domNode.childNodes[0];
 
     if (rootNode.outerHTML !== nextRootNode.outerHTML) {
@@ -56,6 +58,7 @@ function renderClient(render, store, domNode, { document = self.document } = {})
         prevNodes: nextNodes,
         prevInstances: nextInstances,
         prevCacheByValues: nextCacheByValues,
+        prevVirtualDom: nextVirtualDom,
         document
     }));
 }
@@ -68,11 +71,13 @@ function rerenderClient({
     domNode,
     prevNodes,
     prevInstances,
+    prevVirtualDom,
     prevCacheByValues
 }) {
     let instances = prevInstances;
     let nodes = prevNodes;
     let cacheByValues = prevCacheByValues;
+    let virtualDom = prevVirtualDom;
     const config = {
         store,
         events,
@@ -88,10 +93,11 @@ function rerenderClient({
         config.nodes = nodes;
         config.instances = instances;
         config.cacheByValues = cacheByValues;
+        config.virtualDom = virtualDom;
         config.nextCacheByValues = {};
         config.patch = new Patch(domNode, document);
 
-        render({ jsx }).exec(ROOT_POSITION);
+        virtualDom = render({ jsx }).exec(ROOT_POSITION);
 
         for (let id in config.nodes) {
             config.patch.remove(config.nodes[id].position.getPosition());
