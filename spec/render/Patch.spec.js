@@ -1,7 +1,7 @@
 import { jsdom } from 'jsdom';
 import Attrs from '../../lib/render/Attrs';
-import { Node } from '../../lib/render/tag';
-import { Text } from '../../lib/render/text';
+import Tag from '../../lib/virtualDom/Tag';
+import Text from '../../lib/virtualDom/Text';
 import Patch, { types } from '../../lib/render/Patch';
 
 describe('Patch', () => {

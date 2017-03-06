@@ -12,7 +12,7 @@ CacheByValues.prototype = {
     type: 'CacheByValues'
 };
 
-function node({ cacheByValues, nextCacheByValues, method }, jsx) {
+function execComponent({ cacheByValues, nextCacheByValues, method }, jsx) {
     return function(result, values, position) {
         const prevNode = cacheByValues[position.id];
         let tag, props, isTag, componentId;
@@ -87,4 +87,4 @@ function calcComponentPosition(tag, props, position) {
     }
 }
 
-export default node;
+export default execComponent;

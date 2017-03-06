@@ -1,11 +1,11 @@
-function Node(tag, attrs, position) {
+function Tag(tag, attrs, position) {
     this.tag = tag;
     this.attrs = attrs;
     this.position = position;
 }
 
-Node.prototype = {
-    type: 'Node',
+Tag.prototype = {
+    type: 'Tag',
 
     setChildNodes(childNodes) {
         this.childNodes = childNodes;
@@ -16,4 +16,4 @@ Node.prototype = {
     }
 };
 
-export default Node;
+export default Tag;

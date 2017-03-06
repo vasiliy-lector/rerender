@@ -1,5 +1,5 @@
 export default function createElement(node, document) {
-    return node.type === 'Node'
+    return node.type === 'Tag'
         ? createNode(node.tag, node.attrs, document)
         : createText(node.value);
 }

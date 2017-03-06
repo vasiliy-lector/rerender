@@ -1,4 +1,4 @@
-import node from './node';
+import execComponent from './execComponent';
 import tag from './tag';
 import component from './component';
 import text from './text';
@@ -172,7 +172,7 @@ function createParser() {
                 })
             ))
         ).then(result => (values, position, jsx) => {
-            return jsx.node(result, values, position);
+            return jsx.execComponent(result, values, position);
         });
 
     return sequence(
@@ -200,7 +200,7 @@ function createInstance(config, warmUp) {
     }
 
     jsx.template = template(config, jsx);
-    jsx.node = node(config, jsx);
+    jsx.execComponent = execComponent(config, jsx);
     jsx.component = component(config, jsx);
     jsx.tag = tag(config, jsx);
     jsx.text = text(config, jsx);

@@ -1,5 +1,5 @@
 import { escapeAttr } from '../utils';
-import Node from '../virtualDom/Node';
+import Tag from '../virtualDom/Tag';
 
 function tag(config) {
     if (config.stringify) {
@@ -13,7 +13,7 @@ function tag(config) {
 
 function tagDom({ nextNodes, normalizePatch }) {
     return function (tag, attrs, children, position) {
-        const nextNode = new Node(tag, attrs, position);
+        const nextNode = new Tag(tag, attrs, position);
 
         if (attrs.events.length > 0) {
             normalizePatch.updateEvents(position.getPosition(), attrs);
@@ -38,10 +38,10 @@ function tagDiff({ nodes, nextNodes, patch }) {
         let nextNode = node;
 
         if (!node) {
-            nextNode = new Node(tag, attrs, nodePosition);
+            nextNode = new Tag(tag, attrs, nodePosition);
             patch.create(position.getParentPosition(), position.getIndex(), nextNode);
         } else if (node.tag !== tag) {
-            nextNode = new Node(tag, attrs, nodePosition);
+            nextNode = new Tag(tag, attrs, nodePosition);
             patch.replace(nodePosition, nextNode);
         // root node of component with uniqid
         } else if (/u[^.]+\.0$/.test(node.position.id) && node.position !== nodePosition) {
@@ -202,4 +202,4 @@ function convertUpper(match) {
 }
 
 export default tag;
-export { escapeStyle, Node };
+export { escapeStyle };
