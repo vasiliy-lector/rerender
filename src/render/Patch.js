@@ -34,15 +34,15 @@ Patch.prototype = {
     },
 
     applyCreate(command) {
-        const node = command[2];
-        let nextDomNode;
-
-        if (node.type === 'Tag') {
-            nextDomNode = createElement(node.tag, node.attrs, command[3], this.document);
-        }
-
-        const parentNode = this._getRefByPosition(command[1]);
-        parentNode.appendChild(nextDomNode);
+        // const node = command[2];
+        // let nextDomNode;
+        //
+        // if (node.type === 'Tag') {
+        //     nextDomNode = createElement(node.tag, node.attrs, command[3], this.document);
+        // }
+        //
+        // const parentNode = this._getRefByPosition(command[1]);
+        // parentNode.appendChild(nextDomNode);
     },
     applyMove() {},
     applyRemove() {
