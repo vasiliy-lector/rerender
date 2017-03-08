@@ -13,14 +13,15 @@ function tag(config) {
 
 function tagDom({ nextNodes, normalizePatch }) {
     return function (tag, attrs, children, position) {
-        const nextNode = new Tag(tag, attrs, position);
+        const nextNodePosition = position.getPosition();
+        const nextNode = new Tag(tag, attrs, nextNodePosition, position.id);
 
         if (attrs.events.length > 0) {
-            normalizePatch.updateEvents(position.getPosition(), attrs);
+            normalizePatch.updateEvents(nextNodePosition, attrs);
         }
 
         if (typeof attrs.special.ref === 'function') {
-            normalizePatch.setRef(position.getPosition(), attrs.special.ref);
+            normalizePatch.setRef(nextNodePosition, attrs.special.ref);
         }
 
         nextNodes[position.id] = nextNode;
@@ -34,21 +35,26 @@ function tagDom({ nextNodes, normalizePatch }) {
 function tagDiff({ nodes, nextNodes, patch }) {
     return function (tag, attrs, children, position) {
         const node = nodes[position.id];
-        const nodePosition = position.getPosition();
+        const nextNodePosition = position.getPosition();
         let nextNode = node;
 
         if (!node) {
-            nextNode = new Tag(tag, attrs, nodePosition);
-        } else if (node.tag !== tag) {
-            nextNode = new Tag(tag, attrs, nodePosition);
-            patch.replace(nodePosition, nextNode);
-        // root node of component with uniqid
-        } else if (/u[^.]+\.0$/.test(node.position.id) && node.position !== nodePosition) {
-            patch.move(node.position, nodePosition);
-            nextNode.position = position;
-        } else if (node.attrs !== attrs) {
-            patch.update(nodePosition, attrs);
-            nextNode.attrs = attrs;
+            nextNode = new Tag(tag, attrs, nextNodePosition, position.id);
+            patch.create(position.parentPosition, position.index, nextNode);
+        } else {
+            if (node.tag !== tag) {
+                nextNode = new Tag(tag, attrs, nextNodePosition, position.id);
+                patch.replace(nextNodePosition, nextNode);
+            // root node of component with uniqid
+            } else if (/u[^.]+\.0$/.test(node.position.id) && node.position !== nextNodePosition) {
+                patch.move(node.position, nextNodePosition, nextNode);
+                nextNode.position = position;
+            }
+
+            if (node.attrs !== attrs) {
+                patch.update(nextNodePosition, attrs);
+                nextNode.attrs = attrs;
+            }
         }
 
         nextNodes[position.id] = nextNode;

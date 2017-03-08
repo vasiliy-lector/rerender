@@ -43,7 +43,7 @@ function renderClient(render, store, domNode, { document = self.document } = {})
         debug.warn('Server and client html do not match!');
         domNode.replaceChild(rootNode, nextRootNode);
     } else {
-        normalizePatch.apply(domNode);
+        normalizePatch.apply();
     }
     // const end = performance.now();
     // debug.log((end - start).toFixed(3), 'ms');
@@ -108,7 +108,7 @@ function rerenderClient({
         instances = config.nextInstances;
         cacheByValues = config.nextCacheByValues;
         // TODO blur problem when moving component with focus
-        config.patch.apply(domNode);
+        config.patch.apply();
         mount(config.nextNewInstances);
     }, RENDER_THROTTLE, { leading: true });
 }

@@ -11,51 +11,54 @@ const types = {
 };
 
 function Patch (domNode, document, normalize) {
-    this.patch = [];
+    this.commands = [];
     this.domNode = domNode;
     this.document = document;
     this.normalize = normalize;
+    this.toMove = {};
+    this.toCreate = {};
+    this.created = {};
 }
 
 Patch.prototype = {
-    apply(domNode) {
+    apply() {
         if (!this.normalize) {
             this._setRefs();
         }
 
-        for (let i = 0, l = this.patch.length; i < l; i++) {
-            const action = this.patch[i];
+        for (let i = 0, l = this.commands.length; i < l; i++) {
+            const command = this.commands[i];
 
-            this[action[0]](action, domNode);
+            this[command[0]](command);
         }
     },
 
-    applyCreate(action) {
-        const node = action[2];
+    applyCreate(command) {
+        const node = command[2];
         let nextDomNode;
 
-        if (node.type === 'Node') {
-            nextDomNode = createElement(node.tag, node.attrs, action[3], this.document);
+        if (node.type === 'Tag') {
+            nextDomNode = createElement(node.tag, node.attrs, command[3], this.document);
         }
 
-        const parentNode = this._getRefByPosition(action[1]);
+        const parentNode = this._getRefByPosition(command[1]);
         parentNode.appendChild(nextDomNode);
     },
     applyMove() {},
-    applyRemove(action) {
+    applyRemove() {
         // should remove refs and etc
     },
-    applyReplace(action) {
-        const node = action[2];
+    applyReplace(command) {
+        const node = command[2];
         let nextDomNode;
 
-        if (node.type === 'Node') {
-            nextDomNode = createElement(node.tag, node.attrs, action[3], this.document);
+        if (node.type === 'Tag') {
+            nextDomNode = createElement(node.tag, node.attrs, command[3], this.document);
         } else {
             nextDomNode = this.document.createTextNode(node.value);
         }
 
-        action[1].replaceWith(nextDomNode);
+        command[1].replaceWith(nextDomNode);
     },
     applySetRef() {},
     applySplitText() {},
@@ -63,9 +66,9 @@ Patch.prototype = {
     applyUpdateEvents() {},
 
     _setRefs() {
-        for (let i = 0, l = this.patch.length; i < l; i++) {
-            if (this.patch[i][0] !== types.CREATE) {
-                this.patch[i][1] = this._getRefByPosition(this.patch[i][1]);
+        for (let i = 0, l = this.commands.length; i < l; i++) {
+            if (this.commands[i][0] !== types.CREATE) {
+                this.commands[i][1] = this._getRefByPosition(this.commands[i][1]);
             }
         }
     },
@@ -75,7 +78,8 @@ Patch.prototype = {
     },
 
     create(parentPosition, index, node) {
-        this.patch.push([
+        this.toCreate[node.id] = true;
+        this.commands.push([
             types.CREATE,
             parentPosition,
             index,
@@ -83,8 +87,9 @@ Patch.prototype = {
         ]);
     },
 
-    move(position, nextPosition) {
-        this.patch.push([
+    move(position, nextPosition, node) {
+        this.toMove[node.id] = true;
+        this.commands.push([
             types.MOVE,
             position,
             nextPosition
@@ -92,14 +97,14 @@ Patch.prototype = {
     },
 
     remove(position) {
-        this.patch.push([
+        this.commands.push([
             types.REMOVE,
             position
         ]);
     },
 
     replace(position, node) {
-        this.patch.push([
+        this.commands.push([
             types.REPLACE,
             position,
             node
@@ -107,7 +112,7 @@ Patch.prototype = {
     },
 
     setRef(position, ref) {
-        this.patch.push([
+        this.commands.push([
             types.SET_REF,
             position,
             ref
@@ -115,7 +120,7 @@ Patch.prototype = {
     },
 
     splitText(position, end) {
-        this.patch.push([
+        this.commands.push([
             types.SPLIT_TEXT,
             position,
             end
@@ -123,7 +128,7 @@ Patch.prototype = {
     },
 
     update(position, attrs) {
-        this.patch.push([
+        this.commands.push([
             types.UPDATE,
             position,
             attrs
@@ -131,7 +136,7 @@ Patch.prototype = {
     },
 
     updateEvents(position, events) {
-        this.patch.push([
+        this.commands.push([
             types.UPDATE_EVENTS,
             position,
             events
