@@ -12,7 +12,7 @@ function text(config) {
     }
 }
 
-function textDom({ nextNodes, document, normalizePatch }) {
+function textDom({ nextNodes, normalizePatch }) {
     return function (value, position) {
         const prevSibling = nextNodes[position.id];
 
@@ -21,27 +21,29 @@ function textDom({ nextNodes, document, normalizePatch }) {
         }
 
         position.incrementPosition();
-        const node = new Text(value, position);
-        nextNodes[position.id] = node;
+        const nextNode = new Text(value, position.getPosition());
+        nextNodes[position.id] = nextNode;
 
-        return createText(node, document);
+        return nextNode;
     };
 }
 
 function textDiff({ nodes, nextNodes, patch }) {
     return function (value, position) {
         position.incrementPosition();
-        let node = nodes[position.id];
+        let nextNode = nodes[position.id];
+        const nextPosition = position.getPosition();
 
-        if (!node) {
-            node = new Text(value, position.getPosition());
-            patch.create(position.getParentPosition(), position.getIndex(), node);
-        } else if (node.value !== value) {
-            node = new Text(value, position.getPosition());
-            patch.replace(position.getPosition(), node);
+        if (!nextNode) {
+            nextNode = new Text(value, nextPosition);
+        } else if (nextNode.value !== value) {
+            nextNode = new Text(value, nextPosition);
+            patch.replace(nextPosition, nextNode);
         }
 
-        nextNodes[position.id] = node;
+        nextNodes[position.id] = nextNode;
+
+        return nextNode;
     };
 }
 

@@ -42,3 +42,7 @@ export default function createElement(node, document) {
 
     return elem;
 }
+
+export {
+    createTag
+};

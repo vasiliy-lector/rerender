@@ -24,8 +24,8 @@ function tagDom({ nextNodes, normalizePatch }) {
         }
 
         nextNodes[position.id] = nextNode;
-        nextNode.setParentNode(position.getParentNode());
-        nextNode.setChildNodes(children(nextNode));
+        nextNode.parentNode = position.getParentNode();
+        nextNode.childNodes = children(nextNode);
 
         return nextNode;
     };
@@ -39,7 +39,6 @@ function tagDiff({ nodes, nextNodes, patch }) {
 
         if (!node) {
             nextNode = new Tag(tag, attrs, nodePosition);
-            patch.create(position.getParentPosition(), position.getIndex(), nextNode);
         } else if (node.tag !== tag) {
             nextNode = new Tag(tag, attrs, nodePosition);
             patch.replace(nodePosition, nextNode);
@@ -53,8 +52,8 @@ function tagDiff({ nodes, nextNodes, patch }) {
         }
 
         nextNodes[position.id] = nextNode;
-        nextNode.setParentNode(position.getParentNode());
-        nextNode.setChildNodes(children(nextNode));
+        nextNode.parentNode = position.getParentNode();
+        nextNode.childNodes = children(nextNode);
         delete nodes[position.id];
 
         return nextNode;

@@ -5,15 +5,7 @@ function Tag(tag, attrs, position) {
 }
 
 Tag.prototype = {
-    type: 'Tag',
-
-    setChildNodes(childNodes) {
-        this.childNodes = childNodes;
-    },
-
-    setParentNode(parentNode) {
-        this.parentNode = parentNode;
-    }
+    type: 'Tag'
 };
 
 export default Tag;
