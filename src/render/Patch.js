@@ -1,4 +1,4 @@
-import { createElement } from './createElement';
+import { createTag, createText } from '../virtualDom/createElement';
 const types = {
     CREATE: 'applyCreate',
     MOVE: 'applyMove',
@@ -33,7 +33,7 @@ Patch.prototype = {
         }
     },
 
-    applyCreate(command) {
+    applyCreate() {
         // const node = command[2];
         // let nextDomNode;
         //
@@ -49,21 +49,41 @@ Patch.prototype = {
         // should remove refs and etc
     },
     applyReplace(command) {
-        const node = command[2];
-        let nextDomNode;
+        const nextNode = command[2];
+        const nextDomNode = this.createElementWithChilds(nextNode);
 
-        if (node.type === 'Tag') {
-            nextDomNode = createElement(node.tag, node.attrs, command[3], this.document);
-        } else {
-            nextDomNode = this.document.createTextNode(node.value);
+        if (command[1].parentNode) {
+            command[1].parentNode.replaceChild(
+                nextDomNode,
+                command[1]
+            );
         }
-
-        command[1].replaceWith(nextDomNode);
     },
     applySetRef() {},
     applySplitText() {},
     applyUpdate() {},
     applyUpdateEvents() {},
+
+    createElementWithChilds(nextNode) {
+        let nextDomNode;
+        this.created[nextNode.id] = true;
+
+        if (nextNode.type === 'Tag') {
+            nextDomNode = createTag(nextNode.tag, nextNode.attrs, this.document);
+
+            if (!this.toMove[nextNode.id]) {
+                for (let i = 0, l = nextNode.childNodes.length; i < l; i++) {
+                    nextDomNode.appendChild(this.createElementWithChilds(nextNode.childNodes[i]));
+                }
+            } else {
+                return createText('', this.document);
+            }
+        } else {
+            nextDomNode = createText(nextNode.value, this.document);
+        }
+
+        return nextDomNode;
+    },
 
     _setRefs() {
         for (let i = 0, l = this.commands.length; i < l; i++) {

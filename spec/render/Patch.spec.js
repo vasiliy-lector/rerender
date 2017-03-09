@@ -1,8 +1,8 @@
 import { jsdom } from 'jsdom';
-import Attrs from '../../lib/render/Attrs';
-import Tag from '../../lib/virtualDom/Tag';
-import Text from '../../lib/virtualDom/Text';
-import Patch, { types } from '../../lib/render/Patch';
+import Attrs from '../../src/render/Attrs';
+import Tag from '../../src/virtualDom/Tag';
+import Text from '../../src/virtualDom/Text';
+import Patch, { types } from '../../src/render/Patch';
 
 describe('Patch', () => {
     describe('new Patch', () => {
@@ -11,10 +11,20 @@ describe('Patch', () => {
             const domNode = document.querySelector('#application');
             const patch = new Patch(domNode, document);
 
-            expect(patch.patch).toEqual([]);
+            expect(patch.commands).toEqual([]);
             expect(patch.domNode).toBe(domNode);
             expect(patch.document).toBe(document);
             expect(patch.normalize).toBe(undefined);
+        });
+    });
+
+    describe('method _getRefByPosition', () => {
+        it('should return link', () => {
+            const document = jsdom('<div id="application"><span>Text</span></div>').defaultView.window.document;
+            const domNode = document.querySelector('#application');
+            const patch = new Patch(domNode, document);
+            const position = '.childNodes[0]';
+            expect(patch._getRefByPosition(position)).toBe(domNode.childNodes[0]);
         });
     });
 
@@ -24,12 +34,10 @@ describe('Patch', () => {
             const domNode = document.querySelector('#application');
             const patch = new Patch(domNode, document);
             const position = '.childNodes[0]';
-            patch.applyReplace([
-                types.REPLACE,
-                patch._getRefByPosition(position),
-                new Tag('div', new Attrs(), position, 'id1'),
-                [new Text('Text2', '.childNodes[0].childNodes[0]', 'id2')]
-            ]);
+            const nextNode = new Tag('div', new Attrs(), position, 'id1');
+            nextNode.childNodes = [new Text('Text2', '.childNodes[0].childNodes[0]', 'id2')];
+            patch.replace(position, nextNode);
+            patch.apply();
             expect(domNode.innerHTML).toBe('<div>Text2</div>');
         });
     });

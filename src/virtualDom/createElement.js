@@ -1,5 +1,5 @@
-function createText(node, document) {
-    return document.createTextNode(node.value);
+function createText(value, document) {
+    return document.createTextNode(value);
 }
 
 function createTag(tag, attrs, document) {
@@ -19,7 +19,7 @@ function createTag(tag, attrs, document) {
 function createAndAppend(node, parent, document) {
     const elem = node.type === 'Tag'
         ? createTagWithChilds(node.tag, node.attrs, node.childNodes, document)
-        : createText(node.value);
+        : createText(node.value, document);
     parent.appendChild(elem);
 
     return elem;
@@ -38,11 +38,13 @@ function createTagWithChilds(tag, attrs, childNodes, document) {
 export default function createElement(node, document) {
     const elem = node.type === 'Tag'
         ? createTagWithChilds(node.tag, node.attrs, node.childNodes, document)
-        : createText(node.value);
+        : createText(node.value, document);
 
     return elem;
 }
 
 export {
-    createTag
+    createTag,
+    createText,
+    createTagWithChilds
 };
