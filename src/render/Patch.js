@@ -16,8 +16,7 @@ function Patch (domNode, document, normalize) {
     this.document = document;
     this.normalize = normalize;
     this.toMove = {};
-    this.toCreate = {};
-    this.created = {};
+    this.createdByReplace = {};
 }
 
 Patch.prototype = {
@@ -33,16 +32,15 @@ Patch.prototype = {
         }
     },
 
-    applyCreate() {
-        // const node = command[2];
-        // let nextDomNode;
-        //
-        // if (node.type === 'Tag') {
-        //     nextDomNode = createElement(node.tag, node.attrs, command[3], this.document);
-        // }
-        //
-        // const parentNode = this._getRefByPosition(command[1]);
-        // parentNode.appendChild(nextDomNode);
+    applyCreate(command) {
+        const nextNode = command[3];
+        if (this.createdByReplace[nextNode.id] === undefined) {
+            const nextDomNode = nextNode.type === 'Tag'
+                ? createTag(nextNode.tag, nextNode.attrs, this.document)
+                : createText(nextNode.value, this.document);
+            const parentNode = this._getRefByPosition(command[1]);
+            parentNode.appendChild(nextDomNode);
+        }
     },
     applyMove() {},
     applyRemove() {
@@ -50,7 +48,7 @@ Patch.prototype = {
     },
     applyReplace(command) {
         const nextNode = command[2];
-        const nextDomNode = this.createElementWithChilds(nextNode);
+        const nextDomNode = this._createElementWithChilds(nextNode);
 
         if (command[1].parentNode) {
             command[1].parentNode.replaceChild(
@@ -64,16 +62,16 @@ Patch.prototype = {
     applyUpdate() {},
     applyUpdateEvents() {},
 
-    createElementWithChilds(nextNode) {
+    _createElementWithChilds(nextNode) {
         let nextDomNode;
-        this.created[nextNode.id] = true;
+        this.createdByReplace[nextNode.id] = true;
 
         if (nextNode.type === 'Tag') {
             nextDomNode = createTag(nextNode.tag, nextNode.attrs, this.document);
 
             if (!this.toMove[nextNode.id]) {
                 for (let i = 0, l = nextNode.childNodes.length; i < l; i++) {
-                    nextDomNode.appendChild(this.createElementWithChilds(nextNode.childNodes[i]));
+                    nextDomNode.appendChild(this._createElementWithChilds(nextNode.childNodes[i]));
                 }
             } else {
                 return createText('', this.document);
@@ -98,7 +96,6 @@ Patch.prototype = {
     },
 
     create(parentPosition, index, node) {
-        this.toCreate[node.id] = true;
         this.commands.push([
             types.CREATE,
             parentPosition,
