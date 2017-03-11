@@ -15,7 +15,7 @@ function Patch (domNode, document, normalize) {
     this.document = document;
     this.normalize = normalize;
     this.toMove = {};
-    this.createdByReplace = {};
+    this.willCreateRecursive = {};
 }
 
 Patch.prototype = {
@@ -33,9 +33,7 @@ Patch.prototype = {
 
     applyCreate(command) {
         const nextNode = command[3];
-        if (this.createdByReplace[nextNode.id] === undefined) {
-            this._replaceChild(command[1], command[2], this._createElementWithChilds(nextNode));
-        }
+        this._replaceChild(command[1], command[2], this._createElementWithChilds(nextNode));
     },
     applyMove(command) {
         command[1].parentNode.replaceChild(createText('', this.document), command[1]);
@@ -84,7 +82,6 @@ Patch.prototype = {
 
     _createElementWithChilds(nextNode) {
         let nextDomNode;
-        this.createdByReplace[nextNode.id] = true;
 
         if (nextNode.type === 'Tag') {
             nextDomNode = createTag(nextNode.tag, nextNode.attrs, this.document);
@@ -116,12 +113,16 @@ Patch.prototype = {
     },
 
     create(parentPosition, index, node) {
-        this.commands.push([
-            types.CREATE,
-            parentPosition,
-            index,
-            node
-        ]);
+        this.willCreateRecursive[node.position];
+
+        if (this.willCreateRecursive[parentPosition] === undefined) {
+            this.commands.push([
+                types.CREATE,
+                parentPosition,
+                index,
+                node
+            ]);
+        }
     },
 
     move(position, parentPosition, index, node) {
@@ -142,6 +143,8 @@ Patch.prototype = {
     },
 
     replace(position, node) {
+        this.willCreateRecursive[position] = true;
+
         this.commands.push([
             types.REPLACE,
             position,
