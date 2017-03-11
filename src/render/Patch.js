@@ -35,21 +35,12 @@ Patch.prototype = {
     applyCreate(command) {
         const nextNode = command[3];
         if (this.createdByReplace[nextNode.id] === undefined) {
-            const nextDomNode = nextNode.type === 'Tag'
-                ? createTag(nextNode.tag, nextNode.attrs, this.document)
-                : createText(nextNode.value, this.document);
-            const parentNode = this._getRefByPosition(command[1]);
-            parentNode.appendChild(nextDomNode);
+            this._replaceChild(command[1], command[2], this._createElementWithChilds(nextNode));
         }
     },
     applyMove(command) {
         command[1].parentNode.replaceChild(createText('', this.document), command[1]);
-        const container = this._getRefByPosition(command[2]);
-        if (container.childNodes[command[3]]) {
-            container.replaceChild(command[1]);
-        } else {
-            container.appendChild(command[1]);
-        }
+        this._replaceChild(command[2], command[3], command[1]);
     },
     applyRemove() {
         // should remove refs and etc
@@ -58,17 +49,28 @@ Patch.prototype = {
         const nextNode = command[2];
         const nextDomNode = this._createElementWithChilds(nextNode);
 
-        if (command[1].parentNode) {
-            command[1].parentNode.replaceChild(
-                nextDomNode,
-                command[1]
-            );
-        }
+        // if (command[1].parentNode) {
+        command[1].parentNode.replaceChild(
+            nextDomNode,
+            command[1]
+        );
+        // }
     },
     applySetRef() {},
     applySplitText() {},
     applyUpdate() {},
     applyUpdateEvents() {},
+
+    _replaceChild(parentPosition, index, nextDomNode) {
+        const container = this._getRefByPosition(parentPosition);
+        const domNode = container.childNodes[index];
+
+        if (domNode) {
+            container.replaceChild(nextDomNode, domNode);
+        } else {
+            container.appendChild(nextDomNode);
+        }
+    },
 
     _createElementWithChilds(nextNode) {
         let nextDomNode;
