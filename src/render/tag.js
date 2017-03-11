@@ -12,17 +12,17 @@ function tag(config) {
     }
 }
 
-function tagDom({ nextNodes, normalizePatch }) {
+function tagDom({ nextNodes, patch }) {
     return function (tag, attrs, children, position) {
         const nextNodePosition = position.getPosition();
         const nextNode = new Tag(tag, attrs, nextNodePosition, position.id);
 
         if (attrs.events.length > 0) {
-            normalizePatch.update(nextNodePosition, attrs.events, []);
+            patch.update(nextNodePosition, attrs.events, []);
         }
 
         if (typeof attrs.special.ref === 'function') {
-            normalizePatch.setRef(nextNodePosition, attrs.special.ref);
+            patch.setRef(nextNodePosition, attrs.special.ref);
         }
 
         nextNodes[position.id] = nextNode;

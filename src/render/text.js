@@ -1,5 +1,4 @@
 import { escapeHtml } from '../utils';
-import { createText } from './createElement';
 import Text from '../virtualDom/Text';
 
 function text(config) {
@@ -12,12 +11,12 @@ function text(config) {
     }
 }
 
-function textDom({ nextNodes, normalizePatch }) {
+function textDom({ nextNodes, patch }) {
     return function (value, position) {
         const prevSibling = nextNodes[position.id];
 
         if (prevSibling.type === 'Text') {
-            normalizePatch.splitText(position.getPosition(), prevSibling.value.length);
+            patch.splitText(position.getPosition(), prevSibling.value.length);
         }
 
         position.incrementPosition();

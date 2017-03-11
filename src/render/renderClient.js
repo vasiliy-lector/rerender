@@ -19,12 +19,12 @@ function renderClient(render, store, domNode, { document = self.document } = {})
     const nextNodes = {};
     const cacheByValues = {};
     const nextCacheByValues = {};
-    const normalizePatch = new Patch(domNode, document, true);
+    const patch = new Patch(domNode, document);
     const jsx = createInstance({
         store,
         events,
         method: 'create',
-        normalizePatch,
+        patch,
         instances,
         nextInstances,
         nextNewInstances,
@@ -43,8 +43,9 @@ function renderClient(render, store, domNode, { document = self.document } = {})
         debug.warn('Server and client html do not match!');
         domNode.replaceChild(rootNode, nextRootNode);
     } else {
-        normalizePatch.apply();
+        patch.applyNormalize();
     }
+    patch.apply();
     // const end = performance.now();
     // debug.log((end - start).toFixed(3), 'ms');
 

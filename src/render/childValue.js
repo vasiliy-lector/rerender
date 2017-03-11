@@ -57,13 +57,13 @@ function childValueDom(config, jsx) {
 
             return memo;
         } else if (typeof value === 'string') {
-            return jsx.text(value);
+            return jsx.text(value, position);
         } else if (typeof value === 'object' && value.type === 'Template') {
             return value.exec(position);
         } else if (typeof value === 'function') {
             return jsx.childValue(value(), position);
         } else {
-            return jsx.text('');
+            return jsx.text('', position);
         }
     };
 }

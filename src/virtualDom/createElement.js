@@ -13,6 +13,10 @@ function createTag(tag, attrs, document) {
         node[attrs.events[i][0]] = attrs.events[i][1];
     }
 
+    if (typeof attrs.special.ref === 'function') {
+        attrs.special.ref(node);
+    }
+
     return node;
 }
 
