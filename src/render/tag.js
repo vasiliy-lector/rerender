@@ -47,7 +47,7 @@ function tagDiff({ nodes, nextNodes, patch }) {
                 patch.replace(nextNodePosition, nextNode);
             // root node of component with uniqid
             } else if (/u[^.]+\.0$/.test(node.position.id) && node.position !== nextNodePosition) {
-                patch.move(node.position, nextNodePosition, nextNode);
+                patch.move(node.position, position.parentPosition, position.index, nextNode);
                 nextNode.position = position;
             }
 

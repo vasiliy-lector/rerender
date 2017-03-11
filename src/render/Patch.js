@@ -42,7 +42,15 @@ Patch.prototype = {
             parentNode.appendChild(nextDomNode);
         }
     },
-    applyMove() {},
+    applyMove(command) {
+        command[1].parentNode.replaceChild(createText('', this.document), command[1]);
+        const container = this._getRefByPosition(command[2]);
+        if (container.childNodes[command[3]]) {
+            container.replaceChild(command[1]);
+        } else {
+            container.appendChild(command[1]);
+        }
+    },
     applyRemove() {
         // should remove refs and etc
     },
@@ -104,12 +112,13 @@ Patch.prototype = {
         ]);
     },
 
-    move(position, nextPosition, node) {
+    move(position, parentPosition, index, node) {
         this.toMove[node.id] = true;
         this.commands.push([
             types.MOVE,
             position,
-            nextPosition
+            parentPosition,
+            index
         ]);
     },
 
