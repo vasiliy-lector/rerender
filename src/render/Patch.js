@@ -6,8 +6,7 @@ const types = {
     REPLACE: 'applyReplace',
     SET_REF: 'applySetRef',
     SPLIT_TEXT: 'applySplitText', // split text nodes to normalize ssr
-    UPDATE: 'applyUpdate', // update attributes of node
-    UPDATE_EVENTS: 'applyUpdateEvents' // update events only
+    UPDATE: 'applyUpdate' // update attributes of node
 };
 
 function Patch (domNode, document, normalize) {
@@ -58,8 +57,19 @@ Patch.prototype = {
     },
     applySetRef() {},
     applySplitText() {},
-    applyUpdate() {},
-    applyUpdateEvents() {},
+    applyUpdate(command) {
+        const node = command[1];
+        const setAttrs = command[2];
+        const removeAttrs = command[3];
+
+        for (let i = 0, l = setAttrs.length; i < l; i++) {
+            node[setAttrs[i][0]] = setAttrs[i][1];
+        }
+
+        for (let i = 0, l = removeAttrs.length; i < l; i++) {
+            node[removeAttrs[i]] = null;
+        }
+    },
 
     _replaceChild(parentPosition, index, nextDomNode) {
         const container = this._getRefByPosition(parentPosition);
@@ -155,19 +165,12 @@ Patch.prototype = {
         ]);
     },
 
-    update(position, attrs) {
+    update(position, setAttrs, removeAttrs) {
         this.commands.push([
             types.UPDATE,
             position,
-            attrs
-        ]);
-    },
-
-    updateEvents(position, events) {
-        this.commands.push([
-            types.UPDATE_EVENTS,
-            position,
-            events
+            setAttrs,
+            removeAttrs
         ]);
     }
 };

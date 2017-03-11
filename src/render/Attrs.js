@@ -13,7 +13,7 @@ function Attrs() {
 Attrs.prototype = {
     set(name, value) {
         if (name.substr(0, 2) === 'on') {
-            this.events.push([name, value]);
+            this.events.push([name.toLowerCase(), value]);
         } else if (SPECIAL[name]) {
             this.special[name] = value;
         } else {

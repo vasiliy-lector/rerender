@@ -4,7 +4,7 @@ describe('Attrs', () => {
     describe('method diffAttrs', () => {
         it('should create diff', () => {
             const attrs = new Attrs();
-            attrs.set('onclick', () => {});
+            attrs.set('onClick', () => {});
             attrs.set('className', 'block');
             attrs.set('id', 'id1');
             const nextAttrs = new Attrs();

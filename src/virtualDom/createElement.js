@@ -3,17 +3,17 @@ function createText(value, document) {
 }
 
 function createTag(tag, attrs, document) {
-    const elem = document.createElement(tag);
+    const node = document.createElement(tag);
 
     for (let i = 0, l = attrs.common.length; i < l; i++) {
-        elem[attrs.common[i][0]] = attrs.common[i][1];
+        node[attrs.common[i][0]] = attrs.common[i][1];
     }
 
     for (let i = 0, l = attrs.events.length; i < l; i++) {
-        elem[attrs.events[i][0].toLowerCase()] = attrs.events[i][1];
+        node[attrs.events[i][0]] = attrs.events[i][1];
     }
 
-    return elem;
+    return node;
 }
 
 function createAndAppend(node, parent, document) {

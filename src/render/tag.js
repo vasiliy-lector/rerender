@@ -55,7 +55,9 @@ function tagDiff({ nodes, nextNodes, patch }) {
             if (node.attrs !== attrs) {
                 const [setAttrs, removeAttrs] = diffAttrs(node.attrs, attrs);
 
-                patch.update(nextNodePosition, setAttrs, removeAttrs);
+                if (setAttrs.length > 0 || removeAttrs.length > 0) {
+                    patch.update(nextNodePosition, setAttrs, removeAttrs);
+                }
                 nextNode.attrs = attrs;
             }
         }

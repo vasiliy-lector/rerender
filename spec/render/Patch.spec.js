@@ -80,4 +80,18 @@ describe('Patch', () => {
             expect(domNode.innerHTML).toBe('<div></div><div><span>Text</span></div>');
         });
     });
+
+    describe('methods update and applyUpdate', () => {
+        it('should update attributes of node', () => {
+            const document = jsdom('<div id="application"><span>Text</span></div>').defaultView.window.document;
+            const domNode = document.querySelector('#application');
+            const patch = new Patch(domNode, document);
+            const nextAttrs = new Attrs();
+            nextAttrs.set('className', 'block');
+            nextAttrs.set('id', 'id1');
+            patch.update('.childNodes[0]', nextAttrs.common, []);
+            patch.apply();
+            expect(domNode.innerHTML).toBe('<span class="block" id="id1">Text</span>');
+        });
+    });
 });
