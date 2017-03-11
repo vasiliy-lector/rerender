@@ -1,4 +1,5 @@
 import { escapeAttr } from '../utils';
+import { diffAttrs } from './Attrs';
 import Tag from '../virtualDom/Tag';
 
 function tag(config) {
@@ -17,7 +18,7 @@ function tagDom({ nextNodes, normalizePatch }) {
         const nextNode = new Tag(tag, attrs, nextNodePosition, position.id);
 
         if (attrs.events.length > 0) {
-            normalizePatch.updateEvents(nextNodePosition, attrs);
+            normalizePatch.update(nextNodePosition, attrs.events, []);
         }
 
         if (typeof attrs.special.ref === 'function') {
@@ -52,7 +53,9 @@ function tagDiff({ nodes, nextNodes, patch }) {
             }
 
             if (node.attrs !== attrs) {
-                patch.update(nextNodePosition, attrs);
+                const [setAttrs, removeAttrs] = diffAttrs(node.attrs, attrs);
+
+                patch.update(nextNodePosition, setAttrs, removeAttrs);
                 nextNode.attrs = attrs;
             }
         }
