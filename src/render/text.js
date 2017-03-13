@@ -12,17 +12,20 @@ function text(config) {
 }
 
 function textDom({ nextNodes, patch }) {
-    return function (value, position) {
-        const prevSibling = nextNodes[position.id];
+    let prevTextNode;
+    let prevParentPosition;
+    let prevIndex;
 
-        if (prevSibling.type === 'Text') {
-            patch.splitText(position.getPosition(), prevSibling.value.length);
+    return function (value, position) {
+        if (prevIndex === position.getIndex() - 1 && prevParentPosition === position.getParentPosition()) {
+            patch.splitText(prevTextNode.position, prevTextNode.value.length);
         }
 
-        position.incrementPosition();
         const nextNode = new Text(value, position.getPosition());
         nextNodes[position.id] = nextNode;
-
+        prevTextNode = nextNode;
+        prevParentPosition = position.getParentPosition();
+        prevIndex = position.getIndex();
         return nextNode;
     };
 }

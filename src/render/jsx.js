@@ -134,7 +134,7 @@ function createParser() {
                                 return jsx.childValue(values[index], position);
                             }),
                             textNode.then(result => (values, position, jsx) => {
-                                return jsx.text(result, position);
+                                return jsx.text(result, position.incrementPosition());
                             }),
                             defer(() => node)
                         ))

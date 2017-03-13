@@ -45,7 +45,7 @@ function renderClient(render, store, domNode, { document = self.document } = {})
     } else {
         patch.applyNormalize();
     }
-    patch.apply();
+    patch.applySetRefs();
     // const end = performance.now();
     // debug.log((end - start).toFixed(3), 'ms');
 
