@@ -93,6 +93,11 @@ Patch.prototype = {
         if (nextNode.type === 'Tag') {
             if (!this.toMove[nextNode.id]) {
                 nextDomNode = createTag(nextNode.tag, nextNode.attrs, this.document);
+
+                if (typeof nextNode.attrs.special.ref === 'function') {
+                    nextNode.attrs.special.ref(nextDomNode);
+                }
+
                 for (let i = 0, l = nextNode.childNodes.length; i < l; i++) {
                     nextDomNode.appendChild(this._createElementWithChilds(nextNode.childNodes[i]));
                 }
