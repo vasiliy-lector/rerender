@@ -9,20 +9,19 @@ const types = {
     UPDATE: 'applyUpdate' // update attributes of node
 };
 
-function Patch (domNode, document, normalize) {
+function Patch (domNode, document) {
     this.commands = [];
+    this.normalizeCommands = [];
+    this.setRefCommands = [];
     this.domNode = domNode;
     this.document = document;
-    this.normalize = normalize;
     this.toMove = {};
     this.willCreatedWithChilds = {};
 }
 
 Patch.prototype = {
     apply() {
-        if (!this.normalize) {
-            this._setRefs();
-        }
+        this._setRefs();
 
         for (let i = 0, l = this.commands.length; i < l; i++) {
             const command = this.commands[i];
@@ -32,6 +31,10 @@ Patch.prototype = {
     },
 
     applyNormalize() {
+
+    },
+
+    applySetRefs() {
 
     },
 
