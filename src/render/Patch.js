@@ -1,5 +1,6 @@
 import { createTag, createText } from '../virtualDom/createElement';
 const types = {
+    ATTACH_EVENTS: 'applyAttachEvents', // attach event to server side html
     CREATE: 'applyCreate',
     MOVE: 'applyMove',
     REMOVE: 'applyRemove',
@@ -11,8 +12,9 @@ const types = {
 
 function Patch (domNode, document) {
     this.commands = [];
-    this.normalizeCommands = [];
     this.setRefCommands = [];
+    this.splitTextCommands = [];
+    this.eventsCommands = [];
     this.domNode = domNode;
     this.document = document;
     this.toMove = {};
@@ -21,7 +23,7 @@ function Patch (domNode, document) {
 
 Patch.prototype = {
     apply() {
-        this._setRefs();
+        this.setRefs();
 
         for (let i = 0, l = this.commands.length; i < l; i++) {
             const command = this.commands[i];
@@ -40,18 +42,18 @@ Patch.prototype = {
 
     applyCreate(command) {
         const nextNode = command[3];
-        this._replaceChild(command[1], command[2], this._createElementWithChilds(nextNode));
+        this.replaceChild(command[1], command[2], this.createElementWithChilds(nextNode));
     },
     applyMove(command) {
         command[1].parentNode.replaceChild(createText('', this.document), command[1]);
-        this._replaceChild(command[2], command[3], command[1]);
+        this.replaceChild(command[2], command[3], command[1]);
     },
     applyRemove() {
         // should remove refs and etc
     },
     applyReplace(command) {
         const nextNode = command[2];
-        const nextDomNode = this._createElementWithChilds(nextNode);
+        const nextDomNode = this.createElementWithChilds(nextNode);
 
         // if (command[1].parentNode) {
         command[1].parentNode.replaceChild(
@@ -94,18 +96,16 @@ Patch.prototype = {
         }
     },
 
-    _replaceChild(parentPosition, index, nextDomNode) {
-        const container = this._getRefByPosition(parentPosition);
-        const domNode = container.childNodes[index];
+    applyAttachEvents(command) {
+        const node = this.getRefByPosition(command[1]);
+        const events = command[2];
 
-        if (domNode) {
-            container.replaceChild(nextDomNode, domNode);
-        } else {
-            container.appendChild(nextDomNode);
+        for (let i = 0, l = events.length; i < l; i++) {
+            node[events[i][0]] = events[i][1];
         }
     },
 
-    _createElementWithChilds(nextNode) {
+    createElementWithChilds(nextNode) {
         let nextDomNode;
 
         if (nextNode.type === 'Tag') {
@@ -117,7 +117,7 @@ Patch.prototype = {
                 }
 
                 for (let i = 0, l = nextNode.childNodes.length; i < l; i++) {
-                    nextDomNode.appendChild(this._createElementWithChilds(nextNode.childNodes[i]));
+                    nextDomNode.appendChild(this.createElementWithChilds(nextNode.childNodes[i]));
                 }
             } else {
                 nextDomNode = createText('', this.document);
@@ -129,16 +129,27 @@ Patch.prototype = {
         return nextDomNode;
     },
 
-    _setRefs() {
+    setRefs() {
         for (let i = 0, l = this.commands.length; i < l; i++) {
             if (this.commands[i][0] !== types.CREATE) {
-                this.commands[i][1] = this._getRefByPosition(this.commands[i][1]);
+                this.commands[i][1] = this.getRefByPosition(this.commands[i][1]);
             }
         }
     },
 
-    _getRefByPosition(position) {
+    getRefByPosition(position) {
         return (new Function('domNode', `return domNode${position};`))(this.domNode);
+    },
+
+    replaceChild(parentPosition, index, nextDomNode) {
+        const container = this.getRefByPosition(parentPosition);
+        const domNode = container.childNodes[index];
+
+        if (domNode) {
+            container.replaceChild(nextDomNode, domNode);
+        } else {
+            container.appendChild(nextDomNode);
+        }
     },
 
     create(parentPosition, index, node) {
@@ -182,7 +193,7 @@ Patch.prototype = {
     },
 
     setRef(position, ref) {
-        this.commands.push([
+        this.setRefCommands.push([
             types.SET_REF,
             position,
             ref
@@ -190,7 +201,7 @@ Patch.prototype = {
     },
 
     splitText(position, end) {
-        this.commands.push([
+        this.splitTextCommands.push([
             types.SPLIT_TEXT,
             position,
             end
@@ -202,6 +213,14 @@ Patch.prototype = {
             types.UPDATE,
             position,
             diff
+        ]);
+    },
+
+    attachEvents(position, events) {
+        this.eventsCommands.push([
+            types.ATTACH_EVENTS,
+            position,
+            events
         ]);
     }
 };

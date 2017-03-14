@@ -18,14 +18,14 @@ describe('Patch', () => {
         });
     });
 
-    describe('method _getRefByPosition', () => {
+    describe('method getRefByPosition', () => {
         it('should return link', () => {
             const document = jsdom('<div id="application"><span>Text</span></div>').defaultView.window.document;
             const domNode = document.querySelector('#application');
             const patch = new Patch(domNode, document);
             const position = '.childNodes[0]';
-            expect(patch._getRefByPosition(position)).toBe(domNode.childNodes[0]);
-            expect(patch._getRefByPosition('')).toBe(domNode);
+            expect(patch.getRefByPosition(position)).toBe(domNode.childNodes[0]);
+            expect(patch.getRefByPosition('')).toBe(domNode);
         });
     });
 
@@ -95,6 +95,23 @@ describe('Patch', () => {
             });
             patch.apply();
             expect(domNode.innerHTML).toBe('<span class="block" id="id1">Text</span>');
+        });
+    });
+
+    describe('methods attachEvents and applyAttachEvents', () => {
+        it('should attach eventHandler to node', () => {
+            const window = jsdom('<div id="application"><span>Text</span></div>').defaultView.window;
+            const document = window.document;
+            const domNode = document.querySelector('#application');
+            const patch = new Patch(domNode, document);
+            const nextAttrs = new Attrs();
+            const handleClick = jasmine.createSpy();
+            nextAttrs.set('onclick', handleClick);
+            patch.attachEvents('.childNodes[0]', nextAttrs.events);
+            patch.applyAttachEvents(patch.eventsCommands[0]);
+            expect(domNode.innerHTML).toBe('<span>Text</span>');
+            domNode.childNodes[0].dispatchEvent(new window.Event('click'));
+            expect(handleClick).toHaveBeenCalledTimes(1);
         });
     });
 });

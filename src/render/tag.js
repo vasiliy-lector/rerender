@@ -18,7 +18,7 @@ function tagDom({ nextNodes, patch }) {
         const nextNode = new Tag(tag, attrs, nextNodePosition, position.id);
 
         if (attrs.events.length > 0) {
-            patch.update(nextNodePosition, attrs.events, []);
+            patch.attachEvents(nextNodePosition, attrs.events);
         }
 
         if (typeof attrs.special.ref === 'function') {
