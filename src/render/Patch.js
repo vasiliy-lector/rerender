@@ -64,15 +64,33 @@ Patch.prototype = {
     applySplitText() {},
     applyUpdate(command) {
         const node = command[1];
-        const setAttrs = command[2];
-        const removeAttrs = command[3];
+        const diff = command[2];
 
-        for (let i = 0, l = setAttrs.length; i < l; i++) {
-            node[setAttrs[i][0]] = setAttrs[i][1];
+        if (diff.common) {
+            if (diff.common[0]) {
+                for (let i = 0, l = diff.common[0].length; i < l; i++) {
+                    node[diff.common[0][i][0]] = diff.common[0][i][1];
+                }
+            }
+            if (diff.common[1]) {
+                for (let i = 0, l = diff.common[1].length; i < l; i++) {
+                    node[diff.common[1][i]] = null;
+                }
+            }
         }
 
-        for (let i = 0, l = removeAttrs.length; i < l; i++) {
-            node[removeAttrs[i]] = null;
+        if (diff.events) {
+            if (diff.events[0]) {
+                for (let i = 0, l = diff.events[0].length; i < l; i++) {
+                    node[diff.events[0][i][0]] = diff.events[0][i][1];
+                }
+            }
+
+            if (diff.events[1]) {
+                for (let i = 0, l = diff.events[1].length; i < l; i++) {
+                    node[diff.events[1][i]] = null;
+                }
+            }
         }
     },
 

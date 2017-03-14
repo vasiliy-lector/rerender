@@ -10,10 +10,16 @@ describe('Attrs', () => {
             const nextAttrs = new Attrs();
             nextAttrs.set('className', 'block1');
             nextAttrs.set('name', 'name1');
-            expect(diffAttrs(attrs, nextAttrs)).toEqual([
-                [['className', 'block1'], ['name', 'name1']],
-                ['id', 'onclick']
-            ]);
+            expect(diffAttrs(attrs, nextAttrs)).toEqual({
+                common: [
+                    [['className', 'block1'], ['name', 'name1']],
+                    ['id']
+                ],
+                events: [
+                    null,
+                    ['onclick']
+                ]
+            });
         });
     });
 });

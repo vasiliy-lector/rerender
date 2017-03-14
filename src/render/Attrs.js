@@ -24,8 +24,10 @@ Attrs.prototype = {
     type: 'Attrs'
 };
 
-function groupDiff(attrs, nextAttrs, setAttrs, removeAttrs) {
+function groupDiff(attrs, nextAttrs) {
     const prevObj = {};
+    let setAttrs = [];
+    let removeAttrs = [];
 
     for (let i = 0, l = attrs.length; i < l; i++) {
         prevObj[attrs[i][0]] = attrs[i][1];
@@ -50,16 +52,26 @@ function groupDiff(attrs, nextAttrs, setAttrs, removeAttrs) {
     for (let i = 0, l = toRemove.length; i < l; i++) {
         removeAttrs.push(toRemove[i]);
     }
+
+    if (setAttrs.length === 0) {
+        setAttrs = null;
+    }
+
+    if (removeAttrs.length === 0) {
+        removeAttrs = null;
+    }
+
+    return setAttrs || removeAttrs ? [setAttrs, removeAttrs] : null;
 }
 
 function diffAttrs(attrs, nextAttrs) {
-    const setAttrs = [];
-    const removeAttrs = [];
+    const common = groupDiff(attrs.common, nextAttrs.common) || null;
+    const events = groupDiff(attrs.events, nextAttrs.events) || null;
 
-    groupDiff(attrs.common, nextAttrs.common, setAttrs, removeAttrs);
-    groupDiff(attrs.events, nextAttrs.events, setAttrs, removeAttrs);
-
-    return [setAttrs, removeAttrs];
+    return common || events ? {
+        common,
+        events
+    } : null;
 }
 
 export default Attrs;

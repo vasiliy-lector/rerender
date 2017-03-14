@@ -89,7 +89,10 @@ describe('Patch', () => {
             const nextAttrs = new Attrs();
             nextAttrs.set('className', 'block');
             nextAttrs.set('id', 'id1');
-            patch.update('.childNodes[0]', nextAttrs.common, []);
+            patch.update('.childNodes[0]', {
+                common: [nextAttrs.common, null],
+                events: null
+            });
             patch.apply();
             expect(domNode.innerHTML).toBe('<span class="block" id="id1">Text</span>');
         });
