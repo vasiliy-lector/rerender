@@ -197,12 +197,11 @@ Patch.prototype = {
         ]);
     },
 
-    update(position, setAttrs, removeAttrs) {
+    update(position, diff) {
         this.commands.push([
             types.UPDATE,
             position,
-            setAttrs,
-            removeAttrs
+            diff
         ]);
     }
 };
