@@ -36,8 +36,21 @@ Patch.prototype = {
 
     },
 
-    applySetRefs() {
+    applyAttachEvents() {
+        for (let j = 0, m = this.eventsCommands.length; j < m; j++) {
+            const node = this.getRefByPosition(this.eventsCommands[j][1]);
+            const events = this.eventsCommands[j][2];
 
+            for (let i = 0, l = events.length; i < l; i++) {
+                node[events[i][0]] = events[i][1];
+            }
+        }
+    },
+
+    applySetRefs() {
+        for (let i = 0, l = this.setRefCommands.length; i < l; i++) {
+            this.setRefCommands[i][2](this.getRefByPosition(this.setRefCommands[i][1]));
+        }
     },
 
     applyCreate(command) {
@@ -62,7 +75,6 @@ Patch.prototype = {
         );
         // }
     },
-    applySetRef() {},
     applySplitText() {},
     applyUpdate(command) {
         const node = command[1];
@@ -93,15 +105,6 @@ Patch.prototype = {
                     node[diff.events[1][i]] = null;
                 }
             }
-        }
-    },
-
-    applyAttachEvents(command) {
-        const node = this.getRefByPosition(command[1]);
-        const events = command[2];
-
-        for (let i = 0, l = events.length; i < l; i++) {
-            node[events[i][0]] = events[i][1];
         }
     },
 

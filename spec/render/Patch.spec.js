@@ -108,10 +108,23 @@ describe('Patch', () => {
             const handleClick = jasmine.createSpy();
             nextAttrs.set('onclick', handleClick);
             patch.attachEvents('.childNodes[0]', nextAttrs.events);
-            patch.applyAttachEvents(patch.eventsCommands[0]);
+            patch.applyAttachEvents();
             expect(domNode.innerHTML).toBe('<span>Text</span>');
             domNode.childNodes[0].dispatchEvent(new window.Event('click'));
             expect(handleClick).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('methods setRef and applySetRefs', () => {
+        it('should call callback for ref and send ref to node', () => {
+            const window = jsdom('<div id="application"><span>Text</span></div>').defaultView.window;
+            const document = window.document;
+            const domNode = document.querySelector('#application');
+            const patch = new Patch(domNode, document);
+            const handleRef = jasmine.createSpy();
+            patch.setRef('.childNodes[0]', handleRef);
+            patch.applySetRefs();
+            expect(handleRef).toHaveBeenCalledTimes(1);
         });
     });
 });
