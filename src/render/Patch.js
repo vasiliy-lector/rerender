@@ -33,7 +33,8 @@ Patch.prototype = {
     },
 
     applyNormalize() {
-
+        this.applySplitTexts();
+        this.applyAttachEvents();
     },
 
     applyAttachEvents() {
@@ -143,7 +144,7 @@ Patch.prototype = {
 
     setRefs() {
         for (let i = 0, l = this.commands.length; i < l; i++) {
-            if (this.commands[i][0] !== types.CREATE) {
+            if (this.commands[i][0] !== types.CREATE && this.commands[i][0] !== types.REMOVE) {
                 this.commands[i][1] = this.getRefByPosition(this.commands[i][1]);
             }
         }
@@ -187,10 +188,10 @@ Patch.prototype = {
         ]);
     },
 
-    remove(position) {
+    remove(prevNode) {
         this.commands.push([
             types.REMOVE,
-            position
+            prevNode
         ]);
     },
 

@@ -101,7 +101,7 @@ function rerenderClient({
         virtualDom = render({ jsx }).exec(ROOT_POSITION);
 
         for (let id in config.nodes) {
-            config.patch.remove(config.nodes[id].position.getPosition());
+            config.patch.remove(config.nodes[id]);
         }
 
         unmount(instances);
