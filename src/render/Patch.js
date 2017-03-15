@@ -47,6 +47,12 @@ Patch.prototype = {
         }
     },
 
+    applySplitTexts() {
+        for (let i = 0, l = this.splitTextCommands.length; i < l; i++) {
+            this.applySplitText(this.splitTextCommands[i]);
+        }
+    },
+
     applySetRefs() {
         for (let i = 0, l = this.setRefCommands.length; i < l; i++) {
             this.setRefCommands[i][2](this.getRefByPosition(this.setRefCommands[i][1]));
@@ -75,7 +81,10 @@ Patch.prototype = {
         );
         // }
     },
-    applySplitText() {},
+    applySplitText(command) {
+        const textNode = this.getRefByPosition(command[1]);
+        textNode.splitText(command[2]);
+    },
     applyUpdate(command) {
         const node = command[1];
         const diff = command[2];

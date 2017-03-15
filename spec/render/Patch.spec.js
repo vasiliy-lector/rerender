@@ -117,14 +117,26 @@ describe('Patch', () => {
 
     describe('methods setRef and applySetRefs', () => {
         it('should call callback for ref and send ref to node', () => {
-            const window = jsdom('<div id="application"><span>Text</span></div>').defaultView.window;
-            const document = window.document;
+            const document = jsdom('<div id="application"><span>Text</span></div>').defaultView.window.document;
             const domNode = document.querySelector('#application');
             const patch = new Patch(domNode, document);
             const handleRef = jasmine.createSpy();
             patch.setRef('.childNodes[0]', handleRef);
             patch.applySetRefs();
             expect(handleRef).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('methods splitText and applySplitTexts', () => {
+        it('should split text node into 2 nodes', () => {
+            const document = jsdom('<div id="application"><span>Text;Abc</span></div>').defaultView.window.document;
+            const domNode = document.querySelector('#application');
+            const patch = new Patch(domNode, document);
+            patch.splitText('.childNodes[0].childNodes[0]', 5);
+            expect(domNode.childNodes[0].childNodes[0].data).toBe('Text;Abc');
+            patch.applySplitTexts();
+            expect(domNode.childNodes[0].childNodes[0].data).toBe('Text;');
+            expect(domNode.childNodes[0].childNodes[1].data).toBe('Abc');
         });
     });
 });
