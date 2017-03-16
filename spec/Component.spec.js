@@ -22,18 +22,20 @@ describe('Component', () => {
             .toBe('<a href="/">link</a>');
     });
 
-    it('should correctly work if render return function', () => {
-        class Block extends Component {
-            render({ jsx }) {
-                return () => {
-                    return jsx `<a href="/">link</a>`;
-                };
-            }
-        }
-
-        expect(renderServer(({ jsx }) => jsx `<${Block} />`))
-            .toBe('<a href="/">link</a>');
-    });
+    // it('should correctly work if render return function', () => {
+    //     class Block extends Component {
+    //         render({ jsx }) {
+    //             return jsx `<div>
+    //                 ${() => {
+    //                     return jsx `<a href="/">link</a>`;
+    //                 }}
+    //             </div>`;
+    //         }
+    //     }
+    //
+    //     expect(renderServer(({ jsx }) => jsx `<${Block} />`))
+    //         .toBe('<a href="/">link</a>');
+    // });
 
     it('should correctly work if antibind property has no function', () => {
         class Block extends Component {
