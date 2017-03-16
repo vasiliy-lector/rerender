@@ -36,12 +36,12 @@ function renderClient(render, store, domNode, { document = self.document } = {})
     });
     // const start = performance.now();
     const nextVirtualDom = render({ jsx }).exec(ROOT_POSITION);
-    const nextRootNode = createElement(nextVirtualDom, document);
-    const rootNode = domNode.childNodes[0];
+    const nextFirstChild = createElement(nextVirtualDom, document);
+    const firstChild = domNode.childNodes[0];
 
-    if (rootNode.outerHTML !== nextRootNode.outerHTML) {
+    if (firstChild.outerHTML !== nextFirstChild.outerHTML) {
         debug.warn('Server and client html do not match!');
-        domNode.replaceChild(rootNode, nextRootNode);
+        domNode.replaceChild(firstChild, nextFirstChild);
     } else {
         patch.applyNormalize();
     }

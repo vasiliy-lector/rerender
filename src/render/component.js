@@ -87,7 +87,7 @@ function componentDom(config, jsx) {
 }
 
 function componentStringify({ store }, jsx) {
-    return function(tag, { common: props }, children, position) {
+    return function(tag, { common: props }, children) {
         let renderResult;
 
         if (tag.prototype instanceof Component) {
@@ -99,8 +99,7 @@ function componentStringify({ store }, jsx) {
             renderResult = tag({ props, children, jsx });
         }
 
-        // FIXME: no need exec on server because no position dependency
-        return renderResult ? renderResult.exec(position + '.0') : jsx.text('');
+        return renderResult ? renderResult.exec() : '';
     };
 }
 

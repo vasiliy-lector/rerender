@@ -1,38 +1,50 @@
-import { serverRender } from '../src/render';
+import renderServer from '../src/render/renderServer';
 import Component from '../src/Component';
-import jsx from '../src/jsx';
 
 describe('Component', () => {
 
     it('should work empty component', () => {
         class Block extends Component {}
 
-        expect(serverRender(jsx `<${Block} />`)).toBe('');
+        expect(renderServer(({ jsx }) => jsx `<${Block} />`)).toBe('');
+    });
+
+    it('should render not empty component', () => {
+        class Block extends Component {
+            render({ jsx }) {
+                return jsx `<a href="/">link</a>`;
+            }
+        }
+
+        Block.antibind = ['noExist'];
+
+        expect(renderServer(({ jsx }) => jsx `<${Block} />`))
+            .toBe('<a href="/">link</a>');
     });
 
     it('should correctly work if render return function', () => {
         class Block extends Component {
-            render() {
+            render({ jsx }) {
                 return () => {
                     return jsx `<a href="/">link</a>`;
                 };
             }
         }
 
-        expect(serverRender(jsx `<${Block} />`, { omitIds: true }))
+        expect(renderServer(({ jsx }) => jsx `<${Block} />`))
             .toBe('<a href="/">link</a>');
     });
 
-    it('should correctly work if autoBind property has no function', () => {
+    it('should correctly work if antibind property has no function', () => {
         class Block extends Component {
-            render() {
+            render({ jsx }) {
                 return jsx `<a href="/">link</a>`;
             }
         }
 
-        Block.autoBind = ['noExist'];
+        Block.antibind = ['noExist'];
 
-        expect(serverRender(jsx `<${Block} />`, { omitIds: true }))
+        expect(renderServer(({ jsx }) => jsx `<${Block} />`))
             .toBe('<a href="/">link</a>');
     });
 });

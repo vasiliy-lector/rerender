@@ -1,11 +1,127 @@
-import execComponent from './execComponent';
 import tag from './tag';
 import component from './component';
 import text from './text';
 import childValue from './childValue';
 import template from './template';
 import { any, end, find, next, optional, repeat, required, test, sequence, defer } from 'nano-parser';
+import { shallowEqual } from '../utils';
+import Attrs from './Attrs';
+import Props, { PropsWrapper } from './Props';
 
+function CacheByValues(values, tag, props) {
+    this.values = values;
+    this.tag = tag;
+    this.props = props;
+}
+
+CacheByValues.prototype = {
+    type: 'CacheByValues'
+};
+
+function execComponent(config, jsx) {
+    if (config.stringify) {
+        return execComponentStringify(config, jsx);
+    } else {
+        return execComponentDom(config, jsx);
+    }
+}
+
+function execComponentStringify({ cacheByValues, nextCacheByValues, method }, jsx) {
+    return function(result, values) {
+        const tag = typeof result[1] === 'function' ? result[1](values) : result[1];
+        const isTag = typeof tag === 'string';
+        const props = result[2](isTag ? new Attrs() : new Props(), values);
+
+        if (isTag) {
+            return jsx.tag(
+                tag,
+                props,
+                result[4](values, undefined, jsx)
+            );
+        } else {
+            return jsx.component(
+                tag,
+                props,
+                jsx.template(result[4], values)
+            );
+        }
+    };
+}
+
+function execComponentDom({ cacheByValues, nextCacheByValues, method }, jsx) {
+    return function(result, values, position) {
+        const prevNode = cacheByValues[position.id];
+        let tag, props, isTag, componentId;
+
+        if (prevNode && shallowEqual(prevNode.values, values)) {
+            values = prevNode.values;
+            componentId = prevNode.componentId;
+            tag = prevNode.tag;
+            props = prevNode.props;
+            isTag = typeof tag === 'string';
+            nextCacheByValues[position.id] = prevNode;
+        } else {
+            const tag = typeof result[1] === 'function' ? result[1](values) : result[1];
+            isTag = typeof tag === 'string';
+
+            if (isTag) {
+                props = result[2](new Attrs(), values);
+            } else {
+                props = result[2](tag.wrapper ? new PropsWrapper() : new Props(), values);
+                componentId = calcComponentPosition(tag, props.special, position.id);
+                const prevNode = cacheByValues[componentId];
+                if (prevNode && shallowEqual(prevNode.values, values)) {
+                    values = prevNode.values;
+                    props = prevNode.props;
+                } else {
+                    if (tag.defaults && typeof tag.defaults === 'object') {
+                        const defaultsKeys = Object.keys(tag.defaults);
+
+                        for (let i = 0, l = defaultsKeys.length; i < l; i++) {
+                            if (props.common[defaultsKeys[i]] === undefined) {
+                                props.common[defaultsKeys[i]] = tag.defaults[defaultsKeys[i]];
+                            }
+                        }
+                    }
+                }
+                nextCacheByValues[position.id] = new CacheByValues(values, tag, props);
+            }
+        }
+
+        if (isTag) {
+            position.incrementPosition();
+
+            return jsx.tag(
+                tag,
+                props,
+                parentNode => result[4](values, position.addPositionLevel(parentNode), jsx),
+                position
+            );
+        } else {
+            position = position.updateId(componentId);
+            nextCacheByValues[componentId] = prevNode;
+            return jsx.component(
+                tag,
+                props,
+                jsx.template(result[4], values),
+                position
+            );
+        }
+    };
+}
+
+function calcComponentPosition(tag, props, position) {
+    // TODO warning if many instances of singleton or with same key
+    if (tag.uniqid) {
+        return `u${tag.uniqid}`;
+    } else if (props.uniqid) {
+        return `u${props.uniqid}`;
+    } else if (props.key) {
+        return `position.k${props.key}`;
+    } else {
+        return `${position}.c`;
+    }
+}
 function getValuesFromArguments(args) {
     const l = args.length;
     let values = values = Array(l - 1);
@@ -18,6 +134,62 @@ function getValuesFromArguments(args) {
 }
 
 let parser;
+
+function execChildren(config, jsx) {
+    if (config.stringify) {
+        return execChildrenStringify(config, jsx);
+    } else {
+        return execChildrenDom(config, jsx);
+    }
+}
+
+function execChildrenStringify(config, jsx) {
+    return function(result, values) {
+        const memo = [],
+            items = result[2] || [];
+
+        // TODO here that one place were traversing once all childs
+        for (let i = 0, l = items.length; i < l; i++) {
+            const item = items[i];
+            if (typeof item === 'function') {
+                const result = item(values, undefined, jsx);
+                if (Array.isArray(result)) {
+                    Array.prototype.push.apply(memo, result);
+                } else {
+                    memo.push(result);
+                }
+            } else {
+                memo.push(item.exec());
+            }
+        }
+
+        return memo;
+    };
+}
+
+function execChildrenDom(config, jsx) {
+    return function(result, values, position) {
+        const memo = [],
+            items = result[2] || [];
+
+        // TODO here that one place were traversing once all childs
+        for (let i = 0, l = items.length; i < l; i++) {
+            const item = items[i];
+            if (typeof item === 'function') {
+                const result = item(values, position.updateId(`${position.id}.${i}`), jsx);
+                if (Array.isArray(result)) {
+                    Array.prototype.push.apply(memo, result);
+                } else {
+                    memo.push(result);
+                }
+            } else {
+                memo.push(item.exec(position.updateId(`${position.id}.${i}`)));
+            }
+        }
+
+        return memo;
+    };
+}
 
 function createParser() {
     const
@@ -134,7 +306,7 @@ function createParser() {
                                 return jsx.childValue(values[index], position);
                             }),
                             textNode.then(result => (values, position, jsx) => {
-                                return jsx.text(result, position.incrementPosition());
+                                return jsx.text(result, position);
                             }),
                             defer(() => node)
                         ))
@@ -150,25 +322,7 @@ function createParser() {
                         find('>')
                     ))
                 ).then(result => (values, position, jsx) => {
-                    const memo = [],
-                        items = result[2] || [];
-
-                    // TODO here that one place were traversing once all childs
-                    for (let i = 0, l = items.length; i < l; i++) {
-                        const item = items[i];
-                        if (typeof item === 'function') {
-                            const result = item(values, position.updateId(`${position.id}.${i}`), jsx);
-                            if (Array.isArray(result)) {
-                                Array.prototype.push.apply(memo, result);
-                            } else {
-                                memo.push(result);
-                            }
-                        } else {
-                            memo.push(item.exec(position.updateId(`${position.id}.${i}`)));
-                        }
-                    }
-
-                    return memo;
+                    return jsx.execChildren(result, values, position);
                 })
             ))
         ).then(result => (values, position, jsx) => {
@@ -201,6 +355,7 @@ function createInstance(config, warmUp) {
 
     jsx.template = template(config, jsx);
     jsx.execComponent = execComponent(config, jsx);
+    jsx.execChildren = execChildren(config, jsx);
     jsx.component = component(config, jsx);
     jsx.tag = tag(config, jsx);
     jsx.text = text(config, jsx);

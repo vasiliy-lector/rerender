@@ -68,8 +68,10 @@ Patch.prototype = {
         command[1].parentNode.replaceChild(createText('', this.document), command[1]);
         this.replaceChild(command[2], command[3], command[1]);
     },
-    applyRemove() {
-        // should remove refs and etc
+    applyRemove(command) {
+        if (command[1].type === 'Tag' && typeof command[1].attrs.special.ref === 'function') {
+            command[1].attrs.special.ref(null);
+        }
     },
     applyReplace(command) {
         const nextNode = command[2];

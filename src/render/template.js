@@ -39,12 +39,26 @@ Template.prototype = {
 };
 
 function template(config, jsx) {
+    if (config.stringify) {
+        return templateStringify(config, jsx);
+    } else {
+        return templateDom(config, jsx);
+    }
+}
+
+function templateDom(config, jsx) {
     return function(fn, values) {
         const index = fn.cacheIndex || (fn.cacheIndex = ++cacheIndex);
         const { cachedTemplates, nextCachedTemplates } = config;
         const cachedTemplate = cachedTemplates && cachedTemplates.get(index, values);
 
         return nextCachedTemplates.set(index, cachedTemplate || new Template(fn, values, jsx));
+    };
+}
+
+function templateStringify(config, jsx) {
+    return function(fn, values) {
+        return new Template(fn, values, jsx);
     };
 }
 

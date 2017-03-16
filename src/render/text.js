@@ -17,6 +17,7 @@ function textDom({ nextNodes, patch }) {
     let prevIndex;
 
     return function (value, position) {
+        position.incrementPosition();
         if (prevIndex === position.getIndex() - 1 && prevParentPosition === position.getParentPosition()) {
             patch.splitText(prevTextNode.position, prevTextNode.value.length);
         }
