@@ -39,6 +39,16 @@ function execComponentStringify(config, jsx) {
                 result[4](values, undefined, jsx)
             );
         } else {
+            if (typeof tag.defaults === 'object') {
+                const defaultsKeys = Object.keys(tag.defaults);
+
+                for (let i = 0, l = defaultsKeys.length; i < l; i++) {
+                    if (props.common[defaultsKeys[i]] === undefined) {
+                        props.common[defaultsKeys[i]] = tag.defaults[defaultsKeys[i]];
+                    }
+                }
+            }
+
             return jsx.component(
                 tag,
                 props,
