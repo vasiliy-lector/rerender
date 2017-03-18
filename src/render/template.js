@@ -17,9 +17,11 @@ CachedTemplates.prototype = {
     get(index, values) {
         const candidates = this.byCacheIndex[index];
 
-        for (let i = 0, l = candidates.length; i < l; i++) {
-            if (shallowEqual(candidates[i].values, values)) {
-                return candidates[i];
+        if (candidates !== undefined) {
+            for (let i = 0, l = candidates.length; i < l; i++) {
+                if (shallowEqual(candidates[i].values, values)) {
+                    return candidates[i];
+                }
             }
         }
     }

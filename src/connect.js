@@ -4,7 +4,7 @@ import { hoistStatics } from './utils';
 export default function connect({ actions = {}, get, merge, watch }) {
     return (Wrapped) => hoistStatics((() => {
         class Connect extends Component {
-            constructor (props, children, options) {
+            constructor(props, children, options) {
                 super(props, children, options);
                 let { store } = options;
                 this.store = store;

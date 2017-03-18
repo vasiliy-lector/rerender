@@ -2,7 +2,6 @@ import Events from '../Events';
 import Component from '../Component';
 import Position from './Position';
 import Props from './Props';
-import { Template } from './template';
 import Patch from './Patch';
 import { throttle } from '../utils';
 import { debug } from '../debug';
@@ -10,9 +9,11 @@ import { createInstance } from './jsx';
 import createElement from '../virtualDom/createElement';
 
 const RENDER_THROTTLE = 16;
+const ROOT_PROPS = new Props();
+const ROOT_CHILDREN = () => [];
 const ROOT_POSITION = new Position('r', undefined, '', -1);
 
-function renderClient(render, store, domNode, { document = self.document } = {}) {
+function renderClient(rootComponent, store, domNode, { document = self.document } = {}) {
     const events = new Events();
     const instances = {};
     const nextInstances = {};
@@ -37,11 +38,13 @@ function renderClient(render, store, domNode, { document = self.document } = {})
         document
     });
     // const start = performance.now();
-    const nextVirtualDom = jsx.component(render, null, null, ROOT_POSITION).exec(ROOT_POSITION);
+    const nextVirtualDom = jsx.component(rootComponent, ROOT_PROPS, ROOT_CHILDREN, ROOT_POSITION);
     const nextFirstChild = createElement(nextVirtualDom, document);
     const firstChild = domNode.childNodes[0];
 
-    if (firstChild.outerHTML !== nextFirstChild.outerHTML) {
+    if (!firstChild) {
+        domNode.appendChild(nextFirstChild);
+    } else if (firstChild.outerHTML !== nextFirstChild.outerHTML) {
         debug.warn('Server and client html do not match!');
         domNode.replaceChild(firstChild, nextFirstChild);
     } else {
@@ -54,7 +57,7 @@ function renderClient(render, store, domNode, { document = self.document } = {})
     mount(nextNewInstances);
 
     events.on('rerender', rerenderClient({
-        render,
+        rootComponent,
         store,
         events,
         domNode,
@@ -67,7 +70,7 @@ function renderClient(render, store, domNode, { document = self.document } = {})
 }
 
 function rerenderClient({
-    render,
+    rootComponent,
     store,
     events,
     document,
@@ -100,7 +103,7 @@ function rerenderClient({
         config.nextCacheByValues = {};
         config.patch = new Patch(domNode, document);
 
-        virtualDom = render({ jsx }).exec(ROOT_POSITION);
+        virtualDom = jsx.component(rootComponent, ROOT_PROPS, ROOT_CHILDREN, ROOT_POSITION);
 
         for (let id in config.nodes) {
             config.patch.remove(config.nodes[id]);

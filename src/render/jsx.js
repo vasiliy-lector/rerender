@@ -26,7 +26,7 @@ function execComponent(config, jsx) {
     }
 }
 
-function execComponentStringify({ cacheByValues, nextCacheByValues, method }, jsx) {
+function execComponentStringify(config, jsx) {
     return function(result, values) {
         const tag = typeof result[1] === 'function' ? result[1](values) : result[1];
         const isTag = typeof tag === 'string';
@@ -48,8 +48,9 @@ function execComponentStringify({ cacheByValues, nextCacheByValues, method }, js
     };
 }
 
-function execComponentDom({ cacheByValues, nextCacheByValues, method }, jsx) {
+function execComponentDom(config, jsx) {
     return function(result, values, position) {
+        const { cacheByValues, nextCacheByValues } = config;
         const prevNode = cacheByValues[position.id];
         let tag, props, isTag, componentId;
 
@@ -61,7 +62,7 @@ function execComponentDom({ cacheByValues, nextCacheByValues, method }, jsx) {
             isTag = typeof tag === 'string';
             nextCacheByValues[position.id] = prevNode;
         } else {
-            const tag = typeof result[1] === 'function' ? result[1](values) : result[1];
+            tag = typeof result[1] === 'function' ? result[1](values) : result[1];
             isTag = typeof tag === 'string';
 
             if (isTag) {
@@ -70,11 +71,12 @@ function execComponentDom({ cacheByValues, nextCacheByValues, method }, jsx) {
                 props = result[2](tag.wrapper ? new PropsWrapper() : new Props(), values);
                 componentId = calcComponentPosition(tag, props.special, position.id);
                 const prevNode = cacheByValues[componentId];
+
                 if (prevNode && shallowEqual(prevNode.values, values)) {
                     values = prevNode.values;
                     props = prevNode.props;
                 } else {
-                    if (tag.defaults && typeof tag.defaults === 'object') {
+                    if (typeof tag.defaults === 'object') {
                         const defaultsKeys = Object.keys(tag.defaults);
 
                         for (let i = 0, l = defaultsKeys.length; i < l; i++) {
@@ -287,8 +289,8 @@ function createParser() {
             optional(sequence(
                 whiteSpace,
                 attrs
-            )).then(result => values => {
-                return result ? result[1](values) : {};
+            )).then(result => (memo, values) => {
+                return result ? result[1](memo, values) : memo;
             }),
             optionalWhiteSpace,
             required(any(

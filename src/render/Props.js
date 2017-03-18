@@ -29,7 +29,9 @@ function PropsWrapper() {
 PropsWrapper.prototype = {
     set(name, value) {
         this.common[name] = value;
-    }
+    },
+
+    type: 'PropsWrapper'
 };
 
 export default Props;
