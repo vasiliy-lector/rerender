@@ -1,13 +1,12 @@
 import { jsdom } from 'jsdom';
-import { clientRender } from '../../src/render';
+import renderClient from '../../src/render/renderClient';
 import Store from '../../src/Store';
-import jsx from '../../src/jsx';
 import Component from '../../src/Component';
 import { getHash } from '../../src/utils';
 import { debug } from '../../src/debug';
 
 class Block extends Component {
-    render() {
+    render({ jsx }) {
         return jsx `<div className="${this.props.className}"><p>${this.props.text}</p>${this.children}</div>`;
     }
 }
@@ -23,75 +22,58 @@ describe('render', () => {
         spyOn(debug, 'error');
     });
 
-    describe('clientRender', () => {
+    describe('renderClient', () => {
 
         let store;
-        const
-            json = jsx `<${Block} text="Text of block"><p>Text from parent</p></${Block}>`,
-            renderedHtml = '<div class="block"><p>Text of block</p><p>Text from parent</p></div>',
-            renderedHtmlWithIds = '<div class="block" data-rerenderid="0"><p data-rerenderid="1">Text of block</p><p data-rerenderid="2">Text from parent</p></div>';
+        const rootComponent = ({ jsx }) => jsx `<${Block} text="Text of block"><p>Text from parent</p></${Block}>`;
+        const renderedHtml = '<div class="block"><p>Text of block</p><p>Text from parent</p></div>';
 
         beforeEach(() => {
             store = new Store();
         });
 
-        it('should do first render with omitIds true', () => {
+        it('should do first render', () => {
             const document = jsdom('<div id="application"></div>').defaultView.window.document,
                 domNode = document.getElementById('application');
 
-            clientRender(
-                json,
+            renderClient(
+                rootComponent,
+                store,
                 domNode,
-                { store, document, omitIds: true }
+                { document }
             );
 
             expect(domNode.innerHTML).toBe(renderedHtml);
         });
 
-        it('should do first render with omitIds false', () => {
-            const document = jsdom('<div id="application"></div>').defaultView.window.document,
-                domNode = document.getElementById('application');
+        it('should use server side render result', () => {
+            const document = jsdom(`<div id="application">${renderedHtml}</div>`).defaultView.window.document;
+            const domNode = document.getElementById('application');
+            const firstChild = domNode.childNodes[0];
 
-            clientRender(
-                json,
+            renderClient(
+                rootComponent,
+                store,
                 domNode,
-                { store, document }
+                { document }
             );
 
-            expect(domNode.innerHTML).toBe(renderedHtmlWithIds);
-            expect(domNode.firstChild.getAttribute('data-rerenderid')).toBe('0');
+            expect(domNode.childNodes[0]).toBe(firstChild);
         });
 
-        it('should use html if domNode has valid hash', () => {
-            const
-                hash = getHash(renderedHtmlWithIds),
-                document = jsdom(`<div id="application" data-hash="${hash}">${renderedHtmlWithIds}</div>`).defaultView.window.document,
-                domNode = document.getElementById('application'),
-                { firstChild } = domNode;
+        it('should not use server side render result', () => {
+            const document = jsdom('<div id="application"><span>text</span></div>').defaultView.window.document;
+            const domNode = document.getElementById('application');
+            const firstChild = domNode.childNodes[0];
 
-            clientRender(
-                json,
+            renderClient(
+                rootComponent,
+                store,
                 domNode,
-                { store, document }
+                { document }
             );
 
-            expect(domNode.firstChild).toBe(firstChild);
-        });
-
-        it('should not use html if domNode has no valid hash', () => {
-            const
-                hash = getHash(renderedHtmlWithIds) + '0',
-                document = jsdom(`<div id="application" data-hash="${hash}">${renderedHtmlWithIds}</div>`).defaultView.window.document,
-                domNode = document.getElementById('application'),
-                { firstChild } = domNode;
-
-            clientRender(
-                json,
-                domNode,
-                { store, document }
-            );
-
-            expect(domNode.firstChild).not.toBe(firstChild);
+            expect(domNode.childNodes[0]).not.toBe(firstChild);
         });
     });
 });

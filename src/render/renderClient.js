@@ -46,7 +46,7 @@ function renderClient(rootComponent, store, domNode, { document = self.document 
         domNode.appendChild(nextFirstChild);
     } else if (firstChild.outerHTML !== nextFirstChild.outerHTML) {
         debug.warn('Server and client html do not match!');
-        domNode.replaceChild(firstChild, nextFirstChild);
+        domNode.replaceChild(nextFirstChild, firstChild);
     } else {
         patch.applyNormalize();
     }
