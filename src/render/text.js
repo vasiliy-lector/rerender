@@ -31,8 +31,9 @@ function textDom({ nextNodes, patch }) {
     };
 }
 
-function textDiff({ nodes, nextNodes, patch }) {
+function textDiff(config) {
     return function (value, position) {
+        const { nodes, nextNodes, patch } = config;
         position.incrementPosition();
         let nextNode = nodes[position.id];
         const nextPosition = position.getPosition();

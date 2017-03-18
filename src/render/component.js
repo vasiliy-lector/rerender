@@ -82,7 +82,7 @@ function componentDom(config, jsx) {
 
         delete instances[position.id];
 
-        return current.componentTemplate.exec(position.updateId(position.id + '.0'));
+        return current.componentTemplate.exec(position.updateId(position.id + '.0'), jsx);
     };
 }
 
@@ -92,14 +92,13 @@ function componentStringify({ store }, jsx) {
 
         if (tag.prototype instanceof Component) {
             const instance = new tag(props, children, { jsx, store, antibind: tag.antibind });
-            Component.beforeRender(instance);
 
             renderResult = Component.render(instance);
         } else {
             renderResult = tag({ props, children, jsx });
         }
 
-        return renderResult ? renderResult.exec() : '';
+        return renderResult ? renderResult.exec(undefined, jsx) : '';
     };
 }
 

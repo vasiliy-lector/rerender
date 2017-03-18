@@ -8,10 +8,11 @@ import { shallowEqual } from '../utils';
 import Attrs from './Attrs';
 import Props, { PropsWrapper } from './Props';
 
-function CacheByValues(values, tag, props) {
+function CacheByValues(values, tag, props, componentId) {
     this.values = values;
     this.tag = tag;
     this.props = props;
+    this.componentId = componentId;
 }
 
 CacheByValues.prototype = {
@@ -96,7 +97,7 @@ function execComponentDom(config, jsx) {
                         }
                     }
                 }
-                nextCacheByValues[position.id] = new CacheByValues(values, tag, props);
+                nextCacheByValues[position.id] = new CacheByValues(values, tag, props, componentId);
             }
         }
 
@@ -171,7 +172,7 @@ function execChildrenStringify(config, jsx) {
                     memo.push(result);
                 }
             } else {
-                memo.push(item.exec());
+                memo.push(item.exec(undefined, jsx));
             }
         }
 
@@ -195,7 +196,7 @@ function execChildrenDom(config, jsx) {
                     memo.push(result);
                 }
             } else {
-                memo.push(item.exec(position.updateId(`${position.id}.${i}`)));
+                memo.push(item.exec(position.updateId(`${position.id}.${i}`), jsx));
             }
         }
 

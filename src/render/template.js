@@ -1,4 +1,4 @@
-import { shallowEqual } from '../utils';
+import { shallowEqualArray } from '../utils';
 
 let cacheIndex = 0;
 
@@ -19,7 +19,7 @@ CachedTemplates.prototype = {
 
         if (candidates !== undefined) {
             for (let i = 0, l = candidates.length; i < l; i++) {
-                if (shallowEqual(candidates[i].values, values)) {
+                if (shallowEqualArray(candidates[i].values, values)) {
                     return candidates[i];
                 }
             }
@@ -27,15 +27,14 @@ CachedTemplates.prototype = {
     }
 };
 
-function Template(fn, values, jsx) {
+function Template(fn, values) {
     this.fn = fn;
     this.values = values;
-    this.jsx = jsx;
 }
 
 Template.prototype = {
-    exec(position) {
-        return this.fn(this.values, position, this.jsx);
+    exec(position, jsx) {
+        return this.fn(this.values, position, jsx);
     },
     type: 'Template'
 };
@@ -48,19 +47,19 @@ function template(config, jsx) {
     }
 }
 
-function templateDom(config, jsx) {
+function templateDom(config) {
     return function(fn, values) {
         const index = fn.cacheIndex || (fn.cacheIndex = ++cacheIndex);
         const { cachedTemplates, nextCachedTemplates } = config;
         const cachedTemplate = cachedTemplates && cachedTemplates.get(index, values);
 
-        return nextCachedTemplates.set(index, cachedTemplate || new Template(fn, values, jsx));
+        return nextCachedTemplates.set(index, cachedTemplate || new Template(fn, values));
     };
 }
 
-function templateStringify(config, jsx) {
+function templateStringify() {
     return function(fn, values) {
-        return new Template(fn, values, jsx);
+        return new Template(fn, values);
     };
 }
 

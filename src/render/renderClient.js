@@ -10,7 +10,8 @@ import createElement from '../virtualDom/createElement';
 
 const RENDER_THROTTLE = 16;
 const ROOT_PROPS = new Props();
-const ROOT_CHILDREN = () => [];
+const ROOT_CHILDREN_VALUE = [];
+const ROOT_CHILDREN = () => ROOT_CHILDREN_VALUE;
 const ROOT_POSITION = new Position('r', undefined, '', -1);
 
 function renderClient(rootComponent, store, domNode, { document = self.document } = {}) {
@@ -141,3 +142,4 @@ function unmount(instances) {
 }
 
 export default renderClient;
+export { RENDER_THROTTLE };

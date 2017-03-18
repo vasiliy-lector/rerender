@@ -33,8 +33,9 @@ function tagDom({ nextNodes, patch }) {
     };
 }
 
-function tagDiff({ nodes, nextNodes, patch }) {
+function tagDiff(config) {
     return function (tag, attrs, children, position) {
+        const { nodes, nextNodes, patch } = config;
         const node = nodes[position.id];
         const nextNodePosition = position.getPosition();
         let nextNode = node;

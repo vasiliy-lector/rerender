@@ -6,7 +6,7 @@ function renderServer(render, store) {
         stringify: true
     });
 
-    return render({ jsx }).exec();
+    return render({ jsx }).exec(undefined, jsx);
 }
 
 export default renderServer;

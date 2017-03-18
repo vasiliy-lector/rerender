@@ -12,7 +12,7 @@ function childValueStringify(config, jsx) {
 
         if (type === 'object') {
             if (value.type === 'Template') {
-                return value.exec();
+                return value.exec(undefined, jsx);
             } else if (Array.isArray(value)) {
                 const memo = [];
 
@@ -59,7 +59,7 @@ function childValueDom(config, jsx) {
         } else if (typeof value === 'string') {
             return jsx.text(value, position);
         } else if (typeof value === 'object' && value.type === 'Template') {
-            return value.exec(position);
+            return value.exec(position, jsx);
         } else if (typeof value === 'function') {
             return jsx.childValue(value(), position);
         } else {
