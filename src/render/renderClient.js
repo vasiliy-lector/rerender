@@ -1,14 +1,16 @@
 import Events from '../Events';
 import Component from '../Component';
 import Position from './Position';
+import Props from './Props';
+import { Template } from './template';
 import Patch from './Patch';
 import { throttle } from '../utils';
 import { debug } from '../debug';
 import { createInstance } from './jsx';
-import createElement from './virtualDom/createElement';
+import createElement from '../virtualDom/createElement';
 
-const RENDER_THROTTLE = 16,
-    ROOT_POSITION = new Position('r', undefined, '', -1);
+const RENDER_THROTTLE = 16;
+const ROOT_POSITION = new Position('r', undefined, '', -1);
 
 function renderClient(render, store, domNode, { document = self.document } = {}) {
     const events = new Events();
@@ -35,7 +37,7 @@ function renderClient(render, store, domNode, { document = self.document } = {})
         document
     });
     // const start = performance.now();
-    const nextVirtualDom = render({ jsx }).exec(ROOT_POSITION);
+    const nextVirtualDom = jsx.component(render, null, null, ROOT_POSITION).exec(ROOT_POSITION);
     const nextFirstChild = createElement(nextVirtualDom, document);
     const firstChild = domNode.childNodes[0];
 

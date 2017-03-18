@@ -24,7 +24,7 @@ function componentDom(config, jsx) {
             changed = true,
             componentTemplate;
 
-        config.cachedTemplates = current.cachedTemplates;
+        config.cachedTemplates = current ? current.cachedTemplates : new CachedTemplates();
         config.nextCachedTemplates = new CachedTemplates();
 
         if (current === undefined || current.tag !== tag) {

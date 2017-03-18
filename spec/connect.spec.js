@@ -1,10 +1,9 @@
 import { jsdom } from 'jsdom';
-import { clientRender } from '../src/render';
+import renderClient from '../src/render/renderClient';
 import connect from '../src/connect';
 import Store from '../src/Store';
 import createAction from '../src/createAction';
 import Component from '../src/Component';
-import jsx from '../src/jsx';
 
 describe('connect', () => {
     let actionCallback,
@@ -34,7 +33,7 @@ describe('connect', () => {
             componentDidMount() {
                 this.props.action();
             }
-            render() {
+            render({ jsx }) {
                 return jsx `<div className="block">text</div>`;
             }
         }
@@ -45,10 +44,11 @@ describe('connect', () => {
             }
         })(BlockPure);
 
-        clientRender(
-            jsx `<${Block} />`,
+        renderClient(
+            ({ jsx }) => jsx `<${Block} />`,
+            store,
             domNode,
-            { store, document }
+            { document }
         );
 
         expect(actionCallback).toHaveBeenCalledTimes(1);
@@ -56,7 +56,7 @@ describe('connect', () => {
 
     it('should merge props', () => {
         class BlockPure extends Component {
-            render() {
+            render({ jsx }) {
                 return jsx `<div>${JSON.stringify(this.props)}</div>`;
             }
         }
@@ -78,10 +78,11 @@ describe('connect', () => {
             }
         })(BlockPure);
 
-        clientRender(
-            jsx `<${Block} index="1" />`,
+        renderClient(
+            ({ jsx }) => jsx `<${Block} index="1" />`,
+            store,
             domNode,
-            { store, document, omitIds: true }
+            { document }
         );
 
         expect(domNode.innerHTML)
