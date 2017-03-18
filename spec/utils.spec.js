@@ -1,7 +1,7 @@
-import { escape, escapeHtml, isSameProps } from '../src/utils';
+import { escapeAttr, escapeHtml, shallowEqual } from '../src/utils';
 
 describe('utils', () => {
-    describe('isSameProps', () => {
+    describe('shallowEqual', () => {
         const
             a = {},
             prop1 = {
@@ -43,7 +43,7 @@ describe('utils', () => {
             runTests = (tests) => {
                 tests.forEach(({ caseDescr, one, two, same }) => {
                     it (`in case "${caseDescr}" must return ${same}.`, () => {
-                        expect(isSameProps(one, two) === same).toBe(true);
+                        expect(shallowEqual(one, two) === same).toBe(true);
                     });
                 });
             },
@@ -82,7 +82,7 @@ describe('utils', () => {
                     caseDescr: 'obj6, obj7',
                     one: obj6,
                     two: obj7,
-                    same: true
+                    same: false
                 },
                 {
                     caseDescr: 'obj6, obj8',
@@ -128,14 +128,14 @@ describe('utils', () => {
         });
     });
 
-    describe('escape', () => {
+    describe('escapeAttr', () => {
         it('should replace attribute disabled symbols', () => {
-            expect(escape('<a href="http://localhost/?x=1&y=2">text</a>'))
+            expect(escapeAttr('<a href="http://localhost/?x=1&y=2">text</a>'))
                 .toBe('&lt;a href=&quot;http://localhost/?x=1&amp;y=2&quot;&gt;text&lt;/a&gt;');
         });
 
         it('should convert not string to string', () => {
-            expect(escape(1)).toBe('1');
+            expect(escapeAttr(1)).toBe('1');
         });
     });
 });
