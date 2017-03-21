@@ -132,8 +132,8 @@ function unmount(instances) {
     const keys = Object.keys(instances);
 
     for (let i = 0, l = keys.length; i < l; i++) {
-        let instance = instances[keys[i]];
-        if (instance.type === 'Component') {
+        const instance = instances[keys[i]].instance;
+        if (instance) {
             // TODO singleton and uniqid logic here (+ timelife static prop feature)
             Component.unmount(instance);
             Component.destroy(instance);

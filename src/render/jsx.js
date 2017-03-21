@@ -4,7 +4,7 @@ import text from './text';
 import childValue from './childValue';
 import template from './template';
 import { any, end, find, next, optional, repeat, required, test, sequence, defer } from 'nano-parser';
-import { shallowEqual } from '../utils';
+import { shallowEqualArray } from '../utils';
 import Attrs from './Attrs';
 import Props, { PropsWrapper } from './Props';
 
@@ -65,7 +65,7 @@ function execComponentDom(config, jsx) {
         const prevNode = cacheByValues[position.id];
         let tag, props, isTag, componentId;
 
-        if (prevNode && shallowEqual(prevNode.values, values)) {
+        if (prevNode && shallowEqualArray(prevNode.values, values)) {
             values = prevNode.values;
             componentId = prevNode.componentId;
             tag = prevNode.tag;
@@ -83,7 +83,7 @@ function execComponentDom(config, jsx) {
                 componentId = calcComponentPosition(tag, props.special, position.id);
                 const prevNode = cacheByValues[componentId];
 
-                if (prevNode && shallowEqual(prevNode.values, values)) {
+                if (prevNode && shallowEqualArray(prevNode.values, values)) {
                     values = prevNode.values;
                     props = prevNode.props;
                 } else {

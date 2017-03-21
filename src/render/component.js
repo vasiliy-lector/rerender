@@ -1,6 +1,8 @@
 import { shallowEqual } from '../utils';
 import Component from '../Component';
-import { CachedTemplates } from './template';
+import { Template, CachedTemplates } from './template';
+
+const emptyTemplate = new Template(() => {});
 
 // FIXME find faster way to determine Component
 function isComponent(tag) {
@@ -76,12 +78,13 @@ function componentDom(config, jsx) {
         }
 
         if (changed) {
-            current.componentTemplate = componentTemplate;
+            current.componentTemplate = componentTemplate || emptyTemplate;
             current.cachedTemplates = config.nextCachedTemplates;
         }
 
         delete instances[position.id];
 
+        // TODO: error message if current.componentTemplate not of type Template
         return current.componentTemplate.exec(position.updateId(position.id + '.0'), jsx);
     };
 }
@@ -93,12 +96,14 @@ function componentStringify({ store }, jsx) {
         if (tag.prototype instanceof Component) {
             const instance = new tag(props, children, { jsx, store, antibind: tag.antibind });
 
-            renderResult = Component.render(instance);
+            renderResult = Component.render(instance) || emptyTemplate;
         } else {
-            renderResult = tag({ props, children, jsx });
+            renderResult = tag({ props, children, jsx }) || emptyTemplate;
         }
 
-        return renderResult ? renderResult.exec(undefined, jsx) : '';
+        // TODO: error message if renderResult not of type Template
+
+        return renderResult.exec(undefined, jsx);
     };
 }
 

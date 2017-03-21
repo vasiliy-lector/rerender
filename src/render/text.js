@@ -47,6 +47,8 @@ function textDiff(config) {
 
         nextNodes[position.id] = nextNode;
 
+        delete nodes[position.id];
+
         return nextNode;
     };
 }

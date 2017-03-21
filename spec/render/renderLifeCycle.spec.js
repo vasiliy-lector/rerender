@@ -88,7 +88,7 @@ describe('render', () => {
             refCalls.push('handleRef');
         }
         render({ jsx }) {
-            return this.props.noLink ? jsx `` : jsx `<${Statefull} ref=${this.handleRef} />`;
+            return this.props.noLink ? null : jsx `<${Statefull} ref=${this.handleRef} />`;
         }
     }
 
@@ -188,7 +188,7 @@ describe('render', () => {
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);
         });
 
-        xit('renderClient should work with events', () => {
+        it('renderClient should work with events', () => {
             expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
 
             domNode.querySelector('a').dispatchEvent(new window.Event('click'));
@@ -198,12 +198,12 @@ describe('render', () => {
 
             jasmine.clock().tick(RENDER_THROTTLE + 1);
 
-            expectedLifeCycle.push('render');
+            expectedLifeCycle.push('componentWillReceiveProps', 'render');
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);
             expect(domNode.querySelector('a').getAttribute('href')).toBe('newHref');
         });
 
-        xit('renderClient should call componentWillUnmount, componentWillDestroy', () => {
+        it('renderClient should call componentWillUnmount, componentWillDestroy', () => {
             store.setState({
                 config: {
                     noLink: true
@@ -213,9 +213,10 @@ describe('render', () => {
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);
             jasmine.clock().tick(RENDER_THROTTLE + 1);
 
-            expectedLifeCycle.push('componentWillUnmount', 'componentWillDestroy');
+            expectedLifeCycle.push('componentWillUnmount', 'componentWillDestroy', 'handleSetRef');
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);
             jasmine.clock().uninstall();
+            expect(domNode.innerHTML).toBe('');
         });
 
     });

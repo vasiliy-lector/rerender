@@ -64,4 +64,4 @@ function templateStringify() {
 }
 
 export default template;
-export { CachedTemplates };
+export { CachedTemplates, Template };

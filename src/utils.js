@@ -1,5 +1,3 @@
-import crypto from 'crypto';
-
 const getFunctionName = (function getFunctionName() {
     if (getFunctionName.name) {
         return fn => fn.name;
@@ -14,13 +12,6 @@ const SKIP_HOIST = {
         antibind: true
     },
     NEXT_TICK_TIMEOUT = 0;
-
-function getHash(string) {
-    return crypto
-        .createHash('md5')
-        .update(string, 'utf8')
-        .digest('hex');
-}
 
 const REGEXP_ATTR = /[<>"&]/;
 const REGEXP_HTML = /[<>&]/;
@@ -154,7 +145,6 @@ export {
     escapeAttr,
     escapeHtml,
     getFunctionName,
-    getHash,
     hoistStatics,
     nextTick,
     shallowEqual,

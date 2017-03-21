@@ -2,6 +2,24 @@ import { escapeAttr } from '../utils';
 import { diffAttrs } from './Attrs';
 import Tag from '../virtualDom/Tag';
 
+const VOID_TAGS = {
+    area: true,
+    base: true,
+    br: true,
+    col: true,
+    embed: true,
+    hr: true,
+    img: true,
+    input: true,
+    keygen: true,
+    link: true,
+    meta: true,
+    param: true,
+    source: true,
+    track: true,
+    wbr: true
+};
+
 function tag(config) {
     if (config.stringify) {
         return tagStringify(config);
@@ -100,9 +118,9 @@ function tagStringify() {
         const childrenString = children.join('');
 
         return '<' + tag + attrsString +
-            (childrenString !== ''
-                ? '>' + childrenString + '</' + tag + '>'
-                : ' />');
+            (childrenString === '' && VOID_TAGS[tag]
+                ? ' />'
+                : '>' + childrenString + '</' + tag + '>');
     };
 }
 
