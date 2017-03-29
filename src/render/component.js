@@ -78,14 +78,16 @@ function componentDom(config, jsx) {
         }
 
         if (changed) {
-            current.componentTemplate = componentTemplate || emptyTemplate;
+            current.componentTemplate = componentTemplate;
             current.cachedTemplates = config.nextCachedTemplates;
         }
 
         delete instances[position.id];
 
         // TODO: error message if current.componentTemplate not of type Template
-        return current.componentTemplate.exec(position.updateId(position.id + '.0'), jsx);
+        return current.componentTemplate
+            ? current.componentTemplate.exec(position.updateId(position.id + '.0'), jsx)
+            : jsx.text('', position.updateId(position.id + '.0'));
     };
 }
 

@@ -22,7 +22,7 @@ function textDom({ nextNodes, patch }) {
             patch.splitText(prevTextNode.position, prevTextNode.value.length);
         }
 
-        const nextNode = new Text(value, position.getPosition());
+        const nextNode = new Text(value, position.getPosition(), position.id);
         nextNodes[position.id] = nextNode;
         prevTextNode = nextNode;
         prevParentPosition = position.getParentPosition();
@@ -39,9 +39,9 @@ function textDiff(config) {
         const nextPosition = position.getPosition();
 
         if (!nextNode) {
-            nextNode = new Text(value, nextPosition);
+            nextNode = new Text(value, nextPosition, position.id);
         } else if (nextNode.value !== value) {
-            nextNode = new Text(value, nextPosition);
+            nextNode = new Text(value, nextPosition, position.id);
             patch.replace(nextPosition, nextNode);
         }
 
