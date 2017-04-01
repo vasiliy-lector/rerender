@@ -94,20 +94,18 @@ function tagStringify() {
     return function (tag, attrs, children) {
         let attrsString = '';
 
-        for (let i = 0, l = attrs.common.length; i < l; i++) {
-            const key = attrs.common[i][0];
-
+        for (let key in attrs.common) {
             if (key === 'dataset') {
-                const value = attrs.common[i][1],
+                const value = attrs.common[key],
                     datasetKeys = Object.keys(value);
 
                 for (let j = 0, n = datasetKeys.length; j < n; j++) {
                     attrsString += ` data-${datasetKeys[j]}="${escapeAttr(value[datasetKeys[j]])}"`;
                 }
             } else if (key === 'style') {
-                attrsString += ` style="${escapeStyle(attrs.common[i][1])}"`;
+                attrsString += ` style="${escapeStyle(attrs.common[key])}"`;
             } else {
-                const value = attrs.common[i][1];
+                const value = attrs.common[key];
 
                 attrsString += ' ' + convertAttrName(key) + (value ===  true
                     ? ''

@@ -1,3 +1,4 @@
+import { debug } from '../debug';
 import { createTag, createText } from '../virtualDom/createElement';
 const types = {
     ATTACH_EVENTS: 'applyAttachEvents', // attach event to server side html
@@ -42,8 +43,8 @@ Patch.prototype = {
             const node = this.getRefByPosition(this.eventsCommands[j][1]);
             const events = this.eventsCommands[j][2];
 
-            for (let i = 0, l = events.length; i < l; i++) {
-                node[events[i][0]] = events[i][1];
+            for (let name in events) {
+                node[name] = events[name];
             }
         }
     },
@@ -94,8 +95,8 @@ Patch.prototype = {
 
         if (diff.common) {
             if (diff.common[0]) {
-                for (let i = 0, l = diff.common[0].length; i < l; i++) {
-                    node[diff.common[0][i][0]] = diff.common[0][i][1];
+                for (let name in diff.common[0]) {
+                    node[name] = diff.common[0][name];
                 }
             }
             if (diff.common[1]) {
@@ -107,8 +108,8 @@ Patch.prototype = {
 
         if (diff.events) {
             if (diff.events[0]) {
-                for (let i = 0, l = diff.events[0].length; i < l; i++) {
-                    node[diff.events[0][i][0]] = diff.events[0][i][1];
+                for (let name in diff.events[0]) {
+                    node[name] = diff.events[0][name];
                 }
             }
 
@@ -146,8 +147,12 @@ Patch.prototype = {
 
     setRefs() {
         for (let i = 0, l = this.commands.length; i < l; i++) {
-            if (this.commands[i][0] !== types.CREATE && this.commands[i][0] !== types.REMOVE) {
-                this.commands[i][1] = this.getRefByPosition(this.commands[i][1]);
+            try {
+                if (this.commands[i][0] !== types.CREATE && this.commands[i][0] !== types.REMOVE) {
+                    this.commands[i][1] = this.getRefByPosition(this.commands[i][1]);
+                }
+            } catch(error) {
+                debug.error(error);
             }
         }
     },

@@ -5,12 +5,12 @@ function createText(value, document) {
 function createTag(tag, attrs, document) {
     const node = document.createElement(tag);
 
-    for (let i = 0, l = attrs.common.length; i < l; i++) {
-        node[attrs.common[i][0]] = attrs.common[i][1];
+    for (let name in attrs.common) {
+        node[name] = attrs.common[name];
     }
 
-    for (let i = 0, l = attrs.events.length; i < l; i++) {
-        node[attrs.events[i][0]] = attrs.events[i][1];
+    for (let name in attrs.events) {
+        node[name] = attrs.events[name];
     }
 
     return node;

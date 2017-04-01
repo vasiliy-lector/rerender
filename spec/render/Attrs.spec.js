@@ -12,7 +12,10 @@ describe('Attrs', () => {
             nextAttrs.set('name', 'name1');
             expect(diffAttrs(attrs, nextAttrs)).toEqual({
                 common: [
-                    [['className', 'block1'], ['name', 'name1']],
+                    {
+                        className: 'block1',
+                        name: 'name1'
+                    },
                     ['id']
                 ],
                 events: [

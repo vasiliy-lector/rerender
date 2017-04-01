@@ -5,19 +5,19 @@ const SPECIAL = {
 };
 
 function Attrs() {
-    this.common = [];
-    this.events = [];
+    this.common = {};
+    this.events = {};
     this.special = {};
 }
 
 Attrs.prototype = {
     set(name, value) {
         if (name.substr(0, 2) === 'on') {
-            this.events.push([name.toLowerCase(), value]);
+            this.events[name.toLowerCase()] = value;
         } else if (SPECIAL[name]) {
             this.special[name] = value;
         } else {
-            this.common.push([name, value]);
+            this.common[name] = value;
         }
     },
 
@@ -25,35 +25,23 @@ Attrs.prototype = {
 };
 
 function groupDiff(attrs, nextAttrs) {
-    const prevObj = {};
-    let setAttrs = [];
+    let setAttrs = {};
     let removeAttrs = [];
 
-    for (let i = 0, l = attrs.length; i < l; i++) {
-        prevObj[attrs[i][0]] = attrs[i][1];
-    }
-
-    for (let i = 0, l = nextAttrs.length; i < l; i++) {
-        const name = nextAttrs[i][0];
-        const prevAttrValue = prevObj[name];
-
-        if (prevAttrValue !== undefined) {
-            if (prevAttrValue !== nextAttrs[i][1]) {
-                setAttrs.push(nextAttrs[i]);
-            }
-            delete prevObj[name];
-        } else {
-            setAttrs.push(nextAttrs[i]);
+    for (let name in nextAttrs) {
+        const nextValue = nextAttrs[name];
+        if (attrs[name] !== nextValue) {
+            setAttrs[name] = nextValue;
         }
     }
 
-    const toRemove = Object.keys(prevObj);
-
-    for (let i = 0, l = toRemove.length; i < l; i++) {
-        removeAttrs.push(toRemove[i]);
+    for (let name in attrs) {
+        if (nextAttrs[name] === undefined) {
+            removeAttrs.push(name);
+        }
     }
 
-    if (setAttrs.length === 0) {
+    if (Object.keys(setAttrs).length === 0) {
         setAttrs = null;
     }
 

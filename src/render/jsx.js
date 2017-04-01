@@ -130,7 +130,7 @@ function calcComponentPosition(tag, props, position) {
     } else if (props.uniqid) {
         return `u${props.uniqid}`;
     } else if (props.key) {
-        return `position.k${props.key}`;
+        return `${position}.k${props.key}`;
     } else {
         return `${position}.c`;
     }
