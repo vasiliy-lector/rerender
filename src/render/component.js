@@ -105,7 +105,7 @@ function componentStringify({ store }, jsx) {
 
         // TODO: error message if renderResult not of type Template
 
-        return renderResult.exec(undefined, jsx);
+        return renderResult.exec(undefined, jsx) || '';
     };
 }
 

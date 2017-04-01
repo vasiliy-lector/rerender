@@ -40,6 +40,7 @@ function textDiff(config) {
 
         if (!nextNode) {
             nextNode = new Text(value, nextPosition, position.id);
+            patch.create(position.getParentPosition(), position.getIndex(), nextNode);
         } else if (nextNode.value !== value) {
             nextNode = new Text(value, nextPosition, position.id);
             patch.replace(nextPosition, nextNode);
