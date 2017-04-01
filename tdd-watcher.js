@@ -17,7 +17,7 @@ function executeTests(message) {
         debug('. ');
     }, 1000);
 
-    spawn('npm', ['test', './spec/html.spec.js'])
+    spawn('npm', ['test'])
         .on('close', code => {
             isExecuting = false;
             clearTimeout(timeout);
