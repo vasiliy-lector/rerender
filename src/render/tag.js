@@ -60,14 +60,14 @@ function tagDiff(config) {
 
         if (!node) {
             nextNode = new Tag(tag, attrs, nextNodePosition, position.id);
-            patch.create(position.parentPosition, position.index, nextNode);
+            patch.create(position.getParentPosition(), position.getIndex(), nextNode);
         } else {
             if (node.tag !== tag) {
                 nextNode = new Tag(tag, attrs, nextNodePosition, position.id);
                 patch.replace(nextNodePosition, nextNode);
             // root node of component with uniqid
             } else if (/u[^.]+\.0$/.test(node.position.id) && node.position !== nextNodePosition) {
-                patch.move(node.position, position.parentPosition, position.index, nextNode);
+                patch.move(node.position, position.getParentPosition(), position.getIndex(), nextNode);
                 nextNode.position = position;
             }
 

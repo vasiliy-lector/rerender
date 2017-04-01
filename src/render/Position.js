@@ -1,37 +1,35 @@
-function Position(id, parentNode, parentPosition, index) {
+function Position(id, domPosition) {
     this.id = id;
-    this.parentNode = parentNode;
-    this.parentPosition = parentPosition;
-    this.index = index;
+    this.domPosition = domPosition;
 }
 
 Position.prototype = {
     updateId(id) {
-        return new Position(id, this.parentNode, this.parentPosition, this.index);
+        return new Position(id, this.domPosition);
     },
 
     addPositionLevel(parentNode) {
-        return new Position(this.id, parentNode, this.getPosition(), -1);
+        return new Position(this.id, { parentNode, parentPosition: this.getPosition(), index: -1 });
     },
 
     incrementPosition() {
-        this.index++;
+        this.domPosition.index++;
     },
 
     getPosition() {
-        return `${this.parentPosition}.childNodes[${this.index}]`;
+        return `${this.domPosition.parentPosition}.childNodes[${this.domPosition.index}]`;
     },
 
     getParentPosition() {
-        return this.parentPosition;
+        return this.domPosition.parentPosition;
     },
 
     getParentNode() {
-        return this.parentNode;
+        return this.domPosition.parentNode;
     },
 
     getIndex() {
-        return this.index;
+        return this.domPosition.index;
     }
 };
 

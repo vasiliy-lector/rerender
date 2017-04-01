@@ -12,9 +12,10 @@ const RENDER_THROTTLE = 16;
 const ROOT_PROPS = new Props();
 const ROOT_CHILDREN_VALUE = [];
 const ROOT_CHILDREN = () => ROOT_CHILDREN_VALUE;
-const ROOT_POSITION = new Position('r', undefined, '', -1);
+let ROOT_POSITION;
 
 function renderClient(rootComponent, store, domNode, { document = self.document } = {}) {
+    ROOT_POSITION = new Position('r', { parentNode: domNode, parentPosition: '', index: -1 });
     const events = new Events();
     const instances = {};
     const nextInstances = {};
@@ -94,6 +95,7 @@ function rerenderClient({
     const jsx = createInstance(config);
 
     return throttle(function() {
+        ROOT_POSITION = new Position('r', { parentNode: domNode, parentPosition: '', index: -1 });
         config.nextInstances = {};
         config.nextNewInstances = {};
         config.nextNodes = {};
