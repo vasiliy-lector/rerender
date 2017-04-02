@@ -4,6 +4,7 @@ function Position(id, domPosition) {
 }
 
 Position.prototype = {
+    // FIXME: increment and addLevel?
     updateId(id) {
         return new Position(id, this.domPosition);
     },

@@ -32,6 +32,8 @@ function tag(config) {
 
 function tagDom({ nextNodes, patch }) {
     return function (tag, attrs, children, position) {
+        position.incrementPosition();
+
         const nextNodePosition = position.getPosition();
         const nextNode = new Tag(tag, attrs, nextNodePosition, position.id);
 
@@ -53,6 +55,8 @@ function tagDom({ nextNodes, patch }) {
 
 function tagDiff(config) {
     return function (tag, attrs, children, position) {
+        position.incrementPosition();
+
         const { nodes, nextNodes, patch } = config;
         const node = nodes[position.id];
         const nextNodePosition = position.getPosition();

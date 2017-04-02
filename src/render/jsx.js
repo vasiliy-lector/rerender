@@ -8,11 +8,11 @@ import { shallowEqualArray } from '../utils';
 import Attrs from './Attrs';
 import Props, { PropsWrapper } from './Props';
 
-function CacheByValues(values, tag, props, componentId) {
+function CacheByValues(values, tag, props, id) {
     this.values = values;
     this.tag = tag;
     this.props = props;
-    this.componentId = componentId;
+    this.id = id;
 }
 
 CacheByValues.prototype = {
@@ -62,62 +62,71 @@ function execComponentStringify(config, jsx) {
 function execComponentDom(config, jsx) {
     return function(result, values, position) {
         const { cacheByValues, nextCacheByValues } = config;
-        const prevNode = cacheByValues[position.id];
-        let tag, props, isTag, componentId;
+        let cached = cacheByValues[position.id];
+        let tag, props, isTag, id;
 
-        if (prevNode && shallowEqualArray(prevNode.values, values)) {
-            values = prevNode.values;
-            componentId = prevNode.componentId;
-            tag = prevNode.tag;
-            props = prevNode.props;
+        // immutability of props
+        if (cached && shallowEqualArray(cached.values, values)) {
+            values = cached.values;
+            tag = cached.tag;
+            props = cached.props;
+            id = cached.id;
             isTag = typeof tag === 'string';
-            nextCacheByValues[position.id] = prevNode;
+            nextCacheByValues[position.id] = cached;
         } else {
             tag = typeof result[1] === 'function' ? result[1](values) : result[1];
             isTag = typeof tag === 'string';
 
             if (isTag) {
                 props = result[2](new Attrs(), values);
+                id = props.special.key ? position.id.replace(/\.\d+$/, `k${props.special.key}`) : position.id;
             } else {
                 props = result[2](tag.wrapper ? new PropsWrapper() : new Props(), values);
-                componentId = calcComponentPosition(tag, props.special, position.id);
-                const prevNode = cacheByValues[componentId];
 
-                if (prevNode && shallowEqualArray(prevNode.values, values)) {
-                    values = prevNode.values;
-                    props = prevNode.props;
-                } else {
-                    if (typeof tag.defaults === 'object') {
-                        const defaultsKeys = Object.keys(tag.defaults);
+                if (typeof tag.defaults === 'object') {
+                    const defaultsKeys = Object.keys(tag.defaults);
 
-                        for (let i = 0, l = defaultsKeys.length; i < l; i++) {
-                            if (props.common[defaultsKeys[i]] === undefined) {
-                                props.common[defaultsKeys[i]] = tag.defaults[defaultsKeys[i]];
-                            }
+                    for (let i = 0, l = defaultsKeys.length; i < l; i++) {
+                        if (props.common[defaultsKeys[i]] === undefined) {
+                            props.common[defaultsKeys[i]] = tag.defaults[defaultsKeys[i]];
                         }
                     }
                 }
-                nextCacheByValues[position.id] = new CacheByValues(values, tag, props, componentId);
+
+                id = calcComponentPosition(tag, props.special, position.id);
+            }
+
+            cached = cacheByValues[id];
+            if (id !== position.id) {
+                if (cached && shallowEqualArray(cached.values, values)) {
+                    values = cached.values;
+                    tag = cached.tag;
+                    props = cached.props;
+                    nextCacheByValues[id] = cached;
+                    nextCacheByValues[position.id] = cached;
+                } else {
+                    cached = new CacheByValues(values, tag, props, id);
+                    nextCacheByValues[id] = cached;
+                    nextCacheByValues[position.id] = cached;
+                }
+            } else {
+                nextCacheByValues[position.id] = cached;
             }
         }
 
         if (isTag) {
-            position.incrementPosition();
-
             return jsx.tag(
                 tag,
                 props,
                 parentNode => result[4](values, position.addPositionLevel(parentNode), jsx),
-                position
+                id !== position.id ? position.updateId(id) : position
             );
         } else {
-            position = position.updateId(componentId);
-            nextCacheByValues[componentId] = prevNode;
             return jsx.component(
                 tag,
                 props,
                 jsx.template(result[4], values),
-                position
+                id !== position.id ? position.updateId(id) : position
             );
         }
     };
@@ -130,9 +139,9 @@ function calcComponentPosition(tag, props, position) {
     } else if (props.uniqid) {
         return `u${props.uniqid}`;
     } else if (props.key) {
-        return `${position}.k${props.key}`;
+        return position.replace(/\.\d+$/, `k${props.key}`);
     } else {
-        return `${position}.c`;
+        return `${position}c`;
     }
 }
 function getValuesFromArguments(args) {
@@ -164,16 +173,16 @@ function execChildrenStringify(config, jsx) {
         // TODO here that one place were traversing once all childs
         for (let i = 0, l = items.length; i < l; i++) {
             const item = items[i];
-            if (typeof item === 'function') {
-                const result = item(values, undefined, jsx);
-                if (Array.isArray(result)) {
-                    Array.prototype.push.apply(memo, result);
-                } else {
-                    memo.push(result);
-                }
+            // if (typeof item === 'function') {
+            const result = item(values, undefined, jsx);
+            if (Array.isArray(result)) {
+                Array.prototype.push.apply(memo, result);
             } else {
-                memo.push(item.exec(undefined, jsx));
+                memo.push(result);
             }
+            // } else {
+            //     memo.push(item.exec(undefined, jsx));
+            // }
         }
 
         return memo;
@@ -188,16 +197,16 @@ function execChildrenDom(config, jsx) {
         // TODO here that one place were traversing once all childs
         for (let i = 0, l = items.length; i < l; i++) {
             const item = items[i];
-            if (typeof item === 'function') {
-                const result = item(values, position.updateId(`${position.id}.${i}`), jsx);
-                if (Array.isArray(result)) {
-                    Array.prototype.push.apply(memo, result);
-                } else {
-                    memo.push(result);
-                }
+            // if (typeof item === 'function') {
+            const result = item(values, position.updateId(`${position.id}.${i}`), jsx);
+            if (Array.isArray(result)) {
+                Array.prototype.push.apply(memo, result);
             } else {
-                memo.push(item.exec(position.updateId(`${position.id}.${i}`), jsx));
+                memo.push(result);
             }
+            // } else {
+            //     memo.push(item.exec(position.updateId(`${position.id}.${i}`), jsx));
+            // }
         }
 
         return memo;
