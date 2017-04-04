@@ -27,6 +27,7 @@ class Events {
 
     emitNextTick(eventName, payload) {
         if (!this.nextTickTriggers[eventName]) {
+            this.nextTickTriggers[eventName] = true;
             nextTick(() => {
                 delete this.nextTickTriggers[eventName];
                 const { [eventName]: callbacks = [] } = this.callbacks;
