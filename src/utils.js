@@ -133,6 +133,7 @@ function throttle(fn, milliseconds, { leading }) {
 
                 if (!called) {
                     fn();
+                    called = true;
                 }
             }, milliseconds);
         } else {

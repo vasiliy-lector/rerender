@@ -73,13 +73,14 @@ function execComponentDom(config, jsx) {
             id = cached.id;
             isTag = typeof tag === 'string';
             nextCacheByValues[position.id] = cached;
+            nextCacheByValues[id] = cached;
         } else {
             tag = typeof result[1] === 'function' ? result[1](values) : result[1];
             isTag = typeof tag === 'string';
 
             if (isTag) {
                 props = result[2](new Attrs(), values);
-                id = props.special.key ? position.id.replace(/\.\d+$/, `k${props.special.key}`) : position.id;
+                id = props.special.key ? position.id.replace(/\.\d+$/, `.k${props.special.key}`) : position.id;
             } else {
                 props = result[2](tag.wrapper ? new PropsWrapper() : new Props(), values);
 
@@ -110,7 +111,7 @@ function execComponentDom(config, jsx) {
                     nextCacheByValues[position.id] = cached;
                 }
             } else {
-                nextCacheByValues[position.id] = cached;
+                nextCacheByValues[position.id] = new CacheByValues(values, tag, props, id);
             }
         }
 
@@ -139,7 +140,7 @@ function calcComponentPosition(tag, props, position) {
     } else if (props.uniqid) {
         return `u${props.uniqid}`;
     } else if (props.key) {
-        return position.replace(/\.\d+$/, `k${props.key}`);
+        return position.replace(/\.\d+$/, `.k${props.key}`);
     } else {
         return `${position}c`;
     }
