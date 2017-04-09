@@ -185,20 +185,21 @@ Patch.prototype = {
         }
     },
 
-    move(position, parentPosition, index, node) {
+    move(prevPosition, parentPosition, index, node) {
         this.toMove[node.id] = true;
         this.commands.push([
             types.MOVE,
-            position,
+            prevPosition,
             parentPosition,
             index
         ]);
     },
 
-    remove(prevNode) {
+    remove(prevNode, prevPosition) {
         this.commands.push([
             types.REMOVE,
-            prevNode
+            prevNode,
+            prevPosition
         ]);
     },
 
