@@ -69,7 +69,7 @@ function tagDiff(config) {
             if (node.tag !== tag) {
                 nextNode = new Tag(tag, attrs, nextNodePosition, position.id);
                 patch.replace(nextNodePosition, nextNode);
-            // root node of component with uniqid
+            // TODO: здесь сравнивать relativePosition
             } else if (/u[^.]+\.0$/.test(node.position.id) && node.position !== nextNodePosition) {
                 patch.move(node.position, position.getParentPosition(), position.getIndex(), nextNode);
                 nextNode.position = position;
