@@ -25,9 +25,10 @@ var parser = require('nano-parser'),
     tagName = find(/^[a-zA-Z][a-zA-Z0-9]*/),
     placeholder = next(),
     attrName = find(/^[a-zA-Z_][a-zA-Z0-9\-]*/),
-    booleanAttr = attrName.then(function(result) {
-        return [result, true];
-    }),
+    booleanAttr = attrName.then(function(result) { return function(memo) {
+        memo.push(result);
+        memo.push(true);
+    };}),
     quotedAttr = sequence(
         attrName,
         find('='),
@@ -43,9 +44,10 @@ var parser = require('nano-parser'),
                 required(find('"'))
             )
         )
-    ).then(function(result) {
-        return [result[0], result[2][1]];
-    }),
+    ).then(function(result) { return function(memo) {
+        memo.push(result[0]);
+        memo.push(result[2][1]);
+    };}),
     attrWithPlaceholder = sequence(
         attrName,
         find('='),
@@ -66,19 +68,15 @@ var parser = require('nano-parser'),
                 return result[1];
             })
         )
-    ).then(function(result) { return function(obj, values) {
-        obj[result[0]] = values[result[2]];
+    ).then(function(result) { return function(memo, values) {
+        memo.push(result[0]);
+        memo.push(values[result[2]]);
     };}),
     attrs = repeat(
         any(
-            placeholder.then(function(index) { return function(obj, values) {
-                var value = values[index],
-                    keys = Object.keys(value),
-                    i = keys.length;
-
-                while (i--) {
-                    obj[keys[i]] = value[keys[i]];
-                }
+            placeholder.then(function(index) { return function(memo, values) {
+                memo.push('...');
+                memo.push(values[index]);
             };}),
             attrWithPlaceholder,
             quotedAttr,
@@ -86,15 +84,10 @@ var parser = require('nano-parser'),
         ),
         whiteSpace
     ).then(function(results) { return function(values) {
-        var memo = {};
+        var memo = [];
 
         for (var i = 0, l = results.length; i < l; i++) {
-            var result = results[i];
-            if (typeof result === 'function') {
-                result(memo, values);
-            } else {
-                memo[result[0]] = result[1];
-            }
+            results[i](memo, values);
         }
 
         return memo;
@@ -157,6 +150,7 @@ var parser = require('nano-parser'),
             };})
         ))
     ).then(function(result) { return function(values) {
+        // TODO: optimize creating arrays: result[4](values, memo), outputMethod.apply(null, memo = [tag, attrs, ...children]);
         return outputMethod(
             typeof result[1] === 'function' ? result[1](values) : result[1],
             result[2](values),
@@ -173,7 +167,7 @@ var parser = require('nano-parser'),
         return result[1](values);
     }),
 
-    es6x = function es6x(templates) {
+    jsx = function jsx(templates) {
         for (var i = 1, l = arguments.length, values = Array(l - 1); i < l; i++) {
             values[i - 1] = arguments[i];
         }
@@ -181,7 +175,7 @@ var parser = require('nano-parser'),
         return root.parse(templates, values);
     };
 
-es6x.setOutputMethod = function setOutputMethod(method) {
+jsx.setOutputMethod = function setOutputMethod(method) {
     if (method) {
         outputMethod = function(tag, attrs, children) {
             var args = [tag, attrs];
@@ -197,4 +191,4 @@ es6x.setOutputMethod = function setOutputMethod(method) {
     }
 };
 
-module.exports = es6x;
+module.exports = jsx;
