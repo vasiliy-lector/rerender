@@ -25,4 +25,21 @@ describe('jsx', () => {
             children: []
         });
     });
+
+    it('should parse component with child', () => {
+        const Instance = { instance: true };
+
+        expect(jsx `<instance of=${Instance} text="Text of block"><p>Text from parent</p></instance>`).toEqual({
+            tag: 'instance',
+            attrs: [
+                'of', Instance,
+                'text', 'Text of block'
+            ],
+            children: [{
+                tag: 'p',
+                attrs: null,
+                children: ['Text from parent']
+            }]
+        });
+    });
 });

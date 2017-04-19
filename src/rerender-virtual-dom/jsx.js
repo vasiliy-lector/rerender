@@ -104,7 +104,7 @@ var parser = require('nano-parser'),
             whiteSpace,
             attrs
         )).then(function(result) { return function(values) {
-            return result ? result[1](values) : {};
+            return result ? result[1](values) : null;
         };}),
         optionalWhiteSpace,
         required(any(
