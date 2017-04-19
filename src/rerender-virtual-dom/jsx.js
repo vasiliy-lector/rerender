@@ -108,7 +108,7 @@ var parser = require('nano-parser'),
         };}),
         optionalWhiteSpace,
         required(any(
-            find('/>').then(function() { return []; }),
+            find('/>').then(function() { return null; }),
             sequence(
                 required(find('>')),
                 optionalWhiteSpace,
@@ -137,25 +137,26 @@ var parser = require('nano-parser'),
                     optionalWhiteSpace,
                     find('>')
                 ))
-            ).then(function(result) { return function(values) {
-                var memo = [],
-                    items = result[2] || [];
+            ).then(function(result) { return function(memo, values) {
+                var items = result[2] || [];
 
                 for (var i = 0, l = items.length; i < l; i++) {
                     var item = items[i];
-                    memo[i] = typeof item === 'function' ? item(values) : item;
+                    memo.push(typeof item === 'function' ? item(values) : item);
                 }
-
-                return memo;
             };})
         ))
     ).then(function(result) { return function(values) {
-        // TODO: optimize creating arrays: result[4](values, memo), outputMethod.apply(null, memo = [tag, attrs, ...children]);
-        return outputMethod(
+        const memo = [
             typeof result[1] === 'function' ? result[1](values) : result[1],
-            result[2](values),
-            typeof result[4] === 'function' ? result[4](values) : result[4]
-        );
+            result[2](values)
+        ];
+
+        if (typeof result[4] === 'function') {
+            result[4](memo, values);
+        }
+
+        return outputMethod.apply(null, memo);
     };}),
 
     root = sequence(
@@ -176,19 +177,7 @@ var parser = require('nano-parser'),
     };
 
 jsx.setOutputMethod = function setOutputMethod(method) {
-    if (method) {
-        outputMethod = function(tag, attrs, children) {
-            var args = [tag, attrs];
-
-            for (var i = 0, l = children.length; i < l; i++) {
-                args[i + 2] = children[i];
-            }
-
-            return method.apply(null, args);
-        };
-    } else {
-        outputMethod = defaultOutput;
-    }
+    outputMethod = method || defaultOutput;
 };
 
 module.exports = jsx;
