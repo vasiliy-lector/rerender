@@ -1,12 +1,7 @@
-import { createInstance } from './jsx';
-
-function renderServer(render, store) {
-    const jsx = createInstance({
-        store,
-        stringify: true
+function renderServer(rootTemplate, store) {
+    return rootTemplate.render({
+        store
     });
-
-    return render({ jsx }).exec(undefined, jsx);
 }
 
 export default renderServer;
