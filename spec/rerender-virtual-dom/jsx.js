@@ -42,4 +42,21 @@ describe('jsx', () => {
             }]
         });
     });
+
+    it('should work with components', () => {
+        const Component = {};
+        expect(jsx `<${Component}
+            id='id1'
+            value=${'value1'}
+            ${{ name: 'name1' }}
+        >Text</${Component}>`).toEqual({
+            tag: Component,
+            attrs: [
+                'id', 'id1',
+                'value', 'value1',
+                '...', { name: 'name1' }
+            ],
+            children: ['Text']
+        });
+    });
 });
