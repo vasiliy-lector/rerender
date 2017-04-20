@@ -1,10 +1,8 @@
 import { VNODE } from './types';
 
-function VNode(tag, attrs, position, id) {
+function VNode(tag, attrs) {
     this.tag = tag;
     this.attrs = attrs;
-    this.position = position;
-    this.id = id;
 }
 
 VNode.prototype = {

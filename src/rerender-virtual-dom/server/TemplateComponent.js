@@ -16,15 +16,17 @@ TemplateComponent.prototype = {
         let componentTemplate;
         const props = {};
 
-        for (let i = 0, l = this.props.length; i < l; i = i + 2) {
-            const name = this.props[i];
-            const value = this.props[i + 1];
-            if (name === '...' && typeof value === 'object') {
-                for (let key in value) {
-                    setProp(props, key, value[key]);
+        if (this.props) {
+            for (let i = 0, l = this.props.length; i < l; i = i + 2) {
+                const name = this.props[i];
+                const value = this.props[i + 1];
+                if (name === '...' && typeof value === 'object') {
+                    for (let key in value) {
+                        setProp(props, key, value[key]);
+                    }
+                } else {
+                    setProp(props, name, value);
                 }
-            } else {
-                setProp(props, name, value);
             }
         }
 
