@@ -1,5 +1,5 @@
 import { TEMPLATE } from '../types';
-import { escapeAttr } from '../../utils';
+import { escapeAttr, escapeHtml } from '../../utils';
 const VOID_TAGS = {
     area: true,
     base: true,
@@ -58,13 +58,19 @@ Template.prototype = {
         return attrs;
     },
 
-    renderChildren() {
-        return '';
+    renderChildrens(config) {
+        let children = '';
+
+        for (let i = 0, l = this.children.length; i < l; i++) {
+            children += renderChildren(this.children[i], config);
+        }
+
+        return children;
     },
 
     renderAsVNode(config) {
         const tag = this.instance;
-        const children = this.renderChildren(config);
+        const children = this.renderChildrens(config);
 
         return '<' + tag + this.renderAttrs() +
             (children === '' && VOID_TAGS[tag]
@@ -74,6 +80,23 @@ Template.prototype = {
 
     renderAsComponent() {}
 };
+
+function renderChildren(item, config) {
+    const type = typeof item;
+    let children = '';
+
+    if (type === 'object' && item.type === TEMPLATE) {
+        children += item.render(config);
+    } else if (Array.isArray(item)) {
+        for (let j = 0, l1 = item.length; j < l1; j++) {
+            children += renderChildren(item, config);
+        }
+    } else if (item) {
+        children += escapeHtml(item);
+    }
+
+    return children;
+}
 
 function renderAttr(name, value) {
     if (name.substr(0, 2) === 'on') {

@@ -51,17 +51,34 @@ describe('server Template', () => {
         });
     });
 
+    describe('method renderChildrens', () => {
+        it('should render text items', () => {
+            const template = new Template('p', ['id', 'block'], ['text 1;', 'another text']);
+
+            expect(template.renderChildrens()).toBe('text 1;another text');
+        });
+    });
+
     describe('method render', () => {
         it('should render p to string', () => {
-            const template = new Template('p', ['className', 'block']);
+            const template = new Template('p', ['className', 'block'], []);
 
             expect(template.render()).toBe('<p class="block"></p>');
         });
 
         it('should render void tag to string', () => {
-            const template = new Template('input', ['name', 'name1', 'id', 'id1']);
+            const template = new Template('input', ['name', 'name1', 'id', 'id1'], []);
 
             expect(template.render()).toBe('<input name="name1" id="id1" />');
+        });
+
+        it('should render p with childrens', () => {
+            const template = new Template('p', ['className', 'block'], [
+                'text 1',
+                'text 2'
+            ]);
+
+            expect(template.render()).toBe('<p class="block">text 1text 2</p>');
         });
     });
 });
