@@ -7,9 +7,12 @@ function simpleOutput(tag, attrs, ...children) {
         children
     };
 }
-jsx.setOutputMethod(simpleOutput);
 
 describe('jsx', () => {
+    beforeEach(() => {
+        jsx.setOutputMethod(simpleOutput);
+    });
+
     it('should convert simple div', () => {
         expect(jsx `<div className="block"></div>`).toEqual({
             tag: 'div',

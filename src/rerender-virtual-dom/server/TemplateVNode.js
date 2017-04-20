@@ -94,8 +94,14 @@ function renderChildren(item, config) {
     return children;
 }
 
+const SPECIAL_MEANING_ATTRS = {
+    ref: true,
+    key: true,
+    uniqid: true
+};
+
 function renderAttr(name, value) {
-    if (name.substr(0, 2) === 'on') {
+    if (name.substr(0, 2) === 'on' || SPECIAL_MEANING_ATTRS[name]) {
         return '';
     } else if (name === 'dataset') {
         const datasetKeys = Object.keys(value);

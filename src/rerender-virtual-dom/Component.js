@@ -1,6 +1,6 @@
-import { shallowEqual } from './utils';
+import { shallowEqual } from '../utils';
 
-function Component(props, children, { jsx, events, antibind }) {
+function Component(props, children, { events, antibind }) {
     this._componentMounted = false;
 
     // FIXME: move higher when init will be moved
@@ -15,7 +15,6 @@ function Component(props, children, { jsx, events, antibind }) {
     }
 
     this._events = events;
-    this.jsx = jsx;
     this.state = {};
     this.props = props;
     this.children = children;

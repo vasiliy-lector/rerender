@@ -18,7 +18,6 @@ var parser = require('nano-parser'),
         };
     },
     outputMethod = defaultOutput,
-    locked = false,
 
     whiteSpace = find(/^\s+/),
     optionalWhiteSpace = optional(whiteSpace),
@@ -177,13 +176,8 @@ var parser = require('nano-parser'),
         return root.parse(templates, values);
     };
 
-jsx.setOutputMethod = function setOutputMethod(method, lock = false) {
-    if (locked) {
-        return;
-    }
-
+jsx.setOutputMethod = function setOutputMethod(method) {
     outputMethod = method || defaultOutput;
-    locked = lock;
 };
 
 module.exports = jsx;
