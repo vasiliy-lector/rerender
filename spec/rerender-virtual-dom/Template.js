@@ -52,10 +52,16 @@ describe('server Template', () => {
     });
 
     describe('method render', () => {
-        it('should render VNode to string', () => {
+        it('should render p to string', () => {
             const template = new Template('p', ['className', 'block']);
 
             expect(template.render()).toBe('<p class="block"></p>');
+        });
+
+        it('should render void tag to string', () => {
+            const template = new Template('input', ['name', 'name1', 'id', 'id1']);
+
+            expect(template.render()).toBe('<input name="name1" id="id1" />');
         });
     });
 });
