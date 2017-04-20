@@ -29,9 +29,9 @@ Template.prototype = {
 
     render(config) {
         if (typeof this.instance === 'string') {
-            this.renderAsVNode(config);
+            return this.renderAsVNode(config);
         } else {
-            this.renderAsComponent(config);
+            return this.renderAsComponent(config);
         }
     },
 
@@ -56,6 +56,10 @@ Template.prototype = {
         }
 
         return attrs;
+    },
+
+    renderChildren() {
+        return '';
     },
 
     renderAsVNode(config) {
@@ -86,6 +90,7 @@ function renderAttr(name, value) {
     } else if (name === 'style') {
         return ` style="${escapeStyle(value)}"`;
     } else {
+        // TODO: validate name
         return ' ' + convertAttrName(name) + (value ===  true
             ? ''
             : `="${escapeAttr(value)}"`);

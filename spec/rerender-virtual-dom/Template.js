@@ -5,10 +5,24 @@ describe('server Template', () => {
         it('should return attr string for id', () => {
             expect(renderAttr('id', 'block')).toBe(' id="block"');
         });
+
         it('should return attr string for className', () => {
             expect(renderAttr('className', 'block')).toBe(' class="block"');
         });
+
+        it('should return attr string for dataset', () => {
+            expect(renderAttr('dataset', { id: 'id1', name: 'name1' })).toBe(' data-id="id1" data-name="name1"');
+        });
+
+        it('should return attr string for style', () => {
+            expect(renderAttr('style', { borderRightColor: 'red', border: '0 none' })).toBe(' style="border-right-color:red;border:0 none;"');
+        });
+
+        it('should return empty string for event attr', () => {
+            expect(renderAttr('onClick', () => {})).toBe('');
+        });
     });
+
     describe('method renderAttrs', () => {
         it('should return attrs in simple case', () => {
             const template = new Template('p', ['id', 'block']);
@@ -30,13 +44,18 @@ describe('server Template', () => {
 
         it('should return only last value in dots case', () => {
             const template = new Template('p', ['...', { id: 'id1' }, 'id', 'id2']);
+            const template2 = new Template('p', ['id', 'id2', '...', { id: 'id1' }]);
 
             expect(template.renderAttrs()).toBe(' id="id2"');
+            expect(template2.renderAttrs()).toBe(' id="id1"');
         });
     });
-    // it('should render VNode to string', () => {
-    //     const template = new Template('p', ['className', 'block'], ['text']);
-    //
-    //     expect(template.render({})).toBe('<p class="block">text</p>');
-    // });
+
+    describe('method render', () => {
+        it('should render VNode to string', () => {
+            const template = new Template('p', ['className', 'block']);
+
+            expect(template.render()).toBe('<p class="block"></p>');
+        });
+    });
 });
