@@ -30,6 +30,14 @@ describe('server Template', () => {
             expect(template.renderAttrs()).toBe(' id="block"');
         });
 
+        it('should correcty work with null and undefined attrs', () => {
+            const template = new Template('p', null);
+            const template2 = new Template('p');
+
+            expect(template.renderAttrs()).toBe('');
+            expect(template2.renderAttrs()).toBe('');
+        });
+
         it('should return attrs in dots case', () => {
             const template = new Template('p', ['...', { className: 'block', id: 'id1' }]);
 
@@ -56,6 +64,14 @@ describe('server Template', () => {
             const template = new Template('p', ['id', 'block'], ['text 1;', 'another text']);
 
             expect(template.renderChildrens()).toBe('text 1;another text');
+        });
+
+        it('should render compoents items', () => {
+            const children1 = new Template('span', null, 'text 1');
+            const children2 = new Template('span', null, 'text 2');
+            const template = new Template('p', ['id', 'block'], [children1, children2]);
+
+            expect(template.renderChildrens()).toBe('<span>text 1</span><span>text 2</span>');
         });
     });
 

@@ -39,19 +39,21 @@ Template.prototype = {
         let attrs = '';
         const setted = {};
 
-        for (let i = this.props.length - 1; i > 0; i = i - 2) {
-            const value = this.props[i];
-            const name = this.props[i - 1];
-            if (name === '...' && typeof value === 'object') {
-                for (let key in value) {
-                    if (!setted[key]) {
-                        attrs = renderAttr(key, value[key]) + attrs;
-                        setted[key] = true;
+        if (this.props) {
+            for (let i = this.props.length - 1; i > 0; i = i - 2) {
+                const value = this.props[i];
+                const name = this.props[i - 1];
+                if (name === '...' && typeof value === 'object') {
+                    for (let key in value) {
+                        if (!setted[key]) {
+                            attrs = renderAttr(key, value[key]) + attrs;
+                            setted[key] = true;
+                        }
                     }
+                } else if (!setted[name]) {
+                    attrs = renderAttr(name, value) + attrs;
+                    setted[name] = true;
                 }
-            } else if (!setted[name]) {
-                attrs = renderAttr(name, value) + attrs;
-                setted[name] = true;
             }
         }
 
@@ -61,8 +63,10 @@ Template.prototype = {
     renderChildrens(config) {
         let children = '';
 
-        for (let i = 0, l = this.children.length; i < l; i++) {
-            children += renderChildren(this.children[i], config);
+        if (this.children) {
+            for (let i = 0, l = this.children.length; i < l; i++) {
+                children += renderChildren(this.children[i], config);
+            }
         }
 
         return children;
