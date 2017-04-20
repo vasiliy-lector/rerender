@@ -85,9 +85,9 @@ describe('server Template', () => {
         it('should escape special symbols', () => {
             const children1 = new Template('span', null, 'text < 1');
             const children2 = new Template('span', null, 'text > 2');
-            const template = new Template('p', null, [children1, children2, 'text > me', '&']);
+            const template = new Template('p', null, [children1, children2, 'text > me;', '&', ['array >', 'array <', 'array value with &amp;']]);
 
-            expect(template.renderChildrens()).toBe('<span>text &lt; 1</span><span>text &gt; 2</span>text &gt; me&amp;');
+            expect(template.renderChildrens()).toBe('<span>text &lt; 1</span><span>text &gt; 2</span>text &gt; me;&amp;array &gt;array &lt;array value with &amp;amp;');
         });
     });
 
