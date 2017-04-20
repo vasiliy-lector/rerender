@@ -1,5 +1,6 @@
 import { TEMPLATE, TEMPLATE_VNODE } from '../types';
 import { escapeAttr, escapeHtml } from '../../utils';
+
 const VOID_TAGS = {
     area: true,
     base: true,
@@ -27,14 +28,6 @@ function TemplateVNode(instance, props, children) {
 TemplateVNode.prototype = {
     type: TEMPLATE,
     subtype: TEMPLATE_VNODE,
-
-    render(config) {
-        if (typeof this.instance === 'string') {
-            return this.renderAsVNode(config);
-        } else {
-            return this.renderAsComponent(config);
-        }
-    },
 
     renderAttrs() {
         let attrs = '';
@@ -73,7 +66,7 @@ TemplateVNode.prototype = {
         return children;
     },
 
-    renderAsVNode(config) {
+    render(config) {
         const tag = this.instance;
         const children = this.renderChildrens(config);
 
@@ -81,9 +74,7 @@ TemplateVNode.prototype = {
             (children === '' && VOID_TAGS[tag]
                 ? ' />'
                 : '>' + children + '</' + tag + '>');
-    },
-
-    renderAsComponent() {}
+    }
 };
 
 function renderChildren(item, config) {
