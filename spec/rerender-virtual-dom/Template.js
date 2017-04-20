@@ -66,12 +66,28 @@ describe('server Template', () => {
             expect(template.renderChildrens()).toBe('text 1;another text');
         });
 
-        it('should render compoents items', () => {
+        it('should render components items', () => {
             const children1 = new Template('span', null, 'text 1');
             const children2 = new Template('span', null, 'text 2');
-            const template = new Template('p', ['id', 'block'], [children1, children2]);
+            const template = new Template('p', null, [children1, children2]);
 
             expect(template.renderChildrens()).toBe('<span>text 1</span><span>text 2</span>');
+        });
+
+        it('should render components in one array', () => {
+            const children1 = new Template('span', null, 'text 1');
+            const children2 = new Template('span', null, 'text 2');
+            const template = new Template('p', null, [[children1, children2], 'text']);
+
+            expect(template.renderChildrens()).toBe('<span>text 1</span><span>text 2</span>text');
+        });
+
+        it('should escape special symbols', () => {
+            const children1 = new Template('span', null, 'text < 1');
+            const children2 = new Template('span', null, 'text > 2');
+            const template = new Template('p', null, [children1, children2, 'text > me', '&']);
+
+            expect(template.renderChildrens()).toBe('<span>text &lt; 1</span><span>text &gt; 2</span>text &gt; me&amp;');
         });
     });
 

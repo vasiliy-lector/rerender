@@ -93,7 +93,7 @@ function renderChildren(item, config) {
         children += item.render(config);
     } else if (Array.isArray(item)) {
         for (let j = 0, l1 = item.length; j < l1; j++) {
-            children += renderChildren(item, config);
+            children += renderChildren(item[j], config);
         }
     } else if (item) {
         children += escapeHtml(item);

@@ -31,7 +31,7 @@ function escapeHtml(value) {
     } else {
         for (var i = 0, l = string.length; i < l; i++) {
             var char = string[i];
-            if (char === '<' || char === '>') {
+            if (char === '<' || char === '>' || char === '&') {
                 return escapeHtmlHeavy(string);
             }
         }
