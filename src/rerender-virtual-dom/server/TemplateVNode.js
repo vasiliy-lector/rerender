@@ -1,4 +1,4 @@
-import { TEMPLATE } from '../types';
+import { TEMPLATE, TEMPLATE_VNODE } from '../types';
 import { escapeAttr, escapeHtml } from '../../utils';
 const VOID_TAGS = {
     area: true,
@@ -18,14 +18,15 @@ const VOID_TAGS = {
     wbr: true
 };
 
-function Template(instance, props, children) {
+function TemplateVNode(instance, props, children) {
     this.instance = instance;
     this.props = props;
     this.children = children;
 }
 
-Template.prototype = {
+TemplateVNode.prototype = {
     type: TEMPLATE,
+    subtype: TEMPLATE_VNODE,
 
     render(config) {
         if (typeof this.instance === 'string') {
@@ -230,5 +231,5 @@ function convertUpper(match) {
     return '-' + match.toLowerCase();
 }
 
-export default Template;
 export { renderAttr };
+export default TemplateVNode;

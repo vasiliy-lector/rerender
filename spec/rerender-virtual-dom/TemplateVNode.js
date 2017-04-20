@@ -1,4 +1,4 @@
-import Template, { renderAttr } from '../../src/rerender-virtual-dom/server/Template';
+import Template, { renderAttr } from '../../src/rerender-virtual-dom/server/TemplateVNode';
 
 describe('server Template', () => {
     describe('renderAttr', () => {

@@ -1,5 +1,5 @@
 import createTemplateServer from '../../src/rerender-virtual-dom/createTemplateServer';
-import Template from '../../src/rerender-virtual-dom/server/Template';
+import Template from '../../src/rerender-virtual-dom/server/TemplateVNode';
 
 describe('createTemplateServer', () => {
     it('should return instance of template', () => {

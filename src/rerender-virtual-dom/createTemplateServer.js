@@ -1,5 +1,8 @@
-import Template from './server/Template';
+import TemplateVNode from './server/TemplateVNode';
+import TemplateComponent from './server/TemplateComponent';
 
-export default function createTemplateServer(tag, attrs, ...children) {
-    return new Template(tag, attrs, children);
+export default function createTemplateServer(instance, props, ...children) {
+    return typeof instance === 'string'
+        ? new TemplateVNode(instance, props, children)
+        : new TemplateComponent(instance, props, children);
 }
