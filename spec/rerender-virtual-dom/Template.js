@@ -27,6 +27,12 @@ describe('server Template', () => {
 
             expect(template.renderAttrs()).toBe(' class="block" id="id3"');
         });
+
+        it('should return only last value in dots case', () => {
+            const template = new Template('p', ['...', { id: 'id1' }, 'id', 'id2']);
+
+            expect(template.renderAttrs()).toBe(' id="id2"');
+        });
     });
     // it('should render VNode to string', () => {
     //     const template = new Template('p', ['className', 'block'], ['text']);
