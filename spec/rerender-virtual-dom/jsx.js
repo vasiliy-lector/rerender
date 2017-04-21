@@ -16,7 +16,9 @@ describe('jsx', () => {
     it('should convert simple div', () => {
         expect(jsx `<div className="block"></div>`).toEqual({
             tag: 'div',
-            attrs: ['className', 'block'],
+            attrs: {
+                className: 'block'
+            },
             children: []
         });
     });
@@ -24,7 +26,10 @@ describe('jsx', () => {
     it('should convert simple div with prop', () => {
         expect(jsx `<div className="block" id=${'id1'}></div>`).toEqual({
             tag: 'div',
-            attrs: ['className', 'block', 'id', 'id1'],
+            attrs: {
+                className: 'block',
+                id: 'id1'
+            },
             children: []
         });
     });
@@ -34,10 +39,10 @@ describe('jsx', () => {
 
         expect(jsx `<instance of=${Instance} text="Text of block"><p>Text from parent</p></instance>`).toEqual({
             tag: 'instance',
-            attrs: [
-                'of', Instance,
-                'text', 'Text of block'
-            ],
+            attrs: {
+                of: Instance,
+                text: 'Text of block'
+            },
             children: [{
                 tag: 'p',
                 attrs: null,
@@ -54,11 +59,11 @@ describe('jsx', () => {
             ${{ name: 'name1' }}
         >Text</${Component}>`).toEqual({
             tag: Component,
-            attrs: [
-                'id', 'id1',
-                'value', 'value1',
-                '...', { name: 'name1' }
-            ],
+            attrs: {
+                id: 'id1',
+                value: 'value1',
+                name: 'name1'
+            },
             children: ['Text']
         });
     });

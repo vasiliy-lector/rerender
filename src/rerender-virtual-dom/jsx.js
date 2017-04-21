@@ -26,8 +26,7 @@ var parser = require('nano-parser'),
     placeholder = next(),
     attrName = find(/^[a-zA-Z_][a-zA-Z0-9\-]*/),
     booleanAttr = attrName.then(function(result) { return function(memo) {
-        memo.push(result);
-        memo.push(true);
+        memo[result] = true;
     };}),
     quotedAttr = sequence(
         attrName,
@@ -45,8 +44,7 @@ var parser = require('nano-parser'),
             )
         )
     ).then(function(result) { return function(memo) {
-        memo.push(result[0]);
-        memo.push(result[2][1]);
+        memo[result[0]] = result[2][1];
     };}),
     attrWithPlaceholder = sequence(
         attrName,
@@ -69,14 +67,14 @@ var parser = require('nano-parser'),
             })
         )
     ).then(function(result) { return function(memo, values) {
-        memo.push(result[0]);
-        memo.push(values[result[2]]);
+        memo[result[0]] = values[result[2]];
     };}),
     attrs = repeat(
         any(
             placeholder.then(function(index) { return function(memo, values) {
-                memo.push('...');
-                memo.push(values[index]);
+                for (var key in values[index]) {
+                    memo[key] = values[index][key];
+                }
             };}),
             attrWithPlaceholder,
             quotedAttr,
@@ -84,7 +82,7 @@ var parser = require('nano-parser'),
         ),
         whiteSpace
     ).then(function(results) { return function(values) {
-        var memo = [];
+        var memo = {};
 
         for (var i = 0, l = results.length; i < l; i++) {
             results[i](memo, values);

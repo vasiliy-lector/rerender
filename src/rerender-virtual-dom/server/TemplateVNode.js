@@ -31,49 +31,38 @@ TemplateVNode.prototype = {
 
     renderAttrs() {
         let attrs = '';
-        const setted = {};
 
-        if (this.props) {
-            for (let i = this.props.length - 1; i > 0; i = i - 2) {
-                const value = this.props[i];
-                const name = this.props[i - 1];
-                if (name === '...' && typeof value === 'object') {
-                    for (let key in value) {
-                        if (!setted[key]) {
-                            attrs = renderAttr(key, value[key]) + attrs;
-                            setted[key] = true;
-                        }
-                    }
-                } else if (!setted[name]) {
-                    attrs = renderAttr(name, value) + attrs;
-                    setted[name] = true;
-                }
-            }
+        if (!this.props) {
+            return attrs;
+        }
+
+        for (let name in this.props) {
+            attrs += renderAttr(name, this.props[name]);
         }
 
         return attrs;
     },
 
-    renderChildrens(config) {
-        let children = '';
+    renderChildNodes(config) {
+        let childNodes = '';
 
         if (this.children) {
             for (let i = 0, l = this.children.length; i < l; i++) {
-                children += renderChildren(this.children[i], config);
+                childNodes += renderChildren(this.children[i], config);
             }
         }
 
-        return children;
+        return childNodes;
     },
 
     render(config) {
         const tag = this.instance;
-        const children = this.renderChildrens(config);
+        const childNodes = this.renderChildNodes(config);
 
         return '<' + tag + this.renderAttrs() +
-            (children === '' && VOID_TAGS[tag]
+            (childNodes === '' && VOID_TAGS[tag]
                 ? ' />'
-                : '>' + children + '</' + tag + '>');
+                : '>' + childNodes + '</' + tag + '>');
     }
 };
 

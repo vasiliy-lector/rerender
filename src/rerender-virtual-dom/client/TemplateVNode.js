@@ -12,46 +12,55 @@ TemplateVNode.prototype = {
     type: TEMPLATE,
     subtype: TEMPLATE_VNODE,
 
-    renderAttrs() {
-        // let attrs = '';
-        // const setted = {};
-        //
-        // if (this.props) {
-        //     for (let i = this.props.length - 1; i > 0; i = i - 2) {
-        //         const value = this.props[i];
-        //         const name = this.props[i - 1];
-        //         if (name === '...' && typeof value === 'object') {
-        //             for (let key in value) {
-        //                 if (!setted[key]) {
-        //                     attrs = renderAttr(key, value[key]) + attrs;
-        //                     setted[key] = true;
-        //                 }
-        //             }
-        //         } else if (!setted[name]) {
-        //             attrs = renderAttr(name, value) + attrs;
-        //             setted[name] = true;
-        //         }
-        //     }
-        // }
-        //
-        // return attrs;
-    },
+    // renderChildNodes(config, context) {
+    //     if (!this.children) {
+    //         return null;
+    //     }
+    //
+    //     let childNodes = [];
+    //
+    //     for (let i = 0, l = children.length; i < l; i++) {
+    //         const item = this.children[i];
+    //         const type = typeof item;
+    //
+    //         if (type === 'object' && item.type === TEMPLATE) {
+    //             childNodes.push(item.render(config, context));
+    //         } else if (Array.isArray(item)) {
+    //             for (let j = 0, l1 = item.length; j < l1; j++) {
+    //                 childNodes.push(renderChildren(item[j], config, context));
+    //             }
+    //         } else {
+    //             childNodes.push(
+    //                 new VText(item || '', context.parentNode, context.parentDomNode)
+    //             );
+    //         }
+    //     }
+    //
+    //     return childNodes;
+    //  },
 
-    renderChildrens(/* config */) {
-        // let children = '';
-        //
-        // if (this.children) {
-        //     for (let i = 0, l = this.children.length; i < l; i++) {
-        //         children += renderChildren(this.children[i], config);
-        //     }
-        // }
-        //
-        // return children;
-    },
+    render(config, context) {
+        const nextNode = new VNode(this.instance, this.props, context.parentNode, context.parentDomNode);
+        // const childContext = context.setParent(nextNode, nextNode);
+        // const childNodes = this.renderChildNodes(config, childContext);
+        // nextNode.setChildNodes(childNodes);
 
-    render(config) {
-        return new VNode(this.instance, this.props);
+        return nextNode;
     }
 };
+
+// function renderChildren(item, config, context) {
+//     if (type === 'object' && item.type === TEMPLATE) {
+//         childNodes.push(item.render(config, context));
+//     } else if (Array.isArray(item)) {
+//         for (let j = 0, l1 = item.length; j < l1; j++) {
+//             childNodes.push(renderChildren(item[j], config, context));
+//         }
+//     } else {
+//         childNodes.push(
+//             new VText(item || '', context.parentNode, context.parentDomNode)
+//         );
+//     }
+// }
 
 export default TemplateVNode;

@@ -17,7 +17,7 @@ function executeTests(message) {
         debug('. ');
     }, 1000);
 
-    spawn('npm', ['test', 'spec/rerender-virtual-dom/*'])
+    spawn('npm', ['test', 'spec/rerender-virtual-dom/**/*.js', 'spec/rerender-virtual-dom/*.js'])
         .on('close', code => {
             isExecuting = false;
             clearTimeout(timeout);

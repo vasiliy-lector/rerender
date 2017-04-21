@@ -1,4 +1,4 @@
-import Template, { renderAttr } from '../../src/rerender-virtual-dom/server/TemplateVNode';
+import Template, { renderAttr } from '../../../src/rerender-virtual-dom/server/TemplateVNode';
 
 describe('server Template', () => {
     describe('renderAttr', () => {
@@ -25,7 +25,7 @@ describe('server Template', () => {
 
     describe('method renderAttrs', () => {
         it('should return attrs in simple case', () => {
-            const template = new Template('p', ['id', 'block']);
+            const template = new Template('p', { id: 'block' });
 
             expect(template.renderAttrs()).toBe(' id="block"');
         });
@@ -37,33 +37,13 @@ describe('server Template', () => {
             expect(template.renderAttrs()).toBe('');
             expect(template2.renderAttrs()).toBe('');
         });
-
-        it('should return attrs in dots case', () => {
-            const template = new Template('p', ['...', { className: 'block', id: 'id1' }]);
-
-            expect(template.renderAttrs()).toBe(' id="id1" class="block"');
-        });
-
-        it('should return only last value', () => {
-            const template = new Template('p', ['id', 'id1', 'id', 'id2', 'className', 'block', 'id', 'id3']);
-
-            expect(template.renderAttrs()).toBe(' class="block" id="id3"');
-        });
-
-        it('should return only last value in dots case', () => {
-            const template = new Template('p', ['...', { id: 'id1' }, 'id', 'id2']);
-            const template2 = new Template('p', ['id', 'id2', '...', { id: 'id1' }]);
-
-            expect(template.renderAttrs()).toBe(' id="id2"');
-            expect(template2.renderAttrs()).toBe(' id="id1"');
-        });
     });
 
-    describe('method renderChildrens', () => {
+    describe('method renderChildNodes', () => {
         it('should render text items', () => {
-            const template = new Template('p', ['id', 'block'], ['text 1;', 'another text']);
+            const template = new Template('p', null, ['text 1;', 'another text']);
 
-            expect(template.renderChildrens()).toBe('text 1;another text');
+            expect(template.renderChildNodes()).toBe('text 1;another text');
         });
 
         it('should render components items', () => {
@@ -71,7 +51,7 @@ describe('server Template', () => {
             const children2 = new Template('span', null, 'text 2');
             const template = new Template('p', null, [children1, children2]);
 
-            expect(template.renderChildrens()).toBe('<span>text 1</span><span>text 2</span>');
+            expect(template.renderChildNodes()).toBe('<span>text 1</span><span>text 2</span>');
         });
 
         it('should render components in one array', () => {
@@ -79,7 +59,7 @@ describe('server Template', () => {
             const children2 = new Template('span', null, 'text 2');
             const template = new Template('p', null, [[children1, children2], 'text']);
 
-            expect(template.renderChildrens()).toBe('<span>text 1</span><span>text 2</span>text');
+            expect(template.renderChildNodes()).toBe('<span>text 1</span><span>text 2</span>text');
         });
 
         it('should escape special symbols', () => {
@@ -87,25 +67,28 @@ describe('server Template', () => {
             const children2 = new Template('span', null, 'text > 2');
             const template = new Template('p', null, [children1, children2, 'text > me;', '&', ['array >', 'array <', 'array value with &amp;']]);
 
-            expect(template.renderChildrens()).toBe('<span>text &lt; 1</span><span>text &gt; 2</span>text &gt; me;&amp;array &gt;array &lt;array value with &amp;amp;');
+            expect(template.renderChildNodes()).toBe('<span>text &lt; 1</span><span>text &gt; 2</span>text &gt; me;&amp;array &gt;array &lt;array value with &amp;amp;');
         });
     });
 
     describe('method render', () => {
         it('should render p to string', () => {
-            const template = new Template('p', ['className', 'block'], []);
+            const template = new Template('p', { className: 'block' }, []);
 
             expect(template.render()).toBe('<p class="block"></p>');
         });
 
         it('should render void tag to string', () => {
-            const template = new Template('input', ['name', 'name1', 'id', 'id1'], []);
+            const template = new Template('input', {
+                name: 'name1',
+                id: 'id1'
+            }, []);
 
             expect(template.render()).toBe('<input name="name1" id="id1" />');
         });
 
         it('should render p with childrens', () => {
-            const template = new Template('p', ['className', 'block'], [
+            const template = new Template('p', { className: 'block' }, [
                 'text 1',
                 'text 2'
             ]);

@@ -1,12 +1,18 @@
-import { VNODE } from './types';
+import { VNODE } from '../types';
 
-function VNode(tag, attrs) {
+function VNode(tag, attrs, parentNode, parentDomNode) {
     this.tag = tag;
     this.attrs = attrs;
+    this.parentNode = parentNode;
+    this.parentDomNode = parentDomNode;
 }
 
 VNode.prototype = {
-    type: VNODE
+    type: VNODE,
+
+    setChildNodes(childNodes) {
+        this.childNodes = childNodes;
+    }
 };
 
 export default VNode;
