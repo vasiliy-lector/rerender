@@ -1,11 +1,11 @@
-import { VText } from '../types';
+import { VTEXT } from '../types';
 
-function Text(value) {
+function VText(value) {
     this.value = value || '';
 }
 
-Text.prototype = {
-    type: VText
+VText.prototype = {
+    type: VTEXT
 };
 
-export default Text;
+export default VText;

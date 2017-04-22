@@ -7,7 +7,7 @@ describe('server Template', () => {
             const props = { className: 'block' };
             const template = new Template('p', props);
 
-            expect(template.render({}, {})).toEqual(new VNode('p', { className: 'block' }));
+            expect(template.render({}, {})).toEqual(new VNode('p', props));
         });
     });
 });
