@@ -1,48 +1,33 @@
 import Events from '../Events';
 import Component from '../Component';
-import Position from './Position';
-import Props from './Props';
-import Patch from './Patch';
+import Context from './Context';
+// TODO
+import { createNormalizePatch, diff } from './patch';
 import { throttle } from '../utils';
 import { debug } from '../debug';
-import { createInstance } from './jsx';
 import createElement from '../virtualDom/createElement';
 
 const RENDER_THROTTLE = 16;
-const ROOT_PROPS = new Props();
-const ROOT_CHILDREN_VALUE = [];
-const ROOT_CHILDREN = () => ROOT_CHILDREN_VALUE;
-let ROOT_POSITION;
 
-function renderClient(rootComponent, store, domNode, { document = self.document } = {}) {
-    ROOT_POSITION = new Position('r', { parentNode: domNode, parentPosition: '', index: -1 });
+function renderClient(rootTemplate, store, domNode, { document = self.document } = {}) {
     const events = new Events();
-    const instances = {};
-    const nextInstances = {};
-    const nextNewInstances = {};
-    const nodes = {};
-    const nextNodes = {};
-    const cacheByValues = {};
-    const nextCacheByValues = {};
-    const patch = new Patch(domNode, document);
-    const jsx = createInstance({
+    const config = {
         store,
         events,
-        method: 'create',
-        patch,
-        instances,
-        nextInstances,
-        nextNewInstances,
-        nodes,
-        nextNodes,
-        cacheByValues,
-        nextCacheByValues,
-        document
-    });
+        components: {},
+        nextComponents: {},
+        mountComponents: {},
+        updateComponents: {},
+        nodes: {},
+        nextNodes: {}
+    };
+    const context = new Context();
     // const start = performance.now();
-    const nextVirtualDom = jsx.component(rootComponent, ROOT_PROPS, ROOT_CHILDREN, ROOT_POSITION);
-    const nextFirstChild = createElement(nextVirtualDom, document);
+    const nextVirtualDom = rootTemplate.render(config, context);
+    const nextFirstChild = createElement(findRootDomNode(nextVirtualDom), document);
     const firstChild = domNode.childNodes[0];
+
+    const normalizePatch = createNormalizePatch(config.nextNodes);
 
     if (!firstChild) {
         domNode.appendChild(nextFirstChild);
@@ -50,97 +35,89 @@ function renderClient(rootComponent, store, domNode, { document = self.document 
         debug.warn('Server and client html do not match!');
         domNode.replaceChild(nextFirstChild, firstChild);
     } else {
-        patch.applyNormalize();
+        normalizePatch.apply(domNode, document);
     }
-    patch.applySetRefs();
+    normalizePatch.applySetRefs();
     // const end = performance.now();
     // debug.log((end - start).toFixed(3), 'ms');
 
-    mount(nextNewInstances);
+    mount(config.mountComponents);
 
-    events.on('rerender', rerenderClient({
-        rootComponent,
+    config.events.on('rerender', rerenderClient({
+        rootTemplate,
         store,
         events,
         domNode,
-        prevNodes: nextNodes,
-        prevInstances: nextInstances,
-        prevCacheByValues: nextCacheByValues,
+        prevNodes: config.nextNodes,
+        prevComponents: config.nextComponents,
         prevVirtualDom: nextVirtualDom,
         document
     }));
 }
 
 function rerenderClient({
-    rootComponent,
+    rootTemplate,
     store,
     events,
     document,
     domNode,
     prevNodes,
-    prevInstances,
-    prevVirtualDom,
-    prevCacheByValues
+    prevComponents,
+    prevVirtualDom
 }) {
-    let instances = prevInstances;
+    let components = prevComponents;
     let nodes = prevNodes;
-    let cacheByValues = prevCacheByValues;
     let virtualDom = prevVirtualDom;
-    const config = {
-        store,
-        events,
-        document,
-        method: 'diff'
-    };
-    const jsx = createInstance(config);
 
     return throttle(function() {
-        ROOT_POSITION = new Position('r', { parentNode: domNode, parentPosition: '', index: -1 });
-        config.nextInstances = {};
-        config.nextNewInstances = {};
-        config.nextNodes = {};
-        config.nodes = nodes;
-        config.instances = instances;
-        config.cacheByValues = cacheByValues;
-        config.virtualDom = virtualDom;
-        config.nextCacheByValues = {};
-        config.patch = new Patch(domNode, document);
+        const config = {
+            store,
+            events,
+            nextComponents: {},
+            mountComponents: {},
+            updateComponents: {},
+            nextNodes: {},
+            nodes,
+            components,
+            virtualDom: virtualDom
+        };
 
-        virtualDom = jsx.component(rootComponent, ROOT_PROPS, ROOT_CHILDREN, ROOT_POSITION);
+        const context = new Context();
+        virtualDom = rootTemplate.render(config, context);
 
-        for (let id in config.nodes) {
-            config.patch.remove(config.nodes[id], config.nodes[id].position);
-        }
-
-        unmount(instances);
+        // TODO: find unmount instances in components vs nextComponents
+        unmount(config.unmountComponents);
         nodes = config.nextNodes;
-        instances = config.nextInstances;
-        cacheByValues = config.nextCacheByValues;
+        components = config.nextComponents;
+        const patch = diff(config.nodes, config.nextNodes);
+
         // TODO blur problem when moving component with focus
-        config.patch.apply();
-        mount(config.nextNewInstances);
+        patch.apply(domNode, document);
+        update(config.updateComponents);
+        mount(config.mountComponents);
     }, RENDER_THROTTLE, { leading: true });
 }
 
 function mount(instances) {
-    const keys = Object.keys(instances);
-
-    for (let i = 0, l = keys.length; i < l; i++) {
-        Component.mount(instances[keys[i]]);
+    for (let id in instances) {
+        Component.mount(instances[id]);
     }
 }
 
 function unmount(instances) {
-    const keys = Object.keys(instances);
-
-    for (let i = 0, l = keys.length; i < l; i++) {
-        const instance = instances[keys[i]].instance;
-        if (instance) {
-            // TODO singleton and uniqid logic here (+ timelife static prop feature)
-            Component.unmount(instance);
-            Component.destroy(instance);
-        }
+    for (let id in instances) {
+        const instance = instances[id];
+        Component.unmount(instance);
+        Component.destroy(instance);
     }
+}
+
+// FIXME
+function update() {}
+
+// FIXME
+function findRootDomNode(virtualDom) {
+    return virtualDom;
 }
 
 export default renderClient;

@@ -5,13 +5,18 @@ function VNode(tag, attrs, parentNode, parentDomNode) {
     this.attrs = attrs;
     this.parentNode = parentNode;
     this.parentDomNode = parentDomNode;
+    this.childNodes = [];
 }
 
 VNode.prototype = {
     type: VNODE,
 
-    setChildNodes(childNodes) {
-        this.childNodes = childNodes;
+    setChilds(childs) {
+        this.childs = childs;
+    },
+
+    appendChild(childNode) {
+        this.childNodes.push(childNode);
     }
 };
 

@@ -27,8 +27,13 @@ TemplateVNode.prototype = {
     type: TEMPLATE,
     subtype: TEMPLATE_VNODE,
 
-    render() {
+    renderChildNodes() {},
+
+    render(config, context) {
         const nextNode = new VNode(this.tag, this.attrs);
+
+        const childs = this.renderChildNodes(config, context);
+        nextNode.setChilds(childs);
 
         return nextNode;
     }

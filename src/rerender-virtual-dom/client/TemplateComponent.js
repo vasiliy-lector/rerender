@@ -78,7 +78,7 @@ TemplateComponent.prototype = {
             );
 
             nextComponents[id] = component;
-            mountComponents.push(component);
+            mountComponents[id] = component.instance;
         } else {
             component = prev;
             const instance = component.instance;
@@ -114,7 +114,7 @@ TemplateComponent.prototype = {
                 template = Component.render(instance);
                 // TODO: reuse prev template here
                 component.set('template', template);
-                updateComponents.push(component);
+                updateComponents[id] = component.instance;
             }
 
             nextComponents[id] = component;
