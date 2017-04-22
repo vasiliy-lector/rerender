@@ -19,8 +19,8 @@ const VOID_TAGS = {
     wbr: true
 };
 
-function TemplateVNode(instance, props, children) {
-    this.instance = instance;
+function TemplateVNode(tag, props, children) {
+    this.tag = tag;
     this.props = props;
     this.children = children;
 }
@@ -56,7 +56,7 @@ TemplateVNode.prototype = {
     },
 
     render(config) {
-        const tag = this.instance;
+        const tag = this.tag;
         const childNodes = this.renderChildNodes(config);
 
         return '<' + tag + this.renderAttrs() +
