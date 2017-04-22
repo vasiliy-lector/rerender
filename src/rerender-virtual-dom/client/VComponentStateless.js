@@ -1,10 +1,16 @@
 import { VCOMPONENT_STATELESS } from '../types';
 
-function VComponentStateless(id, componentType, props, children, template) {
-    this.id = id;
+function VComponentStateless(
+    componentType,
+    props,
+    children,
+    id,
+    template
+) {
     this.componentType = componentType;
     this.props = props;
     this.children = children;
+    this.id = id;
     this.template = template;
 }
 

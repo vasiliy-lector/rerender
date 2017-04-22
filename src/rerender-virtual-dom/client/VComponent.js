@@ -1,13 +1,21 @@
 import { VCOMPONENT, VCOMPONENT } from '../types';
 
-function VComponent(id, componentType, props, children, state, instance, template) {
-    this.id = id;
+function VComponent(
+    componentType,
+    props,
+    children,
+    id,
+    template,
+    instance,
+    state
+) {
     this.componentType = componentType;
     this.props = props;
     this.children = children;
-    this.state = state;
-    this.instance = instance;
+    this.id = id;
     this.template = template;
+    this.instance = instance;
+    this.state = state;
 }
 
 VComponent.prototype = {

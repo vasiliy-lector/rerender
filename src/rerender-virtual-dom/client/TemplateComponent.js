@@ -33,7 +33,7 @@ function TemplateComponent(componentType, props, children) {
     }
 
     this.componentType = componentType;
-    this.props = props;
+    this.props = props || {};
     this.children = children;
 }
 
@@ -45,11 +45,19 @@ TemplateComponent.prototype = {
         let props = this.props;
         let children = this.children;
         let template;
+        let component;
         const componentType = this.componentType;
-        const { virtualDomById, nextVirtualDomById, store, events } = config;
+        const {
+            components,
+            nextComponents,
+            mountComponents,
+            updateComponents,
+            store,
+            events
+        } = config;
         const componentContext = context.incrementComponent(this.key, this.uniqid);
         const id = componentContext.getId();
-        let prev = virtualDomById[id];
+        let prev = components[id];
 
         if (prev === undefined || prev.type !== this.type || prev.componentType !== componentType) {
             const instance = new componentType(props, children, { store, events, antibind: componentType.antibind });
@@ -59,55 +67,64 @@ TemplateComponent.prototype = {
             Component.beforeRender(instance);
             template = Component.render(instance);
 
-            nextVirtualDomById[id] = new VComponent(
-                id,
+            const component = new VComponent(
                 componentType,
                 props,
                 children,
-                instance.state,
+                id,
+                template,
                 instance,
-                template
+                instance.state
             );
+
+            nextComponents[id] = component;
+            mountComponents.push(component);
         } else {
-            const instance = prev.instance;
+            component = prev;
+            const instance = component.instance;
 
             Component.beforeRender(instance);
 
-            const sameProps = shallowEqualProps(prev.props, props);
-            const sameChildren = typeof children === 'object' && children.type === TEMPLATE && children.isEqual(prev.children);
-            const sameState = instance.state !== prev.state;
+            const sameProps = shallowEqualProps(component.props, props);
+            const sameChildren = children.isEqual(component.children);
+            const sameState = instance.state !== component.state;
 
             if (sameProps) {
-                props = prev.props;
+                props = component.props;
             } else {
-                prev.set('props', props);
+                component.set('props', props);
             }
 
             if (sameChildren) {
-                children = prev.children;
+                children = component.children;
             } else {
-                prev.set('children', children);
+                component.set('children', children);
             }
 
             if (!sameState) {
-                prev.set('state', instance.state);
+                component.set('state', instance.state);
             }
 
             if (sameProps && sameChildren && sameState) {
-                template = prev.template;
+                template = component.template;
             } else {
                 if (!sameProps || !sameChildren) {
                     Component.setProps(instance, props, children);
                 }
                 template = Component.render(instance);
                 // TODO: reuse prev template here
-                prev.set('template', template);
+                component.set('template', template);
+                updateComponents.push(component);
             }
 
-            nextVirtualDomById[id] = prev;
+            nextComponents[id] = component;
         }
 
-        return typeof template === 'object' ? template.render(config, componentContext) : new VText('');
+        const childs = template ? template.render(config, componentContext) : new VText('');
+
+        component.set('childs', childs);
+
+        return component;
     }
 };
 

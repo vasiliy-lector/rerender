@@ -1,9 +1,22 @@
 import { TEMPLATE, TEMPLATE_COMPONENT } from '../types';
 import Component from '../Component';
 
-function TemplateComponent(instance, props, children) {
-    this.instance = instance;
-    this.props = props;
+function TemplateComponent(componentType, props, children) {
+    this.componentType = componentType;
+
+    if (componentType.defaults) {
+        if (!props) {
+            props = componentType.defaults;
+        } else {
+            for (let name in componentType.defaults) {
+                if (props[name] === undefined) {
+                    props[name] = componentType.defaults[name];
+                }
+            }
+        }
+    }
+
+    this.props = props || {};
     this.children = children;
 }
 
@@ -12,27 +25,19 @@ TemplateComponent.prototype = {
     subtype: TEMPLATE_COMPONENT,
 
     render(config) {
-        const tag = this.instance;
-        let componentTemplate;
+        const componentType = this.componentType;
+        let template;
         let props = this.props;
 
-        if (tag.defaults) {
-            for (let name in tag.defaults) {
-                if (!props || props[name] === undefined) {
-                    (props || (props = {}))[name] = tag.defaults[name];
-                }
-            }
-        }
+        if (componentType.prototype instanceof Component) {
+            const instance = new componentType(props, this.children, { store: config.store, antibind: componentType.antibind });
 
-        if (tag.prototype instanceof Component) {
-            const instance = new tag(props, this.children, { store: config.store, antibind: tag.antibind });
-
-            componentTemplate = Component.render(instance);
+            template = Component.render(instance);
         } else {
-            componentTemplate = tag(props, this.children);
+            template = componentType(props, this.children);
         }
 
-        return componentTemplate ? componentTemplate.render(config) : '';
+        return template ? template.render(config) : '';
     }
 };
 
