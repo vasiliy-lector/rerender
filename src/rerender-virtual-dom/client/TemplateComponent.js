@@ -4,42 +4,51 @@ import { shallowEqualProps } from '../../utils';
 import VText from './VText';
 import Component from '../Component';
 
+const SPECIAL_PROPS = {
+    key: true,
+    uniqid: true,
+    ref: true
+};
+
 function TemplateComponent(componentType, props, children) {
-    if (componentType.defaults) {
-        if (!props) {
-            props = { ...componentType.defaults };
-        } else {
+    let nextProps = props || {};
+
+    if (nextProps.key || componentType.defaults || nextProps.uniqid || (nextProps.ref && !componentType.wrapper)) {
+        nextProps = Object.keys(nextProps).reduce((memo, key) => {
+            if (SPECIAL_PROPS[key] && (key !== 'ref' || !componentType.wrapper)) {
+                this[key] = nextProps[key];
+            } else {
+                memo[key] = nextProps[key];
+            }
+
+            return memo;
+        }, {});
+
+        if (componentType.defaults) {
             for (let name in componentType.defaults) {
-                if (props[name] === undefined) {
-                    props[name] = componentType.defaults[name];
+                if (nextProps[name] === undefined) {
+                    nextProps[name] = componentType.defaults[name];
                 }
             }
         }
     }
 
-    if (props.uniqid) {
-        this.uniqid = props.uniqid;
-        delete props.uniqid;
-    }
-
-    if (props.key) {
-        this.key = props.key;
-        delete props.key;
-    }
-
-    if (props.ref && !componentType.wrapper) {
-        this.ref = props.ref;
-        delete props.ref;
-    }
-
     this.componentType = componentType;
-    this.props = props || {};
+    this.props = nextProps;
     this.children = children;
 }
 
 TemplateComponent.prototype = {
     type: TEMPLATE,
     subtype: TEMPLATE_COMPONENT,
+
+    stringify(config) {
+        const componentType = this.componentType;
+        const instance = new componentType(this.props, this.children, { store: config.store, antibind: componentType.antibind });
+        const template = Component.render(instance);
+
+        return template ? template.stringify(config) : '';
+    },
 
     render(config, context) {
         let props = this.props;
@@ -120,7 +129,7 @@ TemplateComponent.prototype = {
             nextComponents[id] = component;
         }
 
-        const childs = template ? template.render(config, componentContext) : new VText('');
+        const childs = template ? template.render(config, componentContext.setParent(component)) : new VText('');
 
         component.set('childs', childs);
 

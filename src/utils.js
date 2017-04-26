@@ -1,4 +1,5 @@
 import { TEMPLATE } from './rerender-virtual-dom/types';
+import { styleProps } from './rerender-virtual-dom/constants';
 
 const getFunctionName = (function getFunctionName() {
     if (getFunctionName.name) {
@@ -23,6 +24,36 @@ function escapeHtmlHeavy(value) {
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
+}
+
+const UPPER_CASE = /[A-Z]/g;
+
+function convertStyleKey(key) {
+    return styleProps[key] || convertStyleKeyHeavy(key);
+}
+
+function convertStyleKeyHeavy(key) {
+    return String(key).replace(UPPER_CASE, convertUpper);
+}
+
+function convertUpper(match) {
+    return '-' + match.toLowerCase();
+}
+
+function escapeStyle(value) {
+    let styleString;
+
+    if (typeof value === 'object') {
+        styleString = '';
+
+        for (var prop in value) {
+            styleString += `${convertStyleKey(prop)}: ${value[prop]};`;
+        }
+    } else {
+        styleString = value;
+    }
+
+    return escapeAttr(styleString);
 }
 
 function escapeHtml(value) {
@@ -195,6 +226,7 @@ function throttle(fn, milliseconds, { leading }) {
 export {
     escapeAttr,
     escapeHtml,
+    escapeStyle,
     getFunctionName,
     hoistStatics,
     nextTick,

@@ -3,41 +3,48 @@ import VComponentStateless from './VComponentStateless';
 import { shallowEqualProps } from '../../utils';
 import VText from './VText';
 
+const SPECIAL_PROPS = {
+    key: true,
+    uniqid: true
+};
+
 function TemplateComponent(componentType, props, children) {
-    if (componentType.defaults) {
-        if (!props) {
-            props = { ...componentType.defaults };
-        } else {
+    let nextProps = props || {};
+
+    if (nextProps.key || componentType.defaults || nextProps.uniqid) {
+        nextProps = Object.keys(nextProps).reduce((memo, key) => {
+            if (SPECIAL_PROPS[key]) {
+                this[key] = nextProps[key];
+            } else {
+                memo[key] = nextProps[key];
+            }
+
+            return memo;
+        }, {});
+
+        if (componentType.defaults) {
             for (let name in componentType.defaults) {
-                if (props[name] === undefined) {
-                    props[name] = componentType.defaults[name];
+                if (nextProps[name] === undefined) {
+                    nextProps[name] = componentType.defaults[name];
                 }
             }
         }
     }
 
-    if (props.uniqid) {
-        this.uniqid = props.uniqid;
-        delete props.uniqid;
-    }
-
-    if (props.key) {
-        this.key = props.key;
-        delete props.key;
-    }
-
-    if (props.ref) {
-        delete props.ref;
-    }
-
     this.componentType = componentType;
-    this.props = props || {};
+    this.props = nextProps;
     this.children = children;
 }
 
 TemplateComponent.prototype = {
     type: TEMPLATE,
     subtype: TEMPLATE_COMPONENT_STATELESS,
+
+    stringify(config) {
+        const template = this.componentType(this.props, this.children);
+
+        return template ? template.stringify(config) : '';
+    },
 
     render(config, context) {
         let props = this.props;

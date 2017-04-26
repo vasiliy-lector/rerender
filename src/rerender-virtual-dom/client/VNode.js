@@ -1,10 +1,10 @@
 import { VNODE } from '../types';
 
-function VNode(tag, attrs, parentNode, parentDomNode) {
+function VNode(tag, attrs, context) {
     this.tag = tag;
     this.attrs = attrs;
-    this.parentNode = parentNode;
-    this.parentDomNode = parentDomNode;
+    this.parent = context.getParent();
+    this.parentNode = context.getParentNode();
     this.childNodes = [];
 }
 

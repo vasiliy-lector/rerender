@@ -1,4 +1,4 @@
-import { VCOMPONENT, VCOMPONENT } from '../types';
+import { VCOMPONENT } from '../types';
 
 function VComponent(
     componentType,

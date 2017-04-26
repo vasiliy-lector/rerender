@@ -68,7 +68,7 @@ Component.mount = function(instance) {
 };
 
 Component.render = function(instance) {
-    return instance.render(instance);
+    return instance.render();
 };
 
 Component.setProps = function(instance, props, children) {
