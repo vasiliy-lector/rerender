@@ -1,4 +1,4 @@
-import { VTEXT } from '../types';
+import { VTEXT } from './types';
 
 function VText(value) {
     this.value = value;

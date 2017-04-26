@@ -1,7 +1,7 @@
-import TemplateVNode from './client/TemplateVNode';
-import TemplateComponent from './client/TemplateComponent';
-import TemplateFragment from './client/TemplateFragment';
-import TemplateComponentStateless from './client/TemplateComponentStateless';
+import TemplateVNode from './TemplateVNode';
+import TemplateComponent from './TemplateComponent';
+import TemplateFragment from './TemplateFragment';
+import TemplateComponentStateless from './TemplateComponentStateless';
 import Component from './Component';
 
 export default function createTemplate(componentType, props) {

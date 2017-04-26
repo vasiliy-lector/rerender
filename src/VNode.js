@@ -1,4 +1,4 @@
-import { VNODE } from '../types';
+import { VNODE } from './types';
 
 function VNode(tag, attrs, context) {
     this.tag = tag;

@@ -1,6 +1,6 @@
-import { TEMPLATE, TEMPLATE_VNODE, TEMPLATE_FRAGMENT } from '../types';
-import { escapeHtml, escapeAttr, escapeStyle } from '../../utils';
-import { voidTags } from '../constants';
+import { TEMPLATE, TEMPLATE_VNODE, TEMPLATE_FRAGMENT } from './types';
+import { escapeHtml, escapeAttr, escapeStyle } from './utils';
+import { voidTags } from './constants';
 import VNode from './VNode';
 import VText from './VText';
 
@@ -54,7 +54,7 @@ TemplateVNode.prototype = {
         return childNodes;
     },
 
-    stringify(config) {
+    renderToString(config) {
         const tag = this.tag;
         const childNodes = this.stringifyChildNodes(config);
 
@@ -108,7 +108,7 @@ function stringifyChildren(item, config) {
 
     if (type === 'object') {
         if (item.type === TEMPLATE) {
-            children += item.stringify(config);
+            children += item.renderToString(config);
         } else if (Array.isArray(item)) {
             for (let j = 0, l1 = item.length; j < l1; j++) {
                 children += stringifyChildren(item[j], config);

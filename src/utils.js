@@ -1,5 +1,5 @@
-import { TEMPLATE } from './rerender-virtual-dom/types';
-import { styleProps } from './rerender-virtual-dom/constants';
+import { TEMPLATE } from './types';
+import { styleProps } from './constants';
 
 const getFunctionName = (function getFunctionName() {
     if (getFunctionName.name) {

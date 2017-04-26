@@ -1,29 +1,25 @@
-import { VCOMPONENT } from '../types';
+import { VCOMPONENT_STATELESS } from './types';
 
-function VComponent(
+function VComponentStateless(
     componentType,
     props,
     children,
     id,
-    template,
-    instance,
-    state
+    template
 ) {
     this.componentType = componentType;
     this.props = props;
     this.children = children;
     this.id = id;
     this.template = template;
-    this.instance = instance;
-    this.state = state;
 }
 
-VComponent.prototype = {
-    type: VCOMPONENT,
+VComponentStateless.prototype = {
+    type: VCOMPONENT_STATELESS,
 
     set(name, value) {
         this[name] = value;
     }
 };
 
-export default VComponent;
+export default VComponentStateless;

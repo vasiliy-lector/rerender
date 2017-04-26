@@ -1,5 +1,5 @@
-import Events from '../Events';
-import Component from '../Component';
+import Events from './Events';
+import Component from './Component';
 import Context from './Context';
 // TODO
 import { createNormalizePatch, diff } from './patch';

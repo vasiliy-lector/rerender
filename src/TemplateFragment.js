@@ -1,4 +1,4 @@
-import { TEMPLATE_FRAGMENT } from '../types';
+import { TEMPLATE_FRAGMENT } from './types';
 
 function TemplateFragment(fragment) {
     this.fragment = fragment;

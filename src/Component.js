@@ -1,4 +1,4 @@
-import { shallowEqual } from '../utils';
+import { shallowEqual } from './utils';
 
 function Component(props, children, { events, antibind }) {
     this._componentMounted = false;

@@ -1,5 +1,5 @@
-import { debug } from '../debug';
-import { createTag, createText } from '../virtualDom/createElement';
+import { debug } from './debug';
+import { createTag, createText } from './createElement';
 const types = {
     ATTACH_EVENTS: 'applyAttachEvents', // attach event to server side html
     CREATE: 'applyCreate',

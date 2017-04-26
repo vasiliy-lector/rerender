@@ -1,5 +1,5 @@
 function renderServer(rootTemplate, store) {
-    return rootTemplate.stringify({
+    return rootTemplate.renderToString({
         store
     });
 }
