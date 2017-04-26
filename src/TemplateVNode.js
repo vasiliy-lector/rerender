@@ -4,6 +4,12 @@ import { voidTags } from './constants';
 import VNode from './VNode';
 import VText from './VText';
 
+const specialProps = {
+    key: true,
+    uniqid: true,
+    ref: true
+};
+
 function TemplateVNode(tag, attrs, children) {
     if (attrs) {
         if (attrs.ref) {
@@ -127,12 +133,6 @@ function stringifyChildren(item, config) {
     return children;
 }
 
-const specialProps = {
-    key: true,
-    uniqid: true,
-    ref: true
-};
-
 function stringifyAttr(name, value) {
     if (name.substr(0, 2) === 'on' || specialProps[name]) {
         return '';
@@ -160,3 +160,4 @@ function convertAttrName(name) {
 }
 
 export default TemplateVNode;
+export { stringifyAttr };

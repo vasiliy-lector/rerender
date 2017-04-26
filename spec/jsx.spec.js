@@ -1,4 +1,4 @@
-import jsx from '../../src/rerender-virtual-dom/jsx';
+import jsx from '../src/jsx';
 
 function simpleOutput(tag, attrs, ...children) {
     return {

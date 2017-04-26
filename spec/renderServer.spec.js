@@ -1,7 +1,7 @@
-import renderServer from '../../src/rerender-virtual-dom/renderServer';
-import Component from '../../src/rerender-virtual-dom/Component';
-import jsx from '../../src/rerender-virtual-dom/jsx';
-import createTemplateServer from '../../src/rerender-virtual-dom/createTemplateServer';
+import renderServer from '../src/renderServer';
+import Component from '../src/Component';
+import jsx from '../src/jsx';
+import createTemplate from '../src/createTemplate';
 
 class Block extends Component {
     render() {
@@ -23,7 +23,7 @@ Stateless.defaults = {
 
 describe('render', () => {
     beforeEach(() => {
-        jsx.setOutputMethod(createTemplateServer);
+        jsx.setOutputMethod(createTemplate);
     });
 
     describe('renderServer', () => {
