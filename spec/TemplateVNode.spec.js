@@ -23,27 +23,17 @@ describe('server TemplateVNode', () => {
         });
     });
 
-    describe('method stringifyAttrs', () => {
-        it('should return attrs in simple case', () => {
-            const template = new TemplateVNode('p', { id: 'block' });
+    describe('method renderToString', () => {
+        it('should render p to string', () => {
+            const template = new TemplateVNode('p', { className: 'block' }, []);
 
-            expect(template.stringifyAttrs()).toBe(' id="block"');
+            expect(template.renderToString()).toBe('<p class="block"></p>');
         });
 
-        it('should correcty work with null and undefined attrs', () => {
-            const template = new TemplateVNode('p', null);
-            const template2 = new TemplateVNode('p');
-
-            expect(template.stringifyAttrs()).toBe('');
-            expect(template2.stringifyAttrs()).toBe('');
-        });
-    });
-
-    describe('method stringifyChildNodes', () => {
         it('should render text items', () => {
             const template = new TemplateVNode('p', null, ['text 1;', 'another text']);
 
-            expect(template.stringifyChildNodes()).toBe('text 1;another text');
+            expect(template.renderToString()).toBe('<p>text 1;another text</p>');
         });
 
         it('should render components items', () => {
@@ -51,7 +41,7 @@ describe('server TemplateVNode', () => {
             const children2 = new TemplateVNode('span', null, 'text 2');
             const template = new TemplateVNode('p', null, [children1, children2]);
 
-            expect(template.stringifyChildNodes()).toBe('<span>text 1</span><span>text 2</span>');
+            expect(template.renderToString()).toBe('<p><span>text 1</span><span>text 2</span></p>');
         });
 
         it('should render components in one array', () => {
@@ -59,7 +49,7 @@ describe('server TemplateVNode', () => {
             const children2 = new TemplateVNode('span', null, 'text 2');
             const template = new TemplateVNode('p', null, [[children1, children2], 'text']);
 
-            expect(template.stringifyChildNodes()).toBe('<span>text 1</span><span>text 2</span>text');
+            expect(template.renderToString()).toBe('<p><span>text 1</span><span>text 2</span>text</p>');
         });
 
         it('should escape special symbols', () => {
@@ -67,15 +57,7 @@ describe('server TemplateVNode', () => {
             const children2 = new TemplateVNode('span', null, 'text > 2');
             const template = new TemplateVNode('p', null, [children1, children2, 'text > me;', '&', ['array >', 'array <', 'array value with &amp;']]);
 
-            expect(template.stringifyChildNodes()).toBe('<span>text &lt; 1</span><span>text &gt; 2</span>text &gt; me;&amp;array &gt;array &lt;array value with &amp;amp;');
-        });
-    });
-
-    describe('method renderToString', () => {
-        it('should render p to string', () => {
-            const template = new TemplateVNode('p', { className: 'block' }, []);
-
-            expect(template.renderToString()).toBe('<p class="block"></p>');
+            expect(template.renderToString()).toBe('<p><span>text &lt; 1</span><span>text &gt; 2</span>text &gt; me;&amp;array &gt;array &lt;array value with &amp;amp;</p>');
         });
 
         it('should render void tag to string', () => {

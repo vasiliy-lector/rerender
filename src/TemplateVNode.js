@@ -34,40 +34,27 @@ TemplateVNode.prototype = {
     type: TEMPLATE,
     subtype: TEMPLATE_VNODE,
 
-    stringifyAttrs() {
+    renderToString(config) {
+        const tag = this.tag;
+        let children = '';
         let attrs = '';
 
-        if (!this.attrs) {
-            return attrs;
-        }
-
-        for (let name in this.attrs) {
-            attrs += stringifyAttr(name, this.attrs[name]);
-        }
-
-        return attrs;
-    },
-
-    stringifyChildNodes(config) {
-        let childNodes = '';
-
-        if (this.children) {
-            for (let i = 0, l = this.children.length; i < l; i++) {
-                childNodes += stringifyChildren(this.children[i], config);
+        if (this.attrs) {
+            for (let name in this.attrs) {
+                attrs += stringifyAttr(name, this.attrs[name]);
             }
         }
 
-        return childNodes;
-    },
+        if (this.children) {
+            for (let i = 0, l = this.children.length; i < l; i++) {
+                children += stringifyChildren(this.children[i], config);
+            }
+        }
 
-    renderToString(config) {
-        const tag = this.tag;
-        const childNodes = this.stringifyChildNodes(config);
-
-        return '<' + tag + this.stringifyAttrs() +
-            (childNodes === '' && voidTags[tag]
+        return '<' + tag + attrs +
+            (children === '' && voidTags[tag]
                 ? ' />'
-                : '>' + childNodes + '</' + tag + '>');
+                : '>' + children + '</' + tag + '>');
     },
 
     render(config, context) {
