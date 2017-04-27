@@ -26,7 +26,7 @@ describe('createTemplate', () => {
     it('should work with undefined attrs', () => {
         const template = createTemplate('p');
 
-        expect(template.attrs).toBe(undefined);
+        expect(template.attrs).toBe(null);
         expect(template.children).toBe(null);
     });
 

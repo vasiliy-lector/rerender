@@ -26,7 +26,7 @@ function TemplateVNode(tag, attrs, children) {
     }
 
     this.tag = tag;
-    this.attrs = attrs;
+    this.attrs = attrs || null;
     this.children = children;
 }
 
@@ -47,7 +47,7 @@ TemplateVNode.prototype = {
 
         if (this.children) {
             for (let i = 0, l = this.children.length; i < l; i++) {
-                children += stringifyChildren(this.children[i], config);
+                children += stringifyChildrenItem(this.children[i], config);
             }
         }
 
@@ -61,13 +61,13 @@ TemplateVNode.prototype = {
         const nodeContext = context.incrementDom(this.uniqid, this.key);
         const nextNode = new VNode(this.tag, this.attrs, nodeContext);
 
-        nextNode.setChilds(renderChilds(this.children, config, nodeContext.setDomParent(nextNode), false));
+        nextNode.setChilds(renderChildren(this.children, config, nodeContext.setDomParent(nextNode), false));
 
         return nextNode;
     }
 };
 
-function renderChilds(children, config, context, needKeys) {
+function renderChildren(children, config, context, needKeys) {
     let childs;
 
     if (children) {
@@ -81,10 +81,10 @@ function renderChilds(children, config, context, needKeys) {
                 childs.push(item.render(config, context));
             } else if (Array.isArray(item)) {
                 // TODO: increment id и создать idLevel, при этом ни один из parent не меняется
-                childs.push.apply(childs, renderChilds(item, config, context.addIdLevel(), true));
+                childs.push.apply(childs, renderChildren(item, config, context.addIdLevel(), true));
             } else if (isObject && item.type === TEMPLATE_FRAGMENT) {
                 // TODO
-                childs.push.apply(childs, renderChilds(item.fragment, config, context.addIdLevel(), false));
+                childs.push.apply(childs, renderChildren(item.fragment, config, context.addIdLevel(), false));
             } else {
                 // TODO: increment position и id
                 childs.push(new VText(item ? String(item) : '', context.increment()));
@@ -95,20 +95,20 @@ function renderChilds(children, config, context, needKeys) {
     return childs || null;
 }
 
-function stringifyChildren(item, config) {
+function stringifyChildrenItem(item, config) {
     const type = typeof item;
     let children = '';
 
     if (type === 'object') {
         if (item.type === TEMPLATE) {
             children += item.renderToString(config);
-        } else if (Array.isArray(item)) {
-            for (let j = 0, l1 = item.length; j < l1; j++) {
-                children += stringifyChildren(item[j], config);
-            }
         } else if (item.type === TEMPLATE_FRAGMENT) {
             for (let j = 0, l1 = item.fragment.length; j < l1; j++) {
-                children += stringifyChildren(item.fragment[j], config);
+                children += stringifyChildrenItem(item.fragment[j], config);
+            }
+        } else if (Array.isArray(item)) {
+            for (let j = 0, l1 = item.length; j < l1; j++) {
+                children += stringifyChildrenItem(item[j], config);
             }
         } else if (item) {
             escapeHtml(item);
