@@ -129,7 +129,9 @@ TemplateComponent.prototype = {
             nextComponents[id] = component;
         }
 
-        const childs = template ? template.render(config, componentContext.setParent(component)) : new VText('');
+        const childs = template
+            ? template.render(config, componentContext.addIdLevel(component))
+            : new VText('', componentContext.addIdLevel(component).incrementDom());
 
         component.set('childs', childs);
 
