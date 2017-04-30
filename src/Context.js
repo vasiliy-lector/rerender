@@ -13,7 +13,6 @@ function Context({
     inheritableKey,
     inheritableUniqid
 }) {
-    this.isDomNode = isDomNode;
     this.parentId = parentId;
     this.index = index;
     this.parentPosition = parentPosition;
@@ -24,9 +23,12 @@ function Context({
 
     if (isDomNode) {
         this.position = `${parentPosition || ''}.childNodes[${domIndex}]`;
-        if (inheritableUniqid) {
+        if (uniqid || key || inheritableUniqid || inheritableKey) {
             this.relativeParentId = id;
             this.relativePosition = '';
+            this.domId = key || inheritableKey
+                ? `${parentId}.childNodes[${domIndex}]`
+                : `${relativeParentId}${relativePosition}`;
         } else {
             this.relativeParentId = relativeParentId;
             this.relativePosition = `${relativePosition}.childNodes[${domIndex}]`;
@@ -43,63 +45,79 @@ function Context({
 
 Context.prototype = {
     addIdLevel(component) {
-        return this.clone({
-            isDomNode: false,
+        return new Context({
             parentId: this.id,
             index: 0,
-            parent: component || this.parent
+            parent: component || this.parent,
+
+            // no rewrite
+            parentPosition: this.parentPosition,
+            domIndex: this.domIndex,
+            parentNode: this.parentNode,
+            relativeParentId: this.relativeParentId,
+            relativePosition: this.relativePosition,
+            inheritableKey: this.inheritableKey,
+            inheritableUniqid: this.inheritableUniqid
         });
     },
 
     addDomLevel(node) {
-        return this.clone({
-            isDomNode: false,
+        return new Context({
             parentId: this.id,
             index: 0,
             parentPosition: this.getPosition(),
             domIndex: 0,
             parent: node,
-            parentNode: node
+            parentNode: node,
+
+            // no rewrite
+            relativeParentId: this.relativeParentId,
+            relativePosition: this.relativePosition,
+            inheritableKey: this.inheritableKey,
+            inheritableUniqid: this.inheritableUniqid
         });
     },
 
     incrementComponent(key, uniqid) {
-        return this.clone({
-            isDomNode: false,
+        return new Context({
             index: (key || uniqid) ? this.index : this.index++,
             key,
-            uniqid
+            uniqid,
+
+            // no rewrite
+            parentId: this.parentId,
+            parentPosition: this.parentPosition,
+            domIndex: this.domIndex,
+            parent: this.parent,
+            parentNode: this.parentNode,
+            relativeParentId: this.relativeParentId,
+            relativePosition: this.relativePosition,
+            inheritableKey: this.inheritableKey,
+            inheritableUniqid: this.inheritableUniqid
         });
     },
 
     incrementDom(key, uniqid) {
-        return this.clone({
-            isDomNode: true,
+        return new Context({
             index: (key || uniqid) ? this.index : this.index++,
             domIndex: this.domIndex++,
             key,
-            uniqid
+            uniqid,
+
+            // no rewrite
+            parentId: this.parentId,
+            parentPosition: this.parentPosition,
+            parent: this.parent,
+            parentNode: this.parentNode,
+            relativeParentId: this.relativeParentId,
+            relativePosition: this.relativePosition,
+            inheritableKey: this.inheritableKey,
+            inheritableUniqid: this.inheritableUniqid
         });
-    },
-
-    clone(changes) {
-        return new Context(Object.keys(this).reduce((memo, key) => {
-            if (changes[key] !== undefined) {
-                memo[key] = changes[key];
-            } else {
-                memo[key] = this[key];
-            }
-
-            return memo;
-        }, {}));
     },
 
     getId() {
         return this.id;
-    },
-
-    getPosition() {
-        return this.position;
     },
 
     getPositionFn() {
@@ -107,7 +125,7 @@ Context.prototype = {
     },
 
     getDomId() {
-        return;
+        return this.domId;
     },
 
     getParent() {

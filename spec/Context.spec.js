@@ -1,7 +1,7 @@
 import Context from '../src/Context';
 
 describe('Context', () => {
-    it('should create context for node', () => {
+    it('should work method addIdLevel', () => {
         const isDomNode = true;
         const parentId = 1;
         const index = 2;
@@ -28,7 +28,6 @@ describe('Context', () => {
             inheritableUniqid
         });
 
-        expect(context.isDomNode).toEqual(isDomNode);
         expect(context.parentId).toEqual(parentId);
         expect(context.index).toEqual(index);
         expect(context.parentPosition).toEqual(parentPosition);
@@ -66,7 +65,6 @@ describe('Context', () => {
             inheritableUniqid
         });
 
-        expect(context.isDomNode).toEqual(isDomNode);
         expect(context.parentId).toEqual(parentId);
         expect(context.index).toEqual(index);
         expect(context.parentPosition).toEqual(parentPosition);
