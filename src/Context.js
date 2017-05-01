@@ -19,7 +19,7 @@ function Context({
     this.domIndex = domIndex;
     this.parent = parent;
     this.parentNode = parentNode;
-    const id = uniqid || `${this.parentId}.${key || index}`;
+    const id = uniqid || `${this.parentId}.${key || (isDomNode ? index : 'c' + index)}`;
 
     if (isDomNode) {
         this.position = `${parentPosition || ''}.childNodes[${domIndex}]`;

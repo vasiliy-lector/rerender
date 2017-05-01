@@ -1,78 +1,39 @@
 import Context from '../src/Context';
 
 describe('Context', () => {
-    it('should work method addIdLevel', () => {
-        const isDomNode = true;
-        const parentId = 1;
-        const index = 2;
-        const parentPosition = '.childNodes[0]';
-        const domIndex = 3;
-        const parent = { type: 'c' };
-        const parentNode = { type: 'n'};
-        const key = '$key';
-        const uniqid = '$uniqid';
-        const inheritableKey = '$inheritableKey';
-        const inheritableUniqid = '$inheritableUniqid';
+    let context1;
+    let context2;
 
-        const context = new Context({
-            isDomNode,
-            parentId,
-            index,
-            parentPosition,
-            domIndex,
-            parent,
-            parentNode,
-            key,
-            uniqid,
-            inheritableKey,
-            inheritableUniqid
+    beforeEach(() => {
+        context1 = new Context({
+            isDomNode: false,
+            parentId: 'r.c0',
+            index: 0,
+            parentPosition: '',
+            domIndex: 0,
+            parent: { type: 'c' },
+            parentNode: { type: 'n' }
         });
-
-        expect(context.parentId).toEqual(parentId);
-        expect(context.index).toEqual(index);
-        expect(context.parentPosition).toEqual(parentPosition);
-        expect(context.domIndex).toEqual(domIndex);
-        expect(context.parent).toEqual(parent);
-        expect(context.parentNode).toEqual(parentNode);
-        expect(context.id).toEqual(uniqid);
-        expect(context.position).toEqual('.childNodes[0].childNodes[3]');
+        context2 = new Context({
+            isDomNode: true,
+            parentId: 'r.c0',
+            index: 0,
+            parentPosition: '',
+            domIndex: 0,
+            parent: { type: 'c' },
+            parentNode: { type: 'n' }
+        });
     });
 
-    it('should create context for component', () => {
-        const isDomNode = false;
-        const parentId = 1;
-        const index = 2;
-        const parentPosition = '.childNodes[0]';
-        const domIndex = 3;
-        const parent = { type: 'c' };
-        const parentNode = { type: 'n'};
-        const key = '$key';
-        const uniqid = '$uniqid';
-        const inheritableKey = '$inheritableKey';
-        const inheritableUniqid = '$inheritableUniqid';
+    describe('new instance', () => {
+        it('should calc id, position and domId', () => {
+            expect(context1.id).toBe('r.c0.c0');
+            expect(context1.position).toBe(undefined);
+            expect(context1.domId).toBe(undefined);
 
-        const context = new Context({
-            isDomNode,
-            parentId,
-            index,
-            parentPosition,
-            domIndex,
-            parent,
-            parentNode,
-            key,
-            uniqid,
-            inheritableKey,
-            inheritableUniqid
+            expect(context2.id).toBe('r.c0.0');
+            expect(context2.position).toBe('.childNodes[0]');
+            expect(context2.domId).toBe(undefined);
         });
-
-        expect(context.parentId).toEqual(parentId);
-        expect(context.index).toEqual(index);
-        expect(context.parentPosition).toEqual(parentPosition);
-        expect(context.domIndex).toEqual(domIndex);
-        expect(context.parent).toEqual(parent);
-        expect(context.parentNode).toEqual(parentNode);
-        expect(context.inheritableKey).toEqual(key);
-        expect(context.inheritableUniqid).toEqual(uniqid);
-        expect(context.id).toEqual(uniqid);
     });
 });

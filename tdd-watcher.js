@@ -1,6 +1,6 @@
 var fs = require('fs'),
     spawn = require('child_process').spawn,
-    ignoreRegex = /^(\.|package.json|node_modules|tdd-watcher|coverage|lib)/,
+    ignoreRegex = /^(\.|package.json|node_modules|tdd-watcher|coverage|lib|tags)/,
     isExecuting = false,
     needRestart = false,
     debug = function(message) {
