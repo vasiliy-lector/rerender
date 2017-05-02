@@ -36,4 +36,26 @@ describe('Context', () => {
             expect(context2.domId).toBe(undefined);
         });
     });
+
+    describe('method addIdLevel', () => {
+        it('should return new context', () => {
+            const newParent = { type: 'c' };
+            const prevParent = context1.parent;
+            const context1a = context1.addIdLevel(newParent);
+
+            expect(context1.getParent()).toBe(prevParent);
+            expect(context1a.getParent()).toBe(newParent);
+        });
+    });
+
+    describe('method addDomLevel', () => {
+        it('should return new context', () => {
+            const newParentNode = { type: 'n' };
+            const prevParentNode = context1.parentNode;
+            const context1a = context1.addDomLevel(newParentNode);
+
+            expect(context1.getParentNode()).toBe(prevParentNode);
+            expect(context1a.getParentNode()).toBe(newParentNode);
+        });
+    });
 });

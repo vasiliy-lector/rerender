@@ -65,7 +65,7 @@ Context.prototype = {
         return new Context({
             parentId: this.id,
             index: 0,
-            parentPosition: this.getPosition(),
+            parentPosition: this.position,
             domIndex: 0,
             parent: node,
             parentNode: node,
