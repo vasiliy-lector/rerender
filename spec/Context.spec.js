@@ -58,4 +58,91 @@ describe('Context', () => {
             expect(context1a.getParentNode()).toBe(newParentNode);
         });
     });
+
+    describe('method incrementComponent', () => {
+        it('should return new context', () => {
+            const context1a = context1.incrementComponent();
+
+            expect(context1a.id).toBe('r.c0.c0');
+            expect(context1.index).toBe(1);
+        });
+
+        it('should fix uniqid in id', () => {
+            const context1a = context1.incrementComponent(null, 'uniq1');
+
+            expect(context1a.id).toBe('uniq1');
+        });
+
+        it('should fix key in id', () => {
+            const context1a = context1.incrementComponent('key1');
+
+            expect(context1a.id).toBe('r.c0.key1');
+        });
+    });
+
+    describe('method incrementDom', () => {
+        it('should return new context', () => {
+            const context1a = context1.incrementDom();
+
+            expect(context1a.id).toBe('r.c0.0');
+            expect(context1a.position).toBe('.childNodes[0]');
+            expect(context1a.domId).toBe(undefined);
+            expect(context1.index).toBe(1);
+        });
+
+        it('should fix uniqid in id', () => {
+            const context1a = context1.incrementDom(null, 'uniq1');
+
+            expect(context1a.id).toBe('uniq1');
+            expect(context1a.position).toBe('.childNodes[0]');
+            expect(context1a.domId).toBe('r.c0.childNodes[0]');
+        });
+
+        it('should fix key in id', () => {
+            const context1a = context1.incrementDom('key1');
+
+            expect(context1a.id).toBe('r.c0.key1');
+            expect(context1a.position).toBe('.childNodes[0]');
+            expect(context1a.domId).toBe('r.c0.childNodes[0]');
+        });
+    });
+
+    describe('domId calculation', () => {
+        it('should work in dom methods case', () => {
+            let context;
+            let contextLevel;
+            contextLevel = context1.addDomLevel({});
+
+            contextLevel.incrementDom();
+            contextLevel.incrementDom();
+            context = contextLevel.incrementDom('key1');
+
+            expect(context.id).toBe('r.c0.c0.key1');
+            expect(context.position).toBe('.childNodes[2]');
+            expect(context.domId).toBe('r.c0.c0.childNodes[2]');
+
+            contextLevel = context.addDomLevel({});
+            context = contextLevel.incrementDom(null, 'uniq1');
+            expect(context.id).toBe('uniq1');
+            expect(context.position).toBe('.childNodes[2].childNodes[0]');
+            expect(context.domId).toBe('r.c0.c0.key1.childNodes[0]');
+        });
+
+        it('should inherit key and uniqid of parent component', () => {
+            let context;
+            let contextLevel;
+
+            contextLevel = context1.addDomLevel({});
+            contextLevel.incrementDom();
+            context = contextLevel.incrementDom();
+            contextLevel = context.addIdLevel({});
+            context = contextLevel.incrementComponent('key1');
+            contextLevel = context.addDomLevel({});
+            context = contextLevel.incrementDom();
+
+            expect(context.id).toBe('r.c0.c0.1.key1.0');
+            expect(context.position).toBe('.childNodes[1].childNodes[0]');
+            // expect(context.domId).toBe('r.c0.c0.1.childNodes[0]');
+        });
+    });
 });

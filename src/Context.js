@@ -26,9 +26,9 @@ function Context({
         if (uniqid || key || inheritableUniqid || inheritableKey) {
             this.relativeParentId = id;
             this.relativePosition = '';
-            this.domId = key || inheritableKey
+            this.domId = key || inheritableKey || !relativeParentId
                 ? `${parentId}.childNodes[${domIndex}]`
-                : `${relativeParentId}${relativePosition}`;
+                : `${relativeParentId}${relativePosition}.childNodes[${domIndex}]`;
         } else {
             this.relativeParentId = relativeParentId;
             this.relativePosition = `${relativePosition}.childNodes[${domIndex}]`;
@@ -51,7 +51,7 @@ Context.prototype = {
             parent: component || this.parent,
 
             // no rewrite
-            parentPosition: this.parentPosition,
+            parentPosition: this.position || this.parentPosition,
             domIndex: this.domIndex,
             parentNode: this.parentNode,
             relativeParentId: this.relativeParentId,
@@ -65,7 +65,7 @@ Context.prototype = {
         return new Context({
             parentId: this.id,
             index: 0,
-            parentPosition: this.position,
+            parentPosition: this.position || this.parentPosition,
             domIndex: 0,
             parent: node,
             parentNode: node,
@@ -99,6 +99,7 @@ Context.prototype = {
 
     incrementDom(key, uniqid) {
         return new Context({
+            isDomNode: true,
             index: (key || uniqid) ? this.index : this.index++,
             domIndex: this.domIndex++,
             key,
