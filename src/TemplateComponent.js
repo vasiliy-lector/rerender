@@ -64,8 +64,7 @@ TemplateComponent.prototype = {
             store,
             events
         } = config;
-        const componentContext = context.incrementComponent(this.key, this.uniqid);
-        const id = componentContext.getId();
+        const id = context.getId();
         let prev = components[id];
 
         if (prev === undefined || prev.type !== this.type || prev.componentType !== componentType) {

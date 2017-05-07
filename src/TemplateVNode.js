@@ -1,4 +1,5 @@
 import { TEMPLATE, TEMPLATE_VNODE, TEMPLATE_FRAGMENT } from './types';
+import { debug } from './debug';
 import { escapeHtml, escapeAttr, escapeStyle } from './utils';
 import { voidTags } from './constants';
 import VNode from './VNode';
@@ -58,34 +59,51 @@ TemplateVNode.prototype = {
     },
 
     render(config, context) {
-        const nodeContext = context.incrementDom(this.key, this.uniqid);
-        const nextNode = new VNode(this.tag, this.attrs, nodeContext);
+        const nextNode = new VNode(this.tag, this.attrs, context);
 
-        nextNode.setChilds(renderChildren(this.children, config, nodeContext.addDomLevel(nextNode, nodeContext.id), false));
+        nextNode.setChilds(renderChildren(
+            this.children,
+            config,
+            context.addDomLevel(nextNode, context.id),
+            false
+        ));
         context.getParentNode().appendChild(nextNode);
 
         return nextNode;
     }
 };
 
-function renderChildren(children, config, context, needKeys) {
+function renderChildren(items, config, context, needKeys) {
     let childs;
 
-    if (children) {
+    if (items) {
         childs = [];
 
-        for (let i = 0, l = children.length; i < l; i++) {
-            const item = children[i];
+        for (let i = 0, l = items.length; i < l; i++) {
+            const item = items[i];
             const isObject = typeof item === 'object';
 
             if (isObject && item.type === TEMPLATE) {
-                childs.push(item.render(config, context));
+                if (needKeys && !item.key) {
+                    debug.warn('Each child in array should have key');
+                }
+                childs.push(item.render(
+                    config,
+                    context[
+                        item.subtype === TEMPLATE_VNODE
+                            ? 'incrementDom'
+                            : 'incrementComponent'
+                    ](needKeys ? item.key || `k${i}` : item.key, item.uniqid)
+                ));
             } else if (Array.isArray(item)) {
                 childs.push.apply(childs, renderChildren(item, config, context.addIdLevel(), true));
             } else if (isObject && item.type === TEMPLATE_FRAGMENT) {
                 childs.push.apply(childs, renderChildren(item.fragment, config, context.addIdLevel(), false));
             } else {
-                childs.push(new VText(item ? String(item) : '', context.incrementDom()));
+                childs.push(new VText(
+                    item ? String(item) : '',
+                    context.incrementDom(needKeys ? `k${i}` : undefined)
+                ));
             }
         }
     }
