@@ -3,6 +3,7 @@ import VComponent from './VComponent';
 import { shallowEqualProps } from './utils';
 import VText from './VText';
 import Component from './Component';
+import reuseTemplate from './reuseTemplate';
 
 const SPECIAL_PROPS = {
     key: true,
@@ -119,8 +120,7 @@ TemplateComponent.prototype = {
                 if (!sameProps || !sameChildren) {
                     Component.setProps(instance, props, children);
                 }
-                template = Component.render(instance);
-                // TODO: reuse prev template here
+                template = reuseTemplate(Component.render(instance), prev.template);
                 component.set('template', template);
                 updateComponents[id] = component.instance;
             }

@@ -2,6 +2,7 @@ import { TEMPLATE, TEMPLATE_COMPONENT_STATELESS } from './types';
 import VComponentStateless from './VComponentStateless';
 import { shallowEqualProps } from './utils';
 import VText from './VText';
+import reuseTemplate from './reuseTemplate';
 
 const SPECIAL_PROPS = {
     key: true,
@@ -87,8 +88,7 @@ TemplateComponent.prototype = {
             if (sameProps && sameChildren) {
                 template = component.template;
             } else {
-                template = componentType(props, children);
-                // TODO: reuse prev template here
+                template = reuseTemplate(componentType(props, children), prev.template);
                 component.set('template', template);
             }
 
