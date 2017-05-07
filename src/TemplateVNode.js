@@ -61,7 +61,8 @@ TemplateVNode.prototype = {
         const nodeContext = context.incrementDom(this.key, this.uniqid);
         const nextNode = new VNode(this.tag, this.attrs, nodeContext);
 
-        nextNode.setChilds(renderChildren(this.children, config, nodeContext.addDomLevel(nextNode), false));
+        nextNode.setChilds(renderChildren(this.children, config, nodeContext.addDomLevel(nextNode, nodeContext.id), false));
+        context.getParentNode().appendChild(nextNode);
 
         return nextNode;
     }
