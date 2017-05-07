@@ -8,6 +8,7 @@ describe('Context', () => {
         context1 = new Context({
             isDomNode: false,
             parentId: 'r.c0',
+            parentNodeId: 'r',
             index: 0,
             parentPosition: '',
             domIndex: 0,
@@ -17,6 +18,7 @@ describe('Context', () => {
         context2 = new Context({
             isDomNode: true,
             parentId: 'r.c0',
+            parentNodeId: 'r',
             index: 0,
             parentPosition: '',
             domIndex: 0,
@@ -95,7 +97,7 @@ describe('Context', () => {
 
             expect(context1a.id).toBe('uniq1');
             expect(context1a.position).toBe('.childNodes[0]');
-            expect(context1a.domId).toBe('r.c0.childNodes[0]');
+            expect(context1a.domId).toBe('r.childNodes[0]');
         });
 
         it('should fix key in id', () => {
@@ -103,7 +105,7 @@ describe('Context', () => {
 
             expect(context1a.id).toBe('r.c0.key1');
             expect(context1a.position).toBe('.childNodes[0]');
-            expect(context1a.domId).toBe('r.c0.childNodes[0]');
+            expect(context1a.domId).toBe('r.childNodes[0]');
         });
     });
 
@@ -111,7 +113,7 @@ describe('Context', () => {
         it('should work in dom methods case', () => {
             let context;
             let contextLevel;
-            contextLevel = context1.addDomLevel({});
+            contextLevel = context1.addDomLevel({}, 'r.c0.c0.1');
 
             contextLevel.incrementDom();
             contextLevel.incrementDom();
@@ -119,7 +121,7 @@ describe('Context', () => {
 
             expect(context.id).toBe('r.c0.c0.key1');
             expect(context.position).toBe('.childNodes[2]');
-            expect(context.domId).toBe('r.c0.c0.childNodes[2]');
+            expect(context.domId).toBe('r.c0.c0.1.childNodes[2]');
 
             contextLevel = context.addDomLevel({});
             context = contextLevel.incrementDom(null, 'uniq1');
@@ -137,12 +139,13 @@ describe('Context', () => {
             context = contextLevel.incrementDom();
             contextLevel = context.addIdLevel({});
             context = contextLevel.incrementComponent('key1');
-            contextLevel = context.addDomLevel({});
+            contextLevel = context.addDomLevel({}, 'r.c0.c0.1');
             context = contextLevel.incrementDom();
 
             expect(context.id).toBe('r.c0.c0.1.key1.0');
             expect(context.position).toBe('.childNodes[1].childNodes[0]');
-            // expect(context.domId).toBe('r.c0.c0.1.childNodes[0]');
+            expect(context.parentNodeId).toBe('r.c0.c0.1');
+            expect(context.domId).toBe('r.c0.c0.1.childNodes[0]');
         });
     });
 });

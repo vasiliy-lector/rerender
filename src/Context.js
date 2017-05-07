@@ -1,6 +1,7 @@
 function Context({
     isDomNode,
     parentId,
+    parentNodeId,
     index,
     parentPosition,
     domIndex,
@@ -14,6 +15,7 @@ function Context({
     inheritableUniqid
 }) {
     this.parentId = parentId;
+    this.parentNodeId = parentNodeId;
     this.index = index;
     this.parentPosition = parentPosition;
     this.domIndex = domIndex;
@@ -27,7 +29,7 @@ function Context({
             this.relativeParentId = id;
             this.relativePosition = '';
             this.domId = key || inheritableKey || !relativeParentId
-                ? `${parentId}.childNodes[${domIndex}]`
+                ? `${parentNodeId}.childNodes[${domIndex}]`
                 : `${relativeParentId}${relativePosition}.childNodes[${domIndex}]`;
         } else {
             this.relativeParentId = relativeParentId;
@@ -51,6 +53,7 @@ Context.prototype = {
             parent: component || this.parent,
 
             // no rewrite
+            parentNodeId: this.parentNodeId,
             parentPosition: this.position || this.parentPosition,
             domIndex: this.domIndex,
             parentNode: this.parentNode,
@@ -61,7 +64,7 @@ Context.prototype = {
         });
     },
 
-    addDomLevel(node) {
+    addDomLevel(node, id) {
         return new Context({
             parentId: this.id,
             index: 0,
@@ -72,6 +75,7 @@ Context.prototype = {
 
             // no rewrite
             relativeParentId: this.relativeParentId,
+            parentNodeId: id,
             relativePosition: this.relativePosition,
             inheritableKey: this.inheritableKey,
             inheritableUniqid: this.inheritableUniqid
@@ -86,6 +90,7 @@ Context.prototype = {
 
             // no rewrite
             parentId: this.parentId,
+            parentNodeId: this.parentNodeId,
             parentPosition: this.parentPosition,
             domIndex: this.domIndex,
             parent: this.parent,
@@ -107,6 +112,7 @@ Context.prototype = {
 
             // no rewrite
             parentId: this.parentId,
+            parentNodeId: this.parentNodeId,
             parentPosition: this.parentPosition,
             parent: this.parent,
             parentNode: this.parentNode,
