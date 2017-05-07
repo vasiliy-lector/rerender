@@ -72,10 +72,10 @@ Context.prototype = {
             domIndex: 0,
             parent: node,
             parentNode: node,
+            parentNodeId: id,
 
             // no rewrite
             relativeParentId: this.relativeParentId,
-            parentNodeId: id,
             relativePosition: this.relativePosition,
             inheritableKey: this.inheritableKey,
             inheritableUniqid: this.inheritableUniqid
