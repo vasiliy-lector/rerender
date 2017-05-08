@@ -10,7 +10,7 @@ import VNodeRoot from './VNodeRoot';
 
 const RENDER_THROTTLE = 16;
 
-function renderClient(rootTemplate, store, domNode, { document = self.document } = {}) {
+function renderClient(rootTemplate, store, rootDomNode, { document = self.document } = {}) {
     const events = new Events();
     const config = {
         store,
@@ -35,17 +35,17 @@ function renderClient(rootTemplate, store, domNode, { document = self.document }
     // const start = performance.now();
     const nextVirtualDom = rootTemplate.render(config, context);
     const nextFirstChild = createElement(nodeRoot.childNodes[0], document);
-    const firstChild = domNode.childNodes[0];
+    const firstChild = rootDomNode.childNodes[0];
 
     const normalizePatch = createNormalizePatch(config.nextNodes);
 
     if (!firstChild) {
-        domNode.appendChild(nextFirstChild);
+        rootDomNode.appendChild(nextFirstChild);
     } else if (firstChild.outerHTML !== nextFirstChild.outerHTML) {
         debug.warn('Server and client html do not match!');
-        domNode.replaceChild(nextFirstChild, firstChild);
+        rootDomNode.replaceChild(nextFirstChild, firstChild);
     } else {
-        normalizePatch.apply(domNode, document);
+        normalizePatch.apply(rootDomNode, document);
     }
     normalizePatch.applySetRefs();
     // const end = performance.now();
@@ -57,7 +57,7 @@ function renderClient(rootTemplate, store, domNode, { document = self.document }
         rootTemplate,
         store,
         events,
-        domNode,
+        rootDomNode,
         prevNodes: config.nextNodes,
         prevComponents: config.nextComponents,
         prevVirtualDom: nextVirtualDom,
@@ -70,7 +70,7 @@ function rerenderClient({
     store,
     events,
     document,
-    domNode,
+    rootDomNode,
     prevNodes,
     prevComponents,
     prevVirtualDom
@@ -102,7 +102,7 @@ function rerenderClient({
         const patch = diff(config.nodes, config.nextNodes);
 
         // TODO blur problem when moving component with focus
-        patch.apply(domNode, document);
+        patch.apply(rootDomNode, document);
         update(config.updateComponents);
         mount(config.mountComponents);
     }, RENDER_THROTTLE, { leading: true });
