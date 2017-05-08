@@ -76,7 +76,7 @@ TemplateComponent.prototype = {
             Component.beforeRender(instance);
             template = Component.render(instance);
 
-            const component = new VComponent(
+            component = new VComponent(
                 componentType,
                 props,
                 children,

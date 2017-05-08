@@ -4,7 +4,7 @@ export { default as connect } from './connect';
 export { default as Component } from './Component';
 export { default as Store } from './Store';
 export { default as Events } from './Events';
-// export { default as renderClient } from './renderClient';
+export { default as renderClient } from './renderClient';
 export { default as renderServer } from './renderServer';
 export { default as createTemplate } from './createTemplate';
 export { default as jsx } from './jsx';

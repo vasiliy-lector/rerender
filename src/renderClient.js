@@ -2,7 +2,7 @@ import Events from './Events';
 import Component from './Component';
 import Context from './Context';
 import diff from './diff';
-import { throttle } from '../utils';
+import { throttle } from './utils';
 import VRoot from './VRoot';
 import { VCOMPONENT } from './types';
 
