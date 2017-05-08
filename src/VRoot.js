@@ -1,16 +1,16 @@
-import { VNODE_ROOT } from './types';
+import { VROOT } from './types';
 
-function VNodeRoot() {
+function VRoot() {
     this.parentNode = null;
     this.childNodes = [];
 }
 
-VNodeRoot.prototype = {
-    type: VNODE_ROOT,
+VRoot.prototype = {
+    type: VROOT,
 
     appendChild(childNode) {
         this.childNodes.push(childNode);
     }
 };
 
-export default VNodeRoot;
+export default VRoot;

@@ -6,11 +6,11 @@ import { createNormalizePatch, diff } from './patch';
 import { throttle } from '../utils';
 import { debug } from '../debug';
 import createElement from '../virtualDom/createElement';
-import VNodeRoot from './VNodeRoot';
+import VRoot from './VRoot';
 
 const RENDER_THROTTLE = 16;
 
-function renderClient(rootTemplate, store, rootDomNode, { document = self.document } = {}) {
+function renderClient(rootTemplate, store, rootNode, { document = self.document } = {}) {
     const events = new Events();
     const config = {
         store,
@@ -22,30 +22,30 @@ function renderClient(rootTemplate, store, rootDomNode, { document = self.docume
         nodes: {},
         nextNodes: {}
     };
-    const nodeRoot = new VNodeRoot();
+    const root = new VRoot();
     const context = new Context({
         parentId: 'r',
         parentNodeId: 'r',
         index: 0,
         parentPosition: '',
         domIndex: 0,
-        parent: nodeRoot,
-        parentNode: nodeRoot
+        parent: root,
+        parentNode: root
     });
     // const start = performance.now();
     const nextVirtualDom = rootTemplate.render(config, context);
-    const nextFirstChild = createElement(nodeRoot.childNodes[0], document);
-    const firstChild = rootDomNode.childNodes[0];
+    const nextFirstChild = createElement(root.childNodes[0], document);
+    const firstChild = rootNode.childNodes[0];
 
     const normalizePatch = createNormalizePatch(config.nextNodes);
 
     if (!firstChild) {
-        rootDomNode.appendChild(nextFirstChild);
+        rootNode.appendChild(nextFirstChild);
     } else if (firstChild.outerHTML !== nextFirstChild.outerHTML) {
         debug.warn('Server and client html do not match!');
-        rootDomNode.replaceChild(nextFirstChild, firstChild);
+        rootNode.replaceChild(nextFirstChild, firstChild);
     } else {
-        normalizePatch.apply(rootDomNode, document);
+        normalizePatch.apply(rootNode, document);
     }
     normalizePatch.applySetRefs();
     // const end = performance.now();
@@ -57,7 +57,7 @@ function renderClient(rootTemplate, store, rootDomNode, { document = self.docume
         rootTemplate,
         store,
         events,
-        rootDomNode,
+        rootNode,
         prevNodes: config.nextNodes,
         prevComponents: config.nextComponents,
         prevVirtualDom: nextVirtualDom,
@@ -70,7 +70,7 @@ function rerenderClient({
     store,
     events,
     document,
-    rootDomNode,
+    rootNode,
     prevNodes,
     prevComponents,
     prevVirtualDom
@@ -102,7 +102,7 @@ function rerenderClient({
         const patch = diff(config.nodes, config.nextNodes);
 
         // TODO blur problem when moving component with focus
-        patch.apply(rootDomNode, document);
+        patch.apply(rootNode, document);
         update(config.updateComponents);
         mount(config.mountComponents);
     }, RENDER_THROTTLE, { leading: true });
@@ -124,11 +124,6 @@ function unmount(instances) {
 
 // FIXME
 function update() {}
-
-// FIXME
-function findRootDomNode(virtualDom) {
-    return virtualDom;
-}
 
 export default renderClient;
 export { RENDER_THROTTLE };
