@@ -6,6 +6,7 @@ import { createNormalizePatch, diff } from './patch';
 import { throttle } from '../utils';
 import { debug } from '../debug';
 import createElement from '../virtualDom/createElement';
+import VNodeRoot from './VNodeRoot';
 
 const RENDER_THROTTLE = 16;
 
@@ -21,10 +22,19 @@ function renderClient(rootTemplate, store, domNode, { document = self.document }
         nodes: {},
         nextNodes: {}
     };
-    const context = new Context();
+    const nodeRoot = new VNodeRoot();
+    const context = new Context({
+        parentId: 'r',
+        parentNodeId: 'r',
+        index: 0,
+        parentPosition: '',
+        domIndex: 0,
+        parent: nodeRoot,
+        parentNode: nodeRoot
+    });
     // const start = performance.now();
     const nextVirtualDom = rootTemplate.render(config, context);
-    const nextFirstChild = createElement(findRootDomNode(nextVirtualDom), document);
+    const nextFirstChild = createElement(nodeRoot.childNodes[0], document);
     const firstChild = domNode.childNodes[0];
 
     const normalizePatch = createNormalizePatch(config.nextNodes);
