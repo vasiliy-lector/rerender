@@ -1,5 +1,7 @@
 import { debug } from './debug';
 import { createTag, createText } from './createElement';
+import { VNODE } from './types';
+
 const types = {
     ATTACH_EVENTS: 'applyAttachEvents', // attach event to server side html
     CREATE: 'applyCreate',
@@ -68,15 +70,20 @@ Patch.prototype = {
         const nextNode = command[3];
         this.replaceChild(command[1], command[2], this.createElementWithChilds(nextNode));
     },
+
     applyMove(command) {
         command[1].parentNode.replaceChild(createText('', this.document), command[1]);
         this.replaceChild(command[2], command[3], command[1]);
     },
+
     applyRemove(command) {
-        if (command[1].type === 'Tag' && typeof command[1].attrs.special.ref === 'function') {
-            command[1].attrs.special.ref(null);
+        // FIXME
+        const node = command[1];
+        if (node.type === VNODE && node.attrs && typeof node.attrs.ref === 'function') {
+            node.attrs.ref(null);
         }
     },
+
     applyReplace(command) {
         const nextNode = command[2];
         const nextDomNode = this.createElementWithChilds(nextNode);
@@ -88,10 +95,12 @@ Patch.prototype = {
         );
         // }
     },
+
     applySplitText(command) {
         const textNode = this.getRefByPosition(command[1]);
         textNode.splitText(command[2]);
     },
+
     applyUpdate(command) {
         const node = command[1];
         const diff = command[2];

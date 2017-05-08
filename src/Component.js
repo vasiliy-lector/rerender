@@ -59,6 +59,12 @@ Component.destroy = function(instance) {
     }
 };
 
+Component.update = function(instance) {
+    if (typeof instance.componentDidUpdate !== 'undefined') {
+        instance.componentDidUpdate();
+    }
+};
+
 Component.mount = function(instance) {
     instance._componentMounted = true;
 

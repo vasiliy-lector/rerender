@@ -4,6 +4,7 @@ import Context from './Context';
 import diff from './diff';
 import { throttle } from '../utils';
 import VRoot from './VRoot';
+import { VCOMPONENT } from './types';
 
 const RENDER_THROTTLE = 16;
 
@@ -33,9 +34,10 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document 
 
     const patch = diff(nextVirtualRoot, new VRoot(), {
         nextNodesById: config.nextNodes,
-        nodesById: {}
+        nodesById: {},
+        normalize: true
     });
-    patch.apply(rootNode, document);
+    patch.applyLight(rootNode, document);
 
     mount(config.mountComponents);
 
@@ -63,33 +65,45 @@ function rerenderClient({
 }) {
     let components = prevComponents;
     let nodes = prevNodes;
-    let virtualDom = prevVirtualRoot;
+    let virtualRoot = prevVirtualRoot;
 
     return throttle(function() {
+        const nextVirtualRoot = new VRoot();
         const config = {
             store,
             events,
+            components,
             nextComponents: {},
             mountComponents: {},
             updateComponents: {},
-            nextNodes: {},
             nodes,
-            components
+            nextNodes: {}
         };
+        const context = new Context({
+            parentId: 'r',
+            parentNodeId: 'r',
+            index: 0,
+            parentPosition: '',
+            domIndex: 0,
+            parent: nextVirtualRoot,
+            parentNode: nextVirtualRoot
+        });
+        nextVirtualRoot.setChilds([rootTemplate.render(config, context)]);
 
-        const context = new Context();
-        virtualDom = rootTemplate.render(config, context);
+        const patch = diff(nextVirtualRoot, virtualRoot, {
+            nextNodesById: config.nextNodes,
+            nodesById: nodes
+        });
 
-        // TODO: find unmount instances in components vs nextComponents
-        unmount(config.unmountComponents);
-        nodes = config.nextNodes;
-        components = config.nextComponents;
-        const patch = diff(config.nodes, config.nextNodes);
-
+        unmount(config.nextComponents, components);
         // TODO blur problem when moving component with focus
         patch.apply(rootNode, document);
-        update(config.updateComponents);
         mount(config.mountComponents);
+        update(config.updateComponents);
+
+        virtualRoot = nextVirtualRoot;
+        nodes = config.nextNodes;
+        components = config.nextComponents;
     }, RENDER_THROTTLE, { leading: true });
 }
 
@@ -99,16 +113,21 @@ function mount(instances) {
     }
 }
 
-function unmount(instances) {
-    for (let id in instances) {
-        const instance = instances[id];
-        Component.unmount(instance);
-        Component.destroy(instance);
+function unmount(nextComponents, components) {
+    for (let id in components) {
+        if (components[id].type === VCOMPONENT && !nextComponents[id] || nextComponents[id].componentType !== components[id].componentType) {
+            const instance = components[id].instance;
+            Component.unmount(instance);
+            Component.destroy(instance);
+        }
     }
 }
 
-// FIXME
-function update() {}
+function update(instances) {
+    for (let id in instances) {
+        Component.update(instances[id]);
+    }
+}
 
 export default renderClient;
 export { RENDER_THROTTLE };

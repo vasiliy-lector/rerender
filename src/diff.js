@@ -10,12 +10,10 @@ function diff(nextNode, node, options, patch, nextSibling) {
         if (!node) {
             patch.create(context.parentPosition, context.domIndex, nextNode);
             if (options.normalize && nextNode.attrs) {
-                const keys = Object.keys(nextNode.attrs);
-
-                for (let i = 0, l = keys.length; i < l; i++) {
-                    if (keys[i] === 'ref' && typeof nextNode.attrs.ref === 'function') {
+                for (let name in nextNode.attrs) {
+                    if (name === 'ref' && typeof nextNode.attrs.ref === 'function') {
                         patch.setRef(context.position, nextNode.attrs.ref);
-                    } else if (keys[i].substr(0, 2) === 'on') {
+                    } else if (name.substr(0, 2) === 'on') {
                         patch.attachEvents(context.position, nextNode.attrs);
                         break;
                     }
@@ -60,6 +58,13 @@ function diff(nextNode, node, options, patch, nextSibling) {
         }
     } else if (nextNode.type === VROOT) {
         patch = new Patch();
+
+        for (let id in options.nodesById) {
+            if (!options.nextNodesById[id]) {
+                patch.remove(options.nodesById[id], options.nodesById[id].context.position);
+            }
+        }
+
         diff(nextNode.childNodes[0], node.childNodes[0], options, patch);
 
         return patch;
