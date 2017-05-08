@@ -33,21 +33,18 @@ Patch.prototype = {
         }
     },
 
-    applyLight() {
+    applyNormalize() {
         this.applySplitTexts();
         this.applyAttachEvents();
-        this.applySetRefs();
     },
 
     applyAttachEvents() {
         for (let j = 0, m = this.eventsCommands.length; j < m; j++) {
             const node = this.getRefByPosition(this.eventsCommands[j][1]);
-            const attrs = this.eventsCommands[j][2];
+            const events = this.eventsCommands[j][2];
 
-            for (let name in attrs) {
-                if (name.substr(0,2) === 'on') {
-                    node[name] = attrs[name];
-                }
+            for (let name in events) {
+                node[name] = events[name];
             }
         }
     },

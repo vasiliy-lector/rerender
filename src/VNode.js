@@ -6,6 +6,7 @@ function VNode(tag, attrs, context) {
     this.parent = context.getParent();
     this.parentNode = context.getParentNode();
     this.childNodes = [];
+    this.context = context;
 }
 
 VNode.prototype = {

@@ -1,17 +1,15 @@
 import Events from './Events';
 import Component from './Component';
 import Context from './Context';
-// TODO
-import { createNormalizePatch, diff } from './patch';
+import diff from './diff';
 import { throttle } from '../utils';
-import { debug } from '../debug';
-import createElement from '../virtualDom/createElement';
 import VRoot from './VRoot';
 
 const RENDER_THROTTLE = 16;
 
 function renderClient(rootTemplate, store, rootNode, { document = self.document } = {}) {
     const events = new Events();
+    const nextVirtualRoot = new VRoot();
     const config = {
         store,
         events,
@@ -22,45 +20,33 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document 
         nodes: {},
         nextNodes: {}
     };
-    const root = new VRoot();
     const context = new Context({
         parentId: 'r',
         parentNodeId: 'r',
         index: 0,
         parentPosition: '',
         domIndex: 0,
-        parent: root,
-        parentNode: root
+        parent: nextVirtualRoot,
+        parentNode: nextVirtualRoot
     });
-    // const start = performance.now();
-    const nextVirtualDom = rootTemplate.render(config, context);
-    const nextFirstChild = createElement(root.childNodes[0], document);
-    const firstChild = rootNode.childNodes[0];
+    nextVirtualRoot.setChilds([rootTemplate.render(config, context)]);
 
-    const normalizePatch = createNormalizePatch(config.nextNodes);
-
-    if (!firstChild) {
-        rootNode.appendChild(nextFirstChild);
-    } else if (firstChild.outerHTML !== nextFirstChild.outerHTML) {
-        debug.warn('Server and client html do not match!');
-        rootNode.replaceChild(nextFirstChild, firstChild);
-    } else {
-        normalizePatch.apply(rootNode, document);
-    }
-    normalizePatch.applySetRefs();
-    // const end = performance.now();
-    // debug.log((end - start).toFixed(3), 'ms');
+    const patch = diff(nextVirtualRoot, new VRoot(), {
+        nextNodesById: config.nextNodes,
+        nodesById: {}
+    });
+    patch.apply(rootNode, document);
 
     mount(config.mountComponents);
 
-    config.events.on('rerender', rerenderClient({
+    events.on('rerender', rerenderClient({
         rootTemplate,
         store,
         events,
         rootNode,
         prevNodes: config.nextNodes,
         prevComponents: config.nextComponents,
-        prevVirtualDom: nextVirtualDom,
+        prevVirtualRoot: nextVirtualRoot,
         document
     }));
 }
@@ -73,11 +59,11 @@ function rerenderClient({
     rootNode,
     prevNodes,
     prevComponents,
-    prevVirtualDom
+    prevVirtualRoot
 }) {
     let components = prevComponents;
     let nodes = prevNodes;
-    let virtualDom = prevVirtualDom;
+    let virtualDom = prevVirtualRoot;
 
     return throttle(function() {
         const config = {
@@ -88,8 +74,7 @@ function rerenderClient({
             updateComponents: {},
             nextNodes: {},
             nodes,
-            components,
-            virtualDom: virtualDom
+            components
         };
 
         const context = new Context();
