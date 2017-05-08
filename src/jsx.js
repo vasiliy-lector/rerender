@@ -1,3 +1,5 @@
+import createTemplate from './createTemplate';
+
 var parser = require('nano-parser'),
     any = parser.any,
     end = parser.end,
@@ -177,5 +179,8 @@ var parser = require('nano-parser'),
 jsx.setOutputMethod = function setOutputMethod(method) {
     outputMethod = method || defaultOutput;
 };
+
+// FIXME
+jsx.setOutputMethod(createTemplate);
 
 module.exports = jsx;

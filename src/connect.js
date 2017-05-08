@@ -1,4 +1,5 @@
 import Component from './Component';
+import jsx from './jsx';
 import { hoistStatics } from './utils';
 
 export default function connect({ actions = {}, get, merge, watch }) {
@@ -41,7 +42,7 @@ export default function connect({ actions = {}, get, merge, watch }) {
                 return merge ? merge(allProps) : allProps;
             }
 
-            render({ jsx }) {
+            render() {
                 return jsx `<${Wrapped} ${this.state}>${this.children}</${Wrapped}>`;
             }
         }
