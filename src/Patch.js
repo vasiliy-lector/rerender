@@ -1,4 +1,4 @@
-import { VNODE, VTEXT } from './types';
+import { VNODE } from './types';
 
 const CREATE = 'CREATE';
 const MOVE = 'MOVE';
@@ -72,6 +72,12 @@ Patch.prototype = {
                 break;
         }
     }
+};
+
+const specialAttrs = {
+    ref: true,
+    uniqid: true,
+    key: true
 };
 
 function Create(nextNode) {
@@ -174,7 +180,25 @@ function Update(nextNode, node) {
 Update.prototype = {
     type: UPDATE,
 
-    apply() {}
+    apply(options, domNode) {
+        const nextAttrs = this.nextNode.attrs;
+        const attrs = this.node.attrs;
+
+        if (nextAttrs) {
+            for (let name in nextAttrs) {
+                if (nextAttrs[name] !== attrs[name] && !specialAttrs[name]) {
+                    domNode[name] = nextAttrs[name];
+                }
+            }
+        }
+        if (attrs) {
+            for (let name in attrs) {
+                if (nextAttrs[name] === undefined) {
+                    domNode[name] = null;
+                }
+            }
+        }
+    }
 };
 
 function AttachEvents(nextNode) {
@@ -184,13 +208,17 @@ function AttachEvents(nextNode) {
 AttachEvents.prototype = {
     type: ATTACH_EVENTS,
 
-    apply() {}
-};
+    apply(options, domNode) {
+        const nextAttrs = this.nextNode.attrs;
 
-const specialAttrs = {
-    ref: true,
-    uniqid: true,
-    key: true
+        if (nextAttrs) {
+            for (let name in nextAttrs) {
+                if (name.substr(0,2) === 'on') {
+                    domNode[name] = nextAttrs[name];
+                }
+            }
+        }
+    }
 };
 
 function createElement(nextNode, document, skipCreation) {
