@@ -1,4 +1,4 @@
-import { TEMPLATE, TEMPLATE_COMPONENT } from './types';
+import { TEMPLATE, TEMPLATE_COMPONENT, TEMPLATE_VNODE } from './types';
 import VComponent from './VComponent';
 import { shallowEqualProps } from './utils';
 import VText from './VText';
@@ -129,7 +129,14 @@ TemplateComponent.prototype = {
         }
 
         const childs = template
-            ? template.render(config, context.addIdLevel(component))
+            ? template.render(
+                config,
+                context.addIdLevel(component)[
+                    template.subtype === TEMPLATE_VNODE
+                        ? 'incrementDom'
+                        : 'incrementComponent'
+                ](template.key, template.uniqid)
+            )
             : new VText('', context.addIdLevel(component).incrementDom());
 
         component.set('childs', [childs]);
