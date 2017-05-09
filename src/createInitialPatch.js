@@ -1,7 +1,7 @@
-import { VROOT, VNODE, VTEXT } from './types';
+import { VNODE, VTEXT } from './types';
 import Patch, { Create, SetRef, AttachEvents, SplitText } from './Patch';
 
-function createInitialPatch(nextNode, options, insideCreation, nextSibling) {
+function createInitialPatchRecursive(nextNode, options, insideCreation, nextSibling) {
     if (nextNode.type === VNODE) {
         let childrenCreated;
 
@@ -22,7 +22,7 @@ function createInitialPatch(nextNode, options, insideCreation, nextSibling) {
         }
 
         for (let i = 0, l = nextNode.childNodes.length; i < l; i++) {
-            createInitialPatch(
+            createInitialPatchRecursive(
                 nextNode.childNodes[i],
                 options,
                 insideCreation || childrenCreated,
@@ -37,13 +37,15 @@ function createInitialPatch(nextNode, options, insideCreation, nextSibling) {
         if (nextSibling && nextSibling.type === VTEXT) {
             options.patch.pushNormalize(new SplitText(nextNode));
         }
-    } else if (nextNode.type === VROOT) {
-        const patch = new Patch(options.document);
-
-        createInitialPatch(nextNode.childNodes[0], { patch });
-
-        return patch;
     }
+}
+
+function createInitialPatch(nextNode, options) {
+    const patch = new Patch(options.document);
+
+    createInitialPatchRecursive(nextNode.childNodes[0], { patch });
+
+    return patch;
 }
 
 export default createInitialPatch;

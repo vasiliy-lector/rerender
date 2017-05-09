@@ -1,8 +1,8 @@
-import { VROOT, VNODE, VTEXT } from './types';
-import Patch, { Create, Replace, Move, Update, Remove } from './Patch';
+import { VNODE, VTEXT } from './types';
+import Patch, { Create, Replace, Move, Update, Remove, RemoveRef } from './Patch';
 import { shallowEqual } from './utils';
 
-function diff(nextNode, options, insideCreation) {
+function diffNext(nextNode, options, insideCreation) {
     if (nextNode.type === VNODE) {
         const context = nextNode.context;
         const node = options.nodesById[context.id];
@@ -31,7 +31,7 @@ function diff(nextNode, options, insideCreation) {
         }
 
         for (let i = 0, l = nextNode.childNodes.length; i < l; i++) {
-            diff(
+            diffNext(
                 nextNode.childNodes[i],
                 options,
                 childrenNeedCreation
@@ -49,21 +49,51 @@ function diff(nextNode, options, insideCreation) {
         } else if (node.value !== nextNode.value) {
             options.patch.push(new Replace(nextNode));
         }
-    } else if (nextNode.type === VROOT) {
-        const patch = new Patch(options.document);
-
-        diff(nextNode.childNodes[0], {
-            nodesById: options.nodesById,
-            patch
-        });
-        for (let id in options.nodesById) {
-            if (!options.nextNodesById[id]) {
-                options.patch.push(new Remove(options.nodesById[id]));
-            }
-        }
-
-        return patch;
     }
+}
+
+function diffPrev(node, options, insideRemove) {
+    let childrenRemoved;
+    let childrenNeedRemove;
+
+    if (!options.nextNodesById[node.context.id]) {
+        if (!insideRemove) {
+            options.patch.push(new Remove(node));
+            childrenRemoved = true;
+        } else if (node.attrs && typeof node.attrs.ref === 'function') {
+            options.patch.push(new RemoveRef(node));
+        }
+    } else if (insideRemove) {
+        childrenNeedRemove = true;
+    }
+
+    if (node.type === VNODE) {
+        for (let i = 0, l = node.childNodes.length; i < l; i++) {
+            diffPrev(
+                node.childNodes[i],
+                options,
+                childrenNeedRemove
+                    ? false
+                    : insideRemove || childrenRemoved
+            );
+        }
+    }
+}
+
+function diff(nextNode, node, options) {
+    const patch = new Patch(options.document);
+
+    diffNext(nextNode, {
+        nodesById: options.nodesById,
+        patch
+    });
+
+    diffPrev(node, {
+        nextNodesById: options.nextNodesById,
+        patch
+    });
+
+    return patch;
 }
 
 export default diff;

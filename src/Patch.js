@@ -7,6 +7,7 @@ const REPLACE = 'REPLACE';
 const UPDATE = 'UPDATE';
 const SPLIT_TEXT = 'SPLIT_TEXT';
 const SET_REF = 'SET_REF';
+const REMOVE_REF = 'REMOVE_REF';
 const ATTACH_EVENTS = 'ATTACH_EVENTS';
 
 function Patch (document = self.document) {
@@ -28,7 +29,7 @@ Patch.prototype = {
         for (let i = 0, l = this.commands.length; i < l; i++) {
             const command = this.commands[i];
 
-            if (command.type !== CREATE) {
+            if (command.type !== CREATE && command.type !== REMOVE_REF) {
                 domNodes[i] = command.refNode.getDomNode();
                 if (command.type === MOVE) {
                     options.skipCreation[command.nextNode.context.id] = true;
@@ -138,6 +139,17 @@ Remove.prototype = {
         if (domNode.parentNode) {
             domNode.parentNode.removeChild(domNode);
         }
+    }
+};
+
+function RemoveRef(node) {
+    this.node = node;
+}
+Remove.prototype = {
+    type: REMOVE_REF,
+
+    apply() {
+        this.node.attrs.ref(null);
     }
 };
 
@@ -264,6 +276,7 @@ export {
     Remove,
     Replace,
     SetRef,
+    RemoveRef,
     SplitText,
     Update,
     AttachEvents

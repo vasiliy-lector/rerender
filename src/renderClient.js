@@ -34,7 +34,7 @@ function renderClient(rootTemplate, store, rootNode, { document } = {}) {
     });
     nextVirtualRoot.setChilds([rootTemplate.render(config, context)]);
 
-    const patch = createInitialPatch(nextVirtualRoot, {
+    const patch = createInitialPatch(nextVirtualRoot.childNodes[0], {
         nextNodesById: config.nextNodes,
         document
     });
@@ -92,7 +92,7 @@ function rerenderClient({
         });
         nextVirtualRoot.setChilds([rootTemplate.render(config, context)]);
 
-        const patch = diff(nextVirtualRoot, virtualRoot, {
+        const patch = diff(nextVirtualRoot.childNodes[0], virtualRoot.childNodes[0], {
             nextNodesById: config.nextNodes,
             nodesById: nodes,
             document
