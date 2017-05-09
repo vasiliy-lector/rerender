@@ -233,7 +233,7 @@ AttachEvents.prototype = {
 
         for (let name in nextAttrs) {
             if (name.substr(0,2) === 'on') {
-                domNode[name] = nextAttrs[name];
+                domNode[name.toLowerCase()] = nextAttrs[name];
             }
         }
     }
@@ -247,7 +247,11 @@ function createElement(nextNode, document, skipCreation) {
             nextDomNode = document.createElement(nextNode.tag);
 
             for (let name in nextNode.attrs) {
-                if (!specialAttrs[name]) {
+                if (specialAttrs[name]) {
+                    continue;
+                } else if (name.substr(0, 2) === 'on') {
+                    nextDomNode[name.toLowerCase()] = nextNode.attrs[name];
+                } else {
                     nextDomNode[name] = nextNode.attrs[name];
                 }
             }
