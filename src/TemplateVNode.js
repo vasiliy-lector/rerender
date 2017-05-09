@@ -13,10 +13,6 @@ const specialProps = {
 
 function TemplateVNode(tag, attrs, children) {
     if (attrs) {
-        if (attrs.ref) {
-            this.ref = attrs.ref;
-        }
-
         if (attrs.key) {
             this.key = attrs.key;
         }
@@ -64,7 +60,7 @@ TemplateVNode.prototype = {
         nextNode.setChilds(renderChildren(
             this.children,
             config,
-            context.addDomLevel(nextNode, context.id),
+            context.addDomLevel(nextNode, context.getId()),
             false
         ));
 

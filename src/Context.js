@@ -7,6 +7,7 @@ function Context({
     domIndex,
     parent,
     parentNode,
+    domLevel,
     key,
     uniqid,
     relativeParentId,
@@ -22,6 +23,7 @@ function Context({
     this.domIndex = domIndex;
     this.parent = parent;
     this.parentNode = parentNode;
+    this.domLevel = domLevel;
     this.rootNode = rootNode;
     const id = uniqid || `${this.parentId}.${key
         ? `k${key}`
@@ -76,6 +78,7 @@ Context.prototype = {
 
     addDomLevel(node, id) {
         return new Context({
+            domLevel: true,
             parentId: this.id,
             index: 0,
             parentPosition: this.position || this.parentPosition,
@@ -96,14 +99,15 @@ Context.prototype = {
     incrementComponent(key, uniqid) {
         return new Context({
             index: (key || uniqid) ? this.index : this.index++,
+            domIndex: this.domLevel ? this.domIndex++ : this.domIndex,
             key,
             uniqid,
 
             // no rewrite
+            domLevel: this.domLevel,
             parentId: this.parentId,
             parentNodeId: this.parentNodeId,
             parentPosition: this.parentPosition,
-            domIndex: this.domIndex,
             parent: this.parent,
             parentNode: this.parentNode,
             relativeParentId: this.relativeParentId,
@@ -123,6 +127,7 @@ Context.prototype = {
             uniqid,
 
             // no rewrite
+            domLevel: this.domLevel,
             parentId: this.parentId,
             parentNodeId: this.parentNodeId,
             parentPosition: this.parentPosition,
