@@ -2,261 +2,164 @@ import { debug } from './debug';
 import { createTag, createText } from './createElement';
 import { VNODE } from './types';
 
-const types = {
-    ATTACH_EVENTS: 'applyAttachEvents', // attach event to server side html
-    CREATE: 'applyCreate',
-    MOVE: 'applyMove',
-    REMOVE: 'applyRemove',
-    REPLACE: 'applyReplace',
-    SET_REF: 'applySetRef',
-    SPLIT_TEXT: 'applySplitText', // split text nodes to normalize ssr
-    UPDATE: 'applyUpdate' // update attributes of node
-};
+const CREATE = 'CREATE';
+const MOVE = 'MOVE';
+const REMOVE = 'REMOVE';
+const REPLACE = 'REPLACE';
+const UPDATE = 'UPDATE';
+const SPLIT_TEXT = 'SPLIT_TEXT';
+const SET_REF = 'SET_REF';
+const ATTACH_EVENTS = 'ATTACH_EVENTS';
 
-function Patch (domNode, document) {
+function Patch () {
     this.commands = [];
     this.setRefCommands = [];
     this.splitTextCommands = [];
     this.eventsCommands = [];
-    this.domNode = domNode;
-    this.document = document;
-    this.toMove = {};
-    this.willCreatedWithChilds = {};
 }
 
 Patch.prototype = {
-    apply() {
-        this.setRefs();
+    apply(rootNode, document) {
+        const domNodes = [];
 
         for (let i = 0, l = this.commands.length; i < l; i++) {
-            const command = this.commands[i];
-
-            this[command[0]](command);
-        }
-    },
-
-    applyLight() {
-        this.applySplitTexts();
-        this.applyAttachEvents();
-        this.applySetRefs();
-    },
-
-    applyAttachEvents() {
-        for (let j = 0, m = this.eventsCommands.length; j < m; j++) {
-            const node = this.getRefByPosition(this.eventsCommands[j][1]);
-            const attrs = this.eventsCommands[j][2];
-
-            for (let name in attrs) {
-                if (name.substr(0,2) === 'on') {
-                    node[name] = attrs[name];
-                }
+            if (this.commands[i].type !== CREATE) {
+                domNodes[i] = this.commands[i].getNode(rootNode);
             }
         }
+
+        for (let i = 0, l = this.commands.length; i < l; i++) {
+            this.commands[i].apply(rootNode, document, domNodes[i]);
+        }
     },
 
-    applySplitTexts() {
+    applyNormalize(rootNode, document) {
         for (let i = 0, l = this.splitTextCommands.length; i < l; i++) {
-            this.applySplitText(this.splitTextCommands[i]);
+            this.splitTextCommands[i].apply(rootNode, document);
         }
-    },
 
-    applySetRefs() {
         for (let i = 0, l = this.setRefCommands.length; i < l; i++) {
-            this.setRefCommands[i][2](this.getRefByPosition(this.setRefCommands[i][1]));
+            this.setRefCommands[i].apply(rootNode, document);
+        }
+
+        for (let i = 0, l = this.eventsCommands.length; i < l; i++) {
+            this.eventsCommands[i].apply(rootNode, document);
         }
     },
 
-    applyCreate(command) {
-        const nextNode = command[3];
-        this.replaceChild(command[1], command[2], this.createElementWithChilds(nextNode));
+    push(command) {
+        this.commands.push(command);
     },
 
-    applyMove(command) {
-        command[1].parentNode.replaceChild(createText('', this.document), command[1]);
-        this.replaceChild(command[2], command[3], command[1]);
-    },
-
-    applyRemove(command) {
-        // FIXME
-        const node = command[1];
-        if (node.type === VNODE && node.attrs && typeof node.attrs.ref === 'function') {
-            node.attrs.ref(null);
+    pushNormalize(command) {
+        switch (command.type) {
+            case SPLIT_TEXT:
+                this.splitTextCommands.push(command);
+                break;
+            case SET_REF:
+                this.setRefCommands.push(command);
+                break;
+            case ATTACH_EVENTS:
+                this.eventsCommands.push(command);
+                break;
         }
-    },
+    }
+};
 
-    applyReplace(command) {
-        const nextNode = command[2];
-        const nextDomNode = this.createElementWithChilds(nextNode);
+function Create(nextNode) {
+    this.nextNode = nextNode;
+}
+Create.prototype = {
+    apply() {}
+};
 
-        // if (command[1].parentNode) {
-        command[1].parentNode.replaceChild(
-            nextDomNode,
-            command[1]
-        );
-        // }
-    },
+function Move(nextNode, node) {
+    this.nextNode = nextNode;
+    this.node = node;
+}
+Move.prototype = {
+    apply() {},
 
-    applySplitText(command) {
-        const textNode = this.getRefByPosition(command[1]);
-        textNode.splitText(command[2]);
-    },
+    getNode(rootNode) {
+        return this.node.context.getNode(rootNode);
+    }
+};
 
-    applyUpdate(command) {
-        const node = command[1];
-        const diff = command[2];
+function Remove(node) {
+    this.node = node;
+}
+Remove.prototype = {
+    apply() {},
 
-        if (diff.common) {
-            if (diff.common[0]) {
-                for (let name in diff.common[0]) {
-                    node[name] = diff.common[0][name];
-                }
-            }
-            if (diff.common[1]) {
-                for (let i = 0, l = diff.common[1].length; i < l; i++) {
-                    node[diff.common[1][i]] = null;
-                }
-            }
-        }
+    getNode(rootNode) {
+        return this.node.context.getNode(rootNode);
+    }
+};
 
-        if (diff.events) {
-            if (diff.events[0]) {
-                for (let name in diff.events[0]) {
-                    node[name] = diff.events[0][name];
-                }
-            }
+function Replace(nextNode) {
+    this.nextNode = nextNode;
+}
+Replace.prototype = {
+    apply() {},
 
-            if (diff.events[1]) {
-                for (let i = 0, l = diff.events[1].length; i < l; i++) {
-                    node[diff.events[1][i]] = null;
-                }
-            }
-        }
-    },
+    getNode(rootNode) {
+        return this.nextNode.context.getNode(rootNode);
+    }
+};
 
-    createElementWithChilds(nextNode) {
-        let nextDomNode;
+function SetRef(nextNode) {
+    this.nextNode = nextNode;
+}
+SetRef.prototype = {
+    apply() {},
 
-        if (nextNode.type === 'Tag') {
-            if (!this.toMove[nextNode.id]) {
-                nextDomNode = createTag(nextNode.tag, nextNode.attrs, this.document);
+    getNode(rootNode) {
+        return this.nextNode.context.getNode(rootNode);
+    }
+};
 
-                if (typeof nextNode.attrs.special.ref === 'function') {
-                    nextNode.attrs.special.ref(nextDomNode);
-                }
+function SplitText(nextNode) {
+    this.nextNode = nextNode;
+}
+SplitText.prototype = {
+    apply() {},
 
-                for (let i = 0, l = nextNode.childNodes.length; i < l; i++) {
-                    nextDomNode.appendChild(this.createElementWithChilds(nextNode.childNodes[i]));
-                }
-            } else {
-                nextDomNode = createText('', this.document);
-            }
-        } else {
-            nextDomNode = createText(nextNode.value, this.document);
-        }
+    getNode(rootNode) {
+        return this.nextNode.context.getNode(rootNode);
+    }
+};
 
-        return nextDomNode;
-    },
+function Update(nextNode, node) {
+    this.nextNode = nextNode;
+    this.node = node;
+}
+Update.prototype = {
+    apply() {},
 
-    setRefs() {
-        for (let i = 0, l = this.commands.length; i < l; i++) {
-            try {
-                if (this.commands[i][0] !== types.CREATE && this.commands[i][0] !== types.REMOVE) {
-                    this.commands[i][1] = this.getRefByPosition(this.commands[i][1]);
-                }
-            } catch(error) {
-                debug.error(error);
-            }
-        }
-    },
+    getNode(rootNode) {
+        return this.nextNode.context.getNode(rootNode);
+    }
+};
 
-    getRefByPosition(position) {
-        return (new Function('domNode', `return domNode${position};`))(this.domNode);
-    },
+function AttachEvents(nextNode) {
+    this.nextNode = nextNode;
+}
+AttachEvents.prototype = {
+    apply() {},
 
-    replaceChild(parentPosition, index, nextDomNode) {
-        const container = this.getRefByPosition(parentPosition);
-        const domNode = container.childNodes[index];
-
-        if (domNode) {
-            container.replaceChild(nextDomNode, domNode);
-        } else {
-            container.appendChild(nextDomNode);
-        }
-    },
-
-    create(parentPosition, index, node) {
-        this.willCreatedWithChilds[node.position];
-
-        if (this.willCreatedWithChilds[parentPosition] === undefined) {
-            this.commands.push([
-                types.CREATE,
-                parentPosition,
-                index,
-                node
-            ]);
-        }
-    },
-
-    move(prevPosition, parentPosition, index, node) {
-        this.toMove[node.id] = true;
-        this.commands.push([
-            types.MOVE,
-            prevPosition,
-            parentPosition,
-            index
-        ]);
-    },
-
-    remove(prevNode, prevPosition) {
-        this.commands.push([
-            types.REMOVE,
-            prevNode,
-            prevPosition
-        ]);
-    },
-
-    replace(position, node) {
-        this.willCreatedWithChilds[position] = true;
-
-        this.commands.push([
-            types.REPLACE,
-            position,
-            node
-        ]);
-    },
-
-    setRef(position, ref) {
-        this.setRefCommands.push([
-            types.SET_REF,
-            position,
-            ref
-        ]);
-    },
-
-    splitText(position, end) {
-        this.splitTextCommands.push([
-            types.SPLIT_TEXT,
-            position,
-            end
-        ]);
-    },
-
-    update(position, diff) {
-        this.commands.push([
-            types.UPDATE,
-            position,
-            diff
-        ]);
-    },
-
-    attachEvents(position, events) {
-        this.eventsCommands.push([
-            types.ATTACH_EVENTS,
-            position,
-            events
-        ]);
+    getNode(rootNode) {
+        return this.nextNode.context.getNode(rootNode);
     }
 };
 
 export default Patch;
-export { types };
+export {
+    Create,
+    Move,
+    Remove,
+    Replace,
+    SetRef,
+    SplitText,
+    Update,
+    AttachEvents
+};

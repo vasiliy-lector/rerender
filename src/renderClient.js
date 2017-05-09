@@ -1,6 +1,7 @@
 import Events from './Events';
 import Component from './Component';
 import Context from './Context';
+import createInitialPatch from './createInitialPatch';
 import diff from './diff';
 import { throttle } from './utils';
 import VRoot from './VRoot';
@@ -32,12 +33,10 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document 
     });
     nextVirtualRoot.setChilds([rootTemplate.render(config, context)]);
 
-    const patch = diff(nextVirtualRoot, new VRoot(), {
-        nextNodesById: config.nextNodes,
-        nodesById: {},
-        normalize: true
+    const patch = createInitialPatch(nextVirtualRoot, {
+        nextNodesById: config.nextNodes
     });
-    patch.applyLight(rootNode, document);
+    patch.applyNormalize(rootNode, document);
 
     mount(config.mountComponents);
 
@@ -115,7 +114,9 @@ function mount(instances) {
 
 function unmount(nextComponents, components) {
     for (let id in components) {
-        if (components[id].type === VCOMPONENT && !nextComponents[id] || nextComponents[id].componentType !== components[id].componentType) {
+        if (components[id].type === VCOMPONENT
+            && (!nextComponents[id] || nextComponents[id].componentType !== components[id].componentType)
+        ) {
             const instance = components[id].instance;
             Component.unmount(instance);
             Component.destroy(instance);

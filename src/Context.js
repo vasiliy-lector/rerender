@@ -127,8 +127,8 @@ Context.prototype = {
         return this.id;
     },
 
-    getPositionFn() {
-        return new Function('rootNode', `return rootNode${this.position}`);
+    getNode(rootNode) {
+        return (new Function('rootNode', `return rootNode${this.position}`))(rootNode);
     },
 
     getDomId() {
