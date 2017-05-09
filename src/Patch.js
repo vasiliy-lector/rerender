@@ -111,7 +111,7 @@ Move.prototype = {
         const parentDomNode = this.nextNode.parentNode.getDomNode();
         const domNode = parentDomNode.childNodes[this.nextNode.context.domIndex];
 
-        if (this.nextNode.context.hasUniqid) {
+        if (!this.nextNode.context.hasKey) {
             prevDomNode.parentNode.replaceChild(document.createTextNode(''), prevDomNode);
         }
 
@@ -130,7 +130,15 @@ function Remove(node) {
 Remove.prototype = {
     type: REMOVE,
 
-    apply() {}
+    apply(options, domNode) {
+        if (this.node.type === VNODE && typeof this.node.attrs.ref === 'function') {
+            this.node.attrs.ref(null);
+        }
+
+        if (domNode.parentNode) {
+            domNode.parentNode.removeChild(domNode);
+        }
+    }
 };
 
 function Replace(nextNode) {
