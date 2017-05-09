@@ -92,7 +92,7 @@ function renderChildren(items, config, context, needKeys) {
                         item.subtype === TEMPLATE_VNODE
                             ? 'incrementDom'
                             : 'incrementComponent'
-                    ](needKeys ? item.key || `k${i}` : item.key, item.uniqid)
+                    ](needKeys ? item.key || '$' + i : item.key, item.uniqid)
                 ));
             } else if (Array.isArray(item)) {
                 childs.push.apply(childs, renderChildren(item, config, context.addIdLevel(), true));
@@ -101,7 +101,7 @@ function renderChildren(items, config, context, needKeys) {
             } else {
                 childs.push(new VText(
                     item ? String(item) : '',
-                    context.incrementDom(needKeys ? `k${i}` : undefined)
+                    context.incrementDom(needKeys ? '$' + i : undefined)
                 ));
             }
         }

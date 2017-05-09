@@ -78,7 +78,7 @@ describe('Context', () => {
         it('should fix key in id', () => {
             const context1a = context1.incrementComponent('key1');
 
-            expect(context1a.id).toBe('r.c0.key1');
+            expect(context1a.id).toBe('r.c0.kkey1');
         });
     });
 
@@ -103,7 +103,7 @@ describe('Context', () => {
         it('should fix key in id', () => {
             const context1a = context1.incrementDom('key1');
 
-            expect(context1a.id).toBe('r.c0.key1');
+            expect(context1a.id).toBe('r.c0.kkey1');
             expect(context1a.position).toBe('.childNodes[0]');
             expect(context1a.domId).toBe('r.childNodes[0]');
         });
@@ -119,7 +119,7 @@ describe('Context', () => {
             contextLevel.incrementDom();
             context = contextLevel.incrementDom('key1');
 
-            expect(context.id).toBe('r.c0.c0.key1');
+            expect(context.id).toBe('r.c0.c0.kkey1');
             expect(context.position).toBe('.childNodes[2]');
             expect(context.domId).toBe('r.c0.c0.1.childNodes[2]');
 
@@ -127,7 +127,7 @@ describe('Context', () => {
             context = contextLevel.incrementDom(null, 'uniq1');
             expect(context.id).toBe('uniq1');
             expect(context.position).toBe('.childNodes[2].childNodes[0]');
-            expect(context.domId).toBe('r.c0.c0.key1.childNodes[0]');
+            expect(context.domId).toBe('r.c0.c0.kkey1.childNodes[0]');
         });
 
         it('should inherit key and uniqid of parent component', () => {
@@ -142,7 +142,7 @@ describe('Context', () => {
             contextLevel = context.addDomLevel({}, 'r.c0.c0.1');
             context = contextLevel.incrementDom();
 
-            expect(context.id).toBe('r.c0.c0.1.key1.0');
+            expect(context.id).toBe('r.c0.c0.1.kkey1.0');
             expect(context.position).toBe('.childNodes[1].childNodes[0]');
             expect(context.parentNodeId).toBe('r.c0.c0.1');
             expect(context.domId).toBe('r.c0.c0.1.childNodes[0]');
