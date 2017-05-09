@@ -64,6 +64,7 @@ Context.prototype = {
             parent: component || this.parent,
 
             // no rewrite
+            domLevel: !component && this.domLevel,
             parentNodeId: this.parentNodeId,
             parentPosition: this.position || this.parentPosition,
             domIndex: this.domIndex,

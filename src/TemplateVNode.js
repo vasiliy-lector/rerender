@@ -76,7 +76,7 @@ function renderChildren(items, config, context, needKeys) {
 
         for (let i = 0, l = items.length; i < l; i++) {
             const item = items[i];
-            const isObject = typeof item === 'object';
+            const isObject = typeof item === 'object' && item !== null;
 
             if (isObject && item.type === TEMPLATE) {
                 if (needKeys && !item.key) {
@@ -110,22 +110,24 @@ function stringifyChildrenItem(item, config) {
     const type = typeof item;
     let children = '';
 
-    if (type === 'object') {
-        if (item.type === TEMPLATE) {
-            children += item.renderToString(config);
-        } else if (item.type === TEMPLATE_FRAGMENT) {
-            for (let j = 0, l1 = item.fragment.length; j < l1; j++) {
-                children += stringifyChildrenItem(item.fragment[j], config);
+    if (item) {
+        if (type === 'object') {
+            if (item.type === TEMPLATE) {
+                children += item.renderToString(config);
+            } else if (item.type === TEMPLATE_FRAGMENT) {
+                for (let j = 0, l1 = item.fragment.length; j < l1; j++) {
+                    children += stringifyChildrenItem(item.fragment[j], config);
+                }
+            } else if (Array.isArray(item)) {
+                for (let j = 0, l1 = item.length; j < l1; j++) {
+                    children += stringifyChildrenItem(item[j], config);
+                }
+            } else if (item) {
+                escapeHtml(item);
             }
-        } else if (Array.isArray(item)) {
-            for (let j = 0, l1 = item.length; j < l1; j++) {
-                children += stringifyChildrenItem(item[j], config);
-            }
-        } else if (item) {
-            escapeHtml(item);
+        } else {
+            children += escapeHtml(item);
         }
-    } else if (item) {
-        children += escapeHtml(item);
     }
 
     return children;
