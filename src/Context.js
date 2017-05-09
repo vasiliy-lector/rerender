@@ -12,7 +12,8 @@ function Context({
     relativeParentId,
     relativePosition,
     inheritableKey,
-    inheritableUniqid
+    inheritableUniqid,
+    rootNode
 }) {
     this.parentId = parentId;
     this.parentNodeId = parentNodeId;
@@ -21,6 +22,7 @@ function Context({
     this.domIndex = domIndex;
     this.parent = parent;
     this.parentNode = parentNode;
+    this.rootNode = rootNode;
     const id = uniqid || `${this.parentId}.${key || (isDomNode ? index : 'c' + index)}`;
 
     if (isDomNode) {
@@ -60,7 +62,8 @@ Context.prototype = {
             relativeParentId: this.relativeParentId,
             relativePosition: this.relativePosition,
             inheritableKey: this.inheritableKey,
-            inheritableUniqid: this.inheritableUniqid
+            inheritableUniqid: this.inheritableUniqid,
+            rootNode: this.rootNode
         });
     },
 
@@ -78,7 +81,8 @@ Context.prototype = {
             relativeParentId: this.relativeParentId,
             relativePosition: this.relativePosition,
             inheritableKey: this.inheritableKey,
-            inheritableUniqid: this.inheritableUniqid
+            inheritableUniqid: this.inheritableUniqid,
+            rootNode: this.rootNode
         });
     },
 
@@ -98,7 +102,8 @@ Context.prototype = {
             relativeParentId: this.relativeParentId,
             relativePosition: this.relativePosition,
             inheritableKey: this.inheritableKey,
-            inheritableUniqid: this.inheritableUniqid
+            inheritableUniqid: this.inheritableUniqid,
+            rootNode: this.rootNode
         });
     },
 
@@ -119,7 +124,8 @@ Context.prototype = {
             relativeParentId: this.relativeParentId,
             relativePosition: this.relativePosition,
             inheritableKey: this.inheritableKey,
-            inheritableUniqid: this.inheritableUniqid
+            inheritableUniqid: this.inheritableUniqid,
+            rootNode: this.rootNode
         });
     },
 
@@ -127,8 +133,8 @@ Context.prototype = {
         return this.id;
     },
 
-    getNode(rootNode) {
-        return (new Function('rootNode', `return rootNode${this.position}`))(rootNode);
+    getNode() {
+        return (new Function('rootNode', `return rootNode${this.position}`))(this.rootNode);
     },
 
     getDomId() {

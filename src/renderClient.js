@@ -29,7 +29,8 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document 
         parentPosition: '',
         domIndex: 0,
         parent: nextVirtualRoot,
-        parentNode: nextVirtualRoot
+        parentNode: nextVirtualRoot,
+        rootNode
     });
     nextVirtualRoot.setChilds([rootTemplate.render(config, context)]);
 
@@ -85,7 +86,8 @@ function rerenderClient({
             parentPosition: '',
             domIndex: 0,
             parent: nextVirtualRoot,
-            parentNode: nextVirtualRoot
+            parentNode: nextVirtualRoot,
+            rootNode
         });
         nextVirtualRoot.setChilds([rootTemplate.render(config, context)]);
 

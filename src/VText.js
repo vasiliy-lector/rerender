@@ -7,7 +7,11 @@ function VText(value, context) {
 }
 
 VText.prototype = {
-    type: VTEXT
+    type: VTEXT,
+
+    getNode() {
+        return this._node || (this._node = this.context.getNode());
+    }
 };
 
 export default VText;

@@ -19,6 +19,10 @@ VNode.prototype = {
 
     appendChild(childNode) {
         this.childNodes.push(childNode);
+    },
+
+    getNode() {
+        return this._node || (this._node = this.context.getNode());
     }
 };
 
