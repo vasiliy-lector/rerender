@@ -1,3 +1,5 @@
+import { VNODE, VTEXT } from './types';
+
 const CREATE = 'CREATE';
 const MOVE = 'MOVE';
 const REMOVE = 'REMOVE';
@@ -18,29 +20,38 @@ function Patch (document = self.document) {
 Patch.prototype = {
     apply() {
         const domNodes = [];
+        const options = {
+            document: this.document,
+            skipCreation: {}
+        };
 
         for (let i = 0, l = this.commands.length; i < l; i++) {
-            if (this.commands[i].type !== CREATE) {
-                domNodes[i] = this.commands[i].refNode.getDomNode();
+            const command = this.commands[i];
+
+            if (command.type !== CREATE) {
+                domNodes[i] = command.refNode.getDomNode();
+                if (command.type === MOVE) {
+                    options.skipCreation[command.nextNode.context.id] = true;
+                }
             }
         }
 
         for (let i = 0, l = this.commands.length; i < l; i++) {
-            this.commands[i].apply(document, domNodes[i]);
+            this.commands[i].apply(domNodes[i], options);
         }
     },
 
     applyNormalize() {
         for (let i = 0, l = this.splitTextCommands.length; i < l; i++) {
-            this.splitTextCommands[i].apply(document);
+            this.splitTextCommands[i].apply();
         }
 
         for (let i = 0, l = this.setRefCommands.length; i < l; i++) {
-            this.setRefCommands[i].apply(document);
+            this.setRefCommands[i].apply();
         }
 
         for (let i = 0, l = this.eventsCommands.length; i < l; i++) {
-            this.eventsCommands[i].apply(document);
+            this.eventsCommands[i].apply();
         }
     },
 
@@ -100,7 +111,14 @@ function Replace(nextNode) {
 Replace.prototype = {
     type: REPLACE,
 
-    apply() {}
+    apply(domNode, options) {
+        const nextDomNode = createElement(this.nextNode, options.document, options.skipCreation);
+
+        domNode.parentNode.replaceChild(
+            nextDomNode,
+            domNode
+        );
+    }
 };
 
 function SetRef(nextNode) {
@@ -120,7 +138,9 @@ function SplitText(nextNode) {
 SplitText.prototype = {
     type: SPLIT_TEXT,
 
-    apply() {}
+    apply(domNode) {
+        domNode.splitText(this.nextNode.value.length);
+    }
 };
 
 function Update(nextNode, node) {
@@ -143,6 +163,42 @@ AttachEvents.prototype = {
 
     apply() {}
 };
+
+const specialAttrs = {
+    ref: true,
+    uniqid: true,
+    key: true
+};
+
+function createElement(nextNode, document, skipCreation) {
+    let nextDomNode;
+
+    if (nextNode.type === VNODE) {
+        if (!skipCreation[nextNode.context.id]) {
+            nextDomNode = document.createElement(nextNode.tag);
+
+            for (let name in nextNode.attrs) {
+                if (!specialAttrs[name]) {
+                    nextDomNode[name] = nextNode.attrs[name];
+                }
+            }
+
+            if (typeof nextNode.attrs.ref === 'function') {
+                nextNode.attrs.ref(nextDomNode);
+            }
+
+            for (let i = 0, l = nextNode.childNodes.length; i < l; i++) {
+                nextDomNode.appendChild(createElement(nextNode.childNodes[i], document, skipCreation));
+            }
+        } else {
+            nextDomNode = document.createTextNode('');
+        }
+    } else {
+        nextDomNode = document.createTextNode(nextNode.value);
+    }
+
+    return nextDomNode;
+}
 
 export default Patch;
 export {
