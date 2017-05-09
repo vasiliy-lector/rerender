@@ -157,7 +157,9 @@ function SetRef(nextNode) {
 SetRef.prototype = {
     type: SET_REF,
 
-    apply() {}
+    apply(options, domNode) {
+        this.nextNode.attrs.ref(this.nextNode, domNode);
+    }
 };
 
 function SplitText(nextNode) {
@@ -235,7 +237,7 @@ function createElement(nextNode, document, skipCreation) {
             }
 
             if (typeof nextNode.attrs.ref === 'function') {
-                nextNode.attrs.ref(nextDomNode);
+                nextNode.attrs.ref(nextNode, nextDomNode);
             }
 
             for (let i = 0, l = nextNode.childNodes.length; i < l; i++) {
