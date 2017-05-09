@@ -101,7 +101,20 @@ function Move(nextNode, node) {
 Move.prototype = {
     type: MOVE,
 
-    apply() {}
+    apply(options, prevDomNode) {
+        const parentDomNode = this.nextNode.parentNode.getDomNode();
+        const domNode = parentDomNode.childNodes[this.nextNode.context.domIndex];
+
+        if (this.nextNode.context.hasUniqid) {
+            prevDomNode.parentNode.replaceChild(document.createTextNode(''), prevDomNode);
+        }
+
+        if (domNode) {
+            parentDomNode.replaceChild(prevDomNode, domNode);
+        } else {
+            parentDomNode.appendChild(prevDomNode);
+        }
+    }
 };
 
 function Remove(node) {

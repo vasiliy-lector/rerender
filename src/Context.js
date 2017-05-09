@@ -33,6 +33,9 @@ function Context({
             this.domId = key || inheritableKey || !relativeParentId
                 ? `${parentNodeId}.childNodes[${domIndex}]`
                 : `${relativeParentId}${relativePosition}.childNodes[${domIndex}]`;
+            if (uniqid || inheritableUniqid) {
+                this.hasUniqid = true;
+            }
         } else {
             this.relativeParentId = relativeParentId;
             this.relativePosition = `${relativePosition}.childNodes[${domIndex}]`;
