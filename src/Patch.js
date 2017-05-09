@@ -37,7 +37,7 @@ Patch.prototype = {
         }
 
         for (let i = 0, l = this.commands.length; i < l; i++) {
-            this.commands[i].apply(domNodes[i], options);
+            this.commands[i].apply(options, domNodes[i]);
         }
     },
 
@@ -80,7 +80,17 @@ function Create(nextNode) {
 Create.prototype = {
     type: CREATE,
 
-    apply() {}
+    apply(options) {
+        const parentDomNode = this.nextNode.parentNode.getDomNode();
+        const domNode = parentDomNode.childNodes[this.nextNode.context.domIndex];
+        const nextDomNode = createElement(this.nextNode, options.document, options.skipCreation);
+
+        if (domNode) {
+            parentDomNode.replaceChild(nextDomNode, domNode);
+        } else {
+            parentDomNode.appendChild(nextDomNode);
+        }
+    }
 };
 
 function Move(nextNode, node) {
@@ -111,7 +121,7 @@ function Replace(nextNode) {
 Replace.prototype = {
     type: REPLACE,
 
-    apply(domNode, options) {
+    apply(options, domNode) {
         const nextDomNode = createElement(this.nextNode, options.document, options.skipCreation);
 
         domNode.parentNode.replaceChild(
@@ -138,7 +148,7 @@ function SplitText(nextNode) {
 SplitText.prototype = {
     type: SPLIT_TEXT,
 
-    apply(domNode) {
+    apply(options, domNode) {
         domNode.splitText(this.nextNode.value.length);
     }
 };
