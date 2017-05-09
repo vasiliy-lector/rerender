@@ -9,8 +9,8 @@ function VText(value, context) {
 VText.prototype = {
     type: VTEXT,
 
-    getNode() {
-        return this._node || (this._node = this.context.getNode());
+    getDomNode() {
+        return this._node || (this._node = this.context.getDomNode());
     }
 };
 

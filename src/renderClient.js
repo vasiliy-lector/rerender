@@ -9,7 +9,7 @@ import { VCOMPONENT } from './types';
 
 const RENDER_THROTTLE = 16;
 
-function renderClient(rootTemplate, store, rootNode, { document = self.document } = {}) {
+function renderClient(rootTemplate, store, rootNode, { document } = {}) {
     const events = new Events();
     const nextVirtualRoot = new VRoot();
     const config = {
@@ -35,9 +35,10 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document 
     nextVirtualRoot.setChilds([rootTemplate.render(config, context)]);
 
     const patch = createInitialPatch(nextVirtualRoot, {
-        nextNodesById: config.nextNodes
+        nextNodesById: config.nextNodes,
+        document
     });
-    patch.applyNormalize(rootNode, document);
+    patch.applyNormalize();
 
     mount(config.mountComponents);
 
@@ -93,12 +94,13 @@ function rerenderClient({
 
         const patch = diff(nextVirtualRoot, virtualRoot, {
             nextNodesById: config.nextNodes,
-            nodesById: nodes
+            nodesById: nodes,
+            document
         });
 
         unmount(config.nextComponents, components);
         // TODO blur problem when moving component with focus
-        patch.apply(rootNode, document);
+        patch.apply();
         mount(config.mountComponents);
         update(config.updateComponents);
 

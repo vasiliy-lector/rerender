@@ -38,7 +38,7 @@ function createInitialPatch(nextNode, options, insideCreation, nextSibling) {
             options.patch.pushNormalize(new SplitText(nextNode));
         }
     } else if (nextNode.type === VROOT) {
-        const patch = new Patch();
+        const patch = new Patch(options.document);
 
         createInitialPatch(nextNode.childNodes[0], { ...options, patch });
 

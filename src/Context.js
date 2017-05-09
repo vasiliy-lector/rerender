@@ -133,7 +133,7 @@ Context.prototype = {
         return this.id;
     },
 
-    getNode() {
+    getDomNode() {
         return (new Function('rootNode', `return rootNode${this.position}`))(this.rootNode);
     },
 

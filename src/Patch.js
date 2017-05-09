@@ -1,7 +1,3 @@
-import { debug } from './debug';
-import { createTag, createText } from './createElement';
-import { VNODE } from './types';
-
 const CREATE = 'CREATE';
 const MOVE = 'MOVE';
 const REMOVE = 'REMOVE';
@@ -11,7 +7,8 @@ const SPLIT_TEXT = 'SPLIT_TEXT';
 const SET_REF = 'SET_REF';
 const ATTACH_EVENTS = 'ATTACH_EVENTS';
 
-function Patch () {
+function Patch (document = self.document) {
+    this.document = document;
     this.commands = [];
     this.setRefCommands = [];
     this.splitTextCommands = [];
@@ -19,31 +16,31 @@ function Patch () {
 }
 
 Patch.prototype = {
-    apply(rootNode, document) {
+    apply() {
         const domNodes = [];
 
         for (let i = 0, l = this.commands.length; i < l; i++) {
             if (this.commands[i].type !== CREATE) {
-                domNodes[i] = this.commands[i].getNode(rootNode);
+                domNodes[i] = this.commands[i].refNode.getDomNode();
             }
         }
 
         for (let i = 0, l = this.commands.length; i < l; i++) {
-            this.commands[i].apply(rootNode, document, domNodes[i]);
+            this.commands[i].apply(document, domNodes[i]);
         }
     },
 
-    applyNormalize(rootNode, document) {
+    applyNormalize() {
         for (let i = 0, l = this.splitTextCommands.length; i < l; i++) {
-            this.splitTextCommands[i].apply(rootNode, document);
+            this.splitTextCommands[i].apply(document);
         }
 
         for (let i = 0, l = this.setRefCommands.length; i < l; i++) {
-            this.setRefCommands[i].apply(rootNode, document);
+            this.setRefCommands[i].apply(document);
         }
 
         for (let i = 0, l = this.eventsCommands.length; i < l; i++) {
-            this.eventsCommands[i].apply(rootNode, document);
+            this.eventsCommands[i].apply(document);
         }
     },
 
@@ -70,86 +67,81 @@ function Create(nextNode) {
     this.nextNode = nextNode;
 }
 Create.prototype = {
+    type: CREATE,
+
     apply() {}
 };
 
 function Move(nextNode, node) {
     this.nextNode = nextNode;
     this.node = node;
+    this.refNode = node;
 }
 Move.prototype = {
-    apply() {},
+    type: MOVE,
 
-    getNode(rootNode) {
-        return this.node.context.getNode(rootNode);
-    }
+    apply() {}
 };
 
 function Remove(node) {
     this.node = node;
+    this.refNode = node;
 }
 Remove.prototype = {
-    apply() {},
+    type: REMOVE,
 
-    getNode(rootNode) {
-        return this.node.context.getNode(rootNode);
-    }
+    apply() {}
 };
 
 function Replace(nextNode) {
     this.nextNode = nextNode;
+    this.refNode = nextNode;
 }
 Replace.prototype = {
-    apply() {},
+    type: REPLACE,
 
-    getNode(rootNode) {
-        return this.nextNode.context.getNode(rootNode);
-    }
+    apply() {}
 };
 
 function SetRef(nextNode) {
     this.nextNode = nextNode;
+    this.refNode = nextNode;
 }
 SetRef.prototype = {
-    apply() {},
+    type: SET_REF,
 
-    getNode(rootNode) {
-        return this.nextNode.context.getNode(rootNode);
-    }
+    apply() {}
 };
 
 function SplitText(nextNode) {
     this.nextNode = nextNode;
+    this.refNode = nextNode;
 }
 SplitText.prototype = {
-    apply() {},
+    type: SPLIT_TEXT,
 
-    getNode(rootNode) {
-        return this.nextNode.context.getNode(rootNode);
-    }
+    apply() {}
 };
 
 function Update(nextNode, node) {
     this.nextNode = nextNode;
     this.node = node;
+    this.refNode = nextNode;
 }
 Update.prototype = {
-    apply() {},
+    type: UPDATE,
 
-    getNode(rootNode) {
-        return this.nextNode.context.getNode(rootNode);
-    }
+    apply() {}
 };
 
 function AttachEvents(nextNode) {
     this.nextNode = nextNode;
+    this.refNode = nextNode;
 }
 AttachEvents.prototype = {
-    apply() {},
+    type: ATTACH_EVENTS,
 
-    getNode(rootNode) {
-        return this.nextNode.context.getNode(rootNode);
-    }
+    apply() {}
 };
 
 export default Patch;
