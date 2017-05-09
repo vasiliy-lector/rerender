@@ -79,7 +79,7 @@ function renderChildren(items, config, context, needKeys) {
             const isObject = typeof item === 'object' && item !== null;
 
             if (isObject && item.type === TEMPLATE) {
-                if (needKeys && !item.key) {
+                if (needKeys && item.key === undefined) {
                     debug.warn('Each child in array should have key');
                 }
                 childs.push(item.render(

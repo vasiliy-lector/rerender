@@ -14,7 +14,7 @@ const SPECIAL_PROPS = {
 function TemplateComponent(componentType, props, children) {
     let nextProps = props || {};
 
-    if (nextProps.key || componentType.defaults || nextProps.uniqid || (nextProps.ref && !componentType.wrapper)) {
+    if (nextProps.key !== undefined || componentType.defaults || nextProps.uniqid || (nextProps.ref && !componentType.wrapper)) {
         nextProps = Object.keys(nextProps).reduce((memo, key) => {
             if (SPECIAL_PROPS[key] && (key !== 'ref' || !componentType.wrapper)) {
                 this[key] = nextProps[key];
