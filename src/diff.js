@@ -52,7 +52,10 @@ function diff(nextNode, options, insideCreation) {
     } else if (nextNode.type === VROOT) {
         const patch = new Patch(options.document);
 
-        diff(nextNode.childNodes[0], { ...options, patch });
+        diff(nextNode.childNodes[0], {
+            nodesById: options.nodesById,
+            patch
+        });
         for (let id in options.nodesById) {
             if (!options.nextNodesById[id]) {
                 options.patch.push(new Remove(options.nodesById[id]));

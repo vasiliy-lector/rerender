@@ -160,25 +160,23 @@ Replace.prototype = {
 
 function SetRef(nextNode) {
     this.nextNode = nextNode;
-    this.refNode = nextNode;
 }
 SetRef.prototype = {
     type: SET_REF,
 
-    apply(options, domNode) {
-        this.nextNode.attrs.ref(this.nextNode, domNode);
+    apply() {
+        this.nextNode.attrs.ref(this.nextNode, this.nextNode.getDomNode());
     }
 };
 
 function SplitText(nextNode) {
     this.nextNode = nextNode;
-    this.refNode = nextNode;
 }
 SplitText.prototype = {
     type: SPLIT_TEXT,
 
-    apply(options, domNode) {
-        domNode.splitText(this.nextNode.value.length);
+    apply() {
+        this.nextNode.getDomNode().splitText(this.nextNode.value.length);
     }
 };
 
@@ -213,19 +211,17 @@ Update.prototype = {
 
 function AttachEvents(nextNode) {
     this.nextNode = nextNode;
-    this.refNode = nextNode;
 }
 AttachEvents.prototype = {
     type: ATTACH_EVENTS,
 
-    apply(options, domNode) {
+    apply() {
+        const domNode = this.nextNode.getDomNode();
         const nextAttrs = this.nextNode.attrs;
 
-        if (nextAttrs) {
-            for (let name in nextAttrs) {
-                if (name.substr(0,2) === 'on') {
-                    domNode[name] = nextAttrs[name];
-                }
+        for (let name in nextAttrs) {
+            if (name.substr(0,2) === 'on') {
+                domNode[name] = nextAttrs[name];
             }
         }
     }

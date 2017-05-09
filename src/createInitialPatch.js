@@ -26,7 +26,7 @@ function createInitialPatch(nextNode, options, insideCreation, nextSibling) {
                 nextNode.childNodes[i],
                 options,
                 insideCreation || childrenCreated,
-                options.normalize ? nextNode.childNodes[i + 1] : null
+                nextNode.childNodes[i + 1]
             );
         }
     } else if (nextNode.type === VTEXT) {
@@ -40,7 +40,7 @@ function createInitialPatch(nextNode, options, insideCreation, nextSibling) {
     } else if (nextNode.type === VROOT) {
         const patch = new Patch(options.document);
 
-        createInitialPatch(nextNode.childNodes[0], { ...options, patch });
+        createInitialPatch(nextNode.childNodes[0], { patch });
 
         return patch;
     }
