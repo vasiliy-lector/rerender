@@ -56,6 +56,7 @@ TemplateVNode.prototype = {
 
     render(config, context) {
         const nextNode = new VNode(this.tag, this.attrs, context);
+        config.nextNodes[context.getId()] = nextNode;
 
         nextNode.setChilds(renderChildren(
             this.children,
@@ -95,10 +96,10 @@ function renderChildren(items, config, context, needKeys) {
             } else if (isObject && item.type === TEMPLATE_FRAGMENT) {
                 childs.push.apply(childs, renderChildren(item.fragment, config, context.addIdLevel(), false));
             } else {
-                childs.push(new VText(
-                    item ? String(item) : '',
-                    context.incrementDom(needKeys ? '$' + i : undefined)
-                ));
+                const nextContext = context.incrementDom(needKeys ? '$' + i : undefined);
+                const nextTextNode = new VText(item ? String(item) : '', nextContext);
+                childs.push(nextTextNode);
+                config.nextNodes[nextContext.getId()] = nextTextNode;
             }
         }
     }

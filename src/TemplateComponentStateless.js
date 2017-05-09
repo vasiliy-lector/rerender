@@ -95,16 +95,24 @@ TemplateComponent.prototype = {
             nextComponents[id] = component;
         }
 
-        const childs = template
-            ? template.render(
+        // FIXME: createText and move increment inside render
+        let childs;
+
+        if (template) {
+            childs = template.render(
                 config,
                 context.addIdLevel(component)[
                     template.subtype === TEMPLATE_VNODE
                         ? 'incrementDom'
                         : 'incrementComponent'
                 ](template.key, template.uniqid)
-            )
-            : new VText('', context.addIdLevel(component).incrementDom());
+            );
+        } else {
+            const nextContext = context.addIdLevel(component).incrementDom();
+            const nextTextNode = new VText('', nextContext);
+            childs = nextTextNode;
+            config.nextNodes[nextContext.getId()] = nextTextNode;
+        }
 
         component.set('childs', [childs]);
 
