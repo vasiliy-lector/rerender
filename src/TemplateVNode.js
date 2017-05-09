@@ -67,7 +67,6 @@ TemplateVNode.prototype = {
             context.addDomLevel(nextNode, context.id),
             false
         ));
-        context.getParentNode().appendChild(nextNode);
 
         return nextNode;
     }

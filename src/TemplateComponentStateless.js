@@ -99,7 +99,7 @@ TemplateComponent.prototype = {
             ? template.render(config, context.addIdLevel(component))
             : new VText('', context.addIdLevel(component).incrementDom());
 
-        component.set('childs', childs);
+        component.set('childs', [childs]);
 
         return component;
     }
