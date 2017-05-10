@@ -112,7 +112,7 @@ Move.prototype = {
         const parentDomNode = this.nextNode.parentNode.getDomNode();
         const domNode = parentDomNode.childNodes[this.nextNode.context.domIndex];
 
-        if (!this.nextNode.context.hasKey) {
+        if (!this.nextNode.context.hasKey && prevDomNode.parentNode) {
             prevDomNode.parentNode.replaceChild(document.createTextNode(''), prevDomNode);
         }
 
@@ -132,7 +132,7 @@ Remove.prototype = {
     type: REMOVE,
 
     apply(options, domNode) {
-        if (this.node.type === VNODE && typeof this.node.attrs.ref === 'function') {
+        if (this.node.type === VNODE && this.node.attrs && typeof this.node.attrs.ref === 'function') {
             this.node.attrs.ref(null);
         }
 
@@ -246,18 +246,20 @@ function createElement(nextNode, document, skipCreation) {
         if (!skipCreation[nextNode.context.id]) {
             nextDomNode = document.createElement(nextNode.tag);
 
-            for (let name in nextNode.attrs) {
-                if (specialAttrs[name]) {
-                    continue;
-                } else if (name.substr(0, 2) === 'on') {
-                    nextDomNode[name.toLowerCase()] = nextNode.attrs[name];
-                } else {
-                    nextDomNode[name] = nextNode.attrs[name];
+            if (nextNode.attrs) {
+                for (let name in nextNode.attrs) {
+                    if (specialAttrs[name]) {
+                        continue;
+                    } else if (name.substr(0, 2) === 'on') {
+                        nextDomNode[name.toLowerCase()] = nextNode.attrs[name];
+                    } else {
+                        nextDomNode[name] = nextNode.attrs[name];
+                    }
                 }
-            }
 
-            if (typeof nextNode.attrs.ref === 'function') {
-                nextNode.attrs.ref(nextNode, nextDomNode);
+                if (typeof nextNode.attrs.ref === 'function') {
+                    nextNode.attrs.ref(nextNode, nextDomNode);
+                }
             }
 
             for (let i = 0, l = nextNode.childNodes.length; i < l; i++) {
