@@ -9,7 +9,7 @@ import { VCOMPONENT } from './types';
 
 const RENDER_THROTTLE = 16;
 
-function renderClient(rootTemplate, store, rootNode, { document } = {}) {
+function renderClient(rootTemplate, store, rootNode, { document = self.document } = {}) {
     const events = new Events();
     const nextVirtualRoot = new VRoot();
     const config = {
@@ -99,8 +99,12 @@ function rerenderClient({
         });
 
         unmount(config.nextComponents, components);
-        // TODO blur problem when moving component with focus
+        const activeElement = document.activeElement;
         patch.apply();
+        // FIXME: maybe another way
+        if (document.activeElement !== activeElement && activeElement.parentNode) {
+            activeElement.focus();
+        }
         mount(config.mountComponents);
         update(config.updateComponents);
 
