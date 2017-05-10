@@ -101,7 +101,8 @@ function escapeAttr(value) {
 function shallowEqual(obj1, obj2) {
     if (obj1 === obj2) {
         return true;
-    } else if (typeof obj1 !== 'object' || typeof obj2 !== 'object') {
+    } else if (obj1 === null || obj2 === null
+        || typeof obj1 !== 'object' || typeof obj2 !== 'object') {
         return false;
     } else if (Object.keys(obj1).length !== Object.keys(obj2).length) {
         return false;
@@ -119,7 +120,7 @@ function shallowEqual(obj1, obj2) {
 function shallowEqualProps(props1, props2) {
     if (props1 === props2) {
         return true;
-    } else if (typeof props1 !== 'object' || typeof props2 !== 'object') {
+    } else if (props1 === null || props2 === null) {
         return false;
     } else if (Object.keys(props1).length !== Object.keys(props2).length) {
         return false;
@@ -139,7 +140,7 @@ function isEqualValues(value1, value2) {
         return true;
     }
 
-    if (typeof value1 !== 'object') {
+    if (typeof value1 !== 'object' || value1 === null || value2 === null) {
         return false;
     }
 

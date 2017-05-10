@@ -1,4 +1,4 @@
-import { TEMPLATE, TEMPLATE_COMPONENT, TEMPLATE_VNODE } from './types';
+import { TEMPLATE, TEMPLATE_COMPONENT, TEMPLATE_VNODE, VCOMPONENT } from './types';
 import VComponent from './VComponent';
 import { shallowEqualProps } from './utils';
 import VText from './VText';
@@ -68,7 +68,7 @@ TemplateComponent.prototype = {
         const id = context.getId();
         let prev = components[id];
 
-        if (prev === undefined || prev.type !== this.type || prev.componentType !== componentType) {
+        if (prev === undefined || prev.type !== VCOMPONENT || prev.componentType !== componentType) {
             const instance = new componentType(props, children, { store, events, antibind: componentType.antibind });
             if (this.ref && typeof this.ref === 'function') {
                 this.ref(instance);
@@ -95,7 +95,8 @@ TemplateComponent.prototype = {
             Component.beforeRender(instance);
 
             const sameProps = shallowEqualProps(component.props, props);
-            const sameChildren = children.isEqual(component.children);
+            // FIXME
+            const sameChildren = false; // children.isEqual(component.children);
             const sameState = instance.state !== component.state;
 
             if (sameProps) {

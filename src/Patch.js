@@ -145,7 +145,7 @@ Remove.prototype = {
 function RemoveRef(node) {
     this.node = node;
 }
-Remove.prototype = {
+RemoveRef.prototype = {
     type: REMOVE_REF,
 
     apply() {

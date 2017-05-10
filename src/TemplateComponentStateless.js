@@ -1,4 +1,4 @@
-import { TEMPLATE, TEMPLATE_COMPONENT_STATELESS, TEMPLATE_VNODE } from './types';
+import { TEMPLATE, TEMPLATE_COMPONENT_STATELESS, TEMPLATE_VNODE, VCOMPONENT_STATELESS } from './types';
 import VComponentStateless from './VComponentStateless';
 import { shallowEqualProps } from './utils';
 import VText from './VText';
@@ -57,7 +57,7 @@ TemplateComponent.prototype = {
         const id = context.getId();
         let prev = components[id];
 
-        if (prev === undefined || prev.type !== this.type || prev.componentType !== componentType) {
+        if (prev === undefined || prev.type !== VCOMPONENT_STATELESS || prev.componentType !== componentType) {
             template = componentType(props, children);
             component = new VComponentStateless(
                 componentType,
@@ -71,7 +71,8 @@ TemplateComponent.prototype = {
         } else {
             component = prev;
             const sameProps = shallowEqualProps(component.props, props);
-            const sameChildren = typeof children === 'object' && children.type === TEMPLATE && children.isEqual(component.children);
+            // FIXME
+            const sameChildren = false; // children.isEqual(component.children);
 
             if (sameProps) {
                 props = component.props;
