@@ -1,6 +1,6 @@
 import { TEMPLATE, TEMPLATE_VNODE, TEMPLATE_FRAGMENT } from './types';
 import { debug } from './debug';
-import { escapeHtml, escapeAttr, escapeStyle } from './utils';
+import { escapeHtml, escapeAttr, escapeStyle, calcHash } from './utils';
 import { voidTags } from './constants';
 import VNode from './VNode';
 import VText from './VText';
@@ -31,10 +31,29 @@ TemplateVNode.prototype = {
     type: TEMPLATE,
     subtype: TEMPLATE_VNODE,
 
+    calcHash(config) {
+        let hash = config.hash;
+
+        hash = calcHash(hash, '<', this.tag);
+
+        if (!config.easyHash && this.attrs) {
+            for (let name in this.attrs) {
+                if (typeof this.attrs[name] !== 'function') {
+                    hash = calcHash(hash, name, this.attrs[name]);
+                }
+            }
+        }
+
+        hash = calcHash(hash, '>');
+
+        config.hash = hash;
+    },
+
     renderToString(config) {
         const tag = this.tag;
         let children = '';
         let attrs = '';
+        let needHashAttr;
 
         if (this.attrs) {
             for (let name in this.attrs) {
@@ -42,10 +61,22 @@ TemplateVNode.prototype = {
             }
         }
 
+        if (config.hashEnabled) {
+            if (config.hash === 0) {
+                needHashAttr = true;
+            }
+
+            this.calcHash(config);
+        }
+
         if (this.children) {
             for (let i = 0, l = this.children.length; i < l; i++) {
                 children += stringifyChildrenItem(this.children[i], config);
             }
+        }
+
+        if (needHashAttr) {
+            attrs += ` data-rerender-hash="${config.hash}"`;
         }
 
         return '<' + tag + attrs +
@@ -124,6 +155,9 @@ function stringifyChildrenItem(item, config) {
                     children += stringifyChildrenItem(item[j], config);
                 }
             } else if (item) {
+                if (config.hashEnabled) {
+                    config.hash = calcHash(config.hash, String(item));
+                }
                 escapeHtml(item);
             }
         } else {

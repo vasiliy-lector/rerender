@@ -27,13 +27,13 @@ describe('server TemplateVNode', () => {
         it('should render p to string', () => {
             const template = new TemplateVNode('p', { className: 'block' }, []);
 
-            expect(template.renderToString()).toBe('<p class="block"></p>');
+            expect(template.renderToString({})).toBe('<p class="block"></p>');
         });
 
         it('should render text items', () => {
             const template = new TemplateVNode('p', null, ['text 1;', 'another text']);
 
-            expect(template.renderToString()).toBe('<p>text 1;another text</p>');
+            expect(template.renderToString({})).toBe('<p>text 1;another text</p>');
         });
 
         it('should render components items', () => {
@@ -41,7 +41,7 @@ describe('server TemplateVNode', () => {
             const children2 = new TemplateVNode('span', null, 'text 2');
             const template = new TemplateVNode('p', null, [children1, children2]);
 
-            expect(template.renderToString()).toBe('<p><span>text 1</span><span>text 2</span></p>');
+            expect(template.renderToString({})).toBe('<p><span>text 1</span><span>text 2</span></p>');
         });
 
         it('should render components in one array', () => {
@@ -49,7 +49,7 @@ describe('server TemplateVNode', () => {
             const children2 = new TemplateVNode('span', null, 'text 2');
             const template = new TemplateVNode('p', null, [[children1, children2], 'text']);
 
-            expect(template.renderToString()).toBe('<p><span>text 1</span><span>text 2</span>text</p>');
+            expect(template.renderToString({})).toBe('<p><span>text 1</span><span>text 2</span>text</p>');
         });
 
         it('should escape special symbols', () => {
@@ -57,7 +57,7 @@ describe('server TemplateVNode', () => {
             const children2 = new TemplateVNode('span', null, 'text > 2');
             const template = new TemplateVNode('p', null, [children1, children2, 'text > me;', '&', ['array >', 'array <', 'array value with &amp;']]);
 
-            expect(template.renderToString()).toBe('<p><span>text &lt; 1</span><span>text &gt; 2</span>text &gt; me;&amp;array &gt;array &lt;array value with &amp;amp;</p>');
+            expect(template.renderToString({})).toBe('<p><span>text &lt; 1</span><span>text &gt; 2</span>text &gt; me;&amp;array &gt;array &lt;array value with &amp;amp;</p>');
         });
 
         it('should render void tag to string', () => {
@@ -66,7 +66,7 @@ describe('server TemplateVNode', () => {
                 id: 'id1'
             }, []);
 
-            expect(template.renderToString()).toBe('<input name="name1" id="id1" />');
+            expect(template.renderToString({})).toBe('<input name="name1" id="id1" />');
         });
 
         it('should render p with childrens', () => {
@@ -75,7 +75,7 @@ describe('server TemplateVNode', () => {
                 'text 2'
             ]);
 
-            expect(template.renderToString()).toBe('<p class="block">text 1text 2</p>');
+            expect(template.renderToString({})).toBe('<p class="block">text 1text 2</p>');
         });
     });
 });

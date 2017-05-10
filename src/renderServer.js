@@ -1,6 +1,8 @@
-function renderServer(rootTemplate, store) {
+function renderServer(rootTemplate, store, { hashEnabled = true } = {}) {
     return rootTemplate.renderToString({
-        store
+        store,
+        hashEnabled,
+        hash: 0
     });
 }
 

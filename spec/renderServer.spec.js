@@ -28,20 +28,20 @@ describe('render', () => {
 
     describe('renderServer', () => {
         it('should render div to div', () => {
-            expect(renderServer(jsx `<div className="block">Text of block</div>`))
+            expect(renderServer(jsx `<div className="block">Text of block</div>`, null, { hashEnabled: false }))
                 .toEqual('<div class="block">Text of block</div>');
 
-            expect(renderServer(jsx `<div className="block">Text of block</div>`))
+            expect(renderServer(jsx `<div className="block">Text of block</div>`, null, { hashEnabled: false }))
                 .toEqual('<div class="block">Text of block</div>');
         });
 
         it('should render component', () => {
-            expect(renderServer(jsx `<${Block} text="Text of block"><p>Text from parent</p></${Block}>`))
+            expect(renderServer(jsx `<${Block} text="Text of block"><p>Text from parent</p></${Block}>`, null, { hashEnabled: false }))
                 .toEqual('<div class="block"><p>Text of block</p><p>Text from parent</p></div>');
         });
 
         it('should render stateless component', () => {
-            expect(renderServer(jsx `<${Stateless} text="Text of block"><p>Text from parent</p></${Stateless}>`))
+            expect(renderServer(jsx `<${Stateless} text="Text of block"><p>Text from parent</p></${Stateless}>`, null, { hashEnabled: false }))
                 .toEqual('<div class="block"><p>Text of block</p><p>Text from parent</p></div>');
         });
     });
