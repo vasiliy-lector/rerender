@@ -1,8 +1,8 @@
-function renderServer(rootTemplate, store, { hashEnabled = true, easyHash = true } = {}) {
+function renderServer(rootTemplate, store, { hashEnabled = true, fullHash = false } = {}) {
     return rootTemplate.renderToString({
         store,
         hashEnabled,
-        easyHash,
+        fullHash,
         hash: 0
     });
 }

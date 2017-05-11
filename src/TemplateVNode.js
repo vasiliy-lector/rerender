@@ -36,7 +36,7 @@ TemplateVNode.prototype = {
 
         hash = calcHash(hash, '<', this.tag);
 
-        if (!config.easyHash && this.attrs) {
+        if (config.fullHash && this.attrs) {
             for (let name in this.attrs) {
                 if (typeof this.attrs[name] !== 'function') {
                     hash = calcHash(hash, name, this.attrs[name]);

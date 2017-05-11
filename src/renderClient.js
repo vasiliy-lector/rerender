@@ -10,7 +10,7 @@ import { VCOMPONENT } from './types';
 
 const RENDER_THROTTLE = 16;
 
-function renderClient(rootTemplate, store, rootNode, { document = self.document, hashEnabled = true, easyHash = true } = {}) {
+function renderClient(rootTemplate, store, rootNode, { document = self.document, hashEnabled = true, fullHash = false } = {}) {
     const events = new Events();
     const nextVirtualRoot = new VRoot(rootNode);
     const config = {
@@ -23,7 +23,7 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document,
         nodes: {},
         nextNodes: {},
         hashEnabled,
-        easyHash,
+        fullHash,
         hash: 0
     };
     const context = new Context({
