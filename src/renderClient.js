@@ -3,15 +3,16 @@ import Component from './Component';
 import Context from './Context';
 import createInitialPatch from './createInitialPatch';
 import diff from './diff';
+import { debug } from './debug';
 import { throttle } from './utils';
 import VRoot from './VRoot';
 import { VCOMPONENT } from './types';
 
 const RENDER_THROTTLE = 16;
 
-function renderClient(rootTemplate, store, rootNode, { document = self.document } = {}) {
+function renderClient(rootTemplate, store, rootNode, { document = self.document, hashEnabled = true, easyHash = true } = {}) {
     const events = new Events();
-    const nextVirtualRoot = new VRoot();
+    const nextVirtualRoot = new VRoot(rootNode);
     const config = {
         store,
         events,
@@ -20,7 +21,10 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document 
         mountComponents: {},
         updateComponents: {},
         nodes: {},
-        nextNodes: {}
+        nextNodes: {},
+        hashEnabled,
+        easyHash,
+        hash: 0
     };
     const context = new Context({
         parentId: 'r',
@@ -38,7 +42,17 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document 
         nextNodesById: config.nextNodes,
         document
     });
-    patch.applyNormalize();
+
+    const firstChild = rootNode.childNodes[0];
+    const hash = firstChild && firstChild.getAttribute('data-rerender-hash');
+
+    if (!hashEnabled || hash !== String(config.hash)) {
+        hashEnabled && debug.warn('Server and client html do not match!');
+        rootNode.innerHTML = '';
+        patch.apply();
+    } else {
+        patch.applyNormalize();
+    }
 
     mount(config.mountComponents);
 
@@ -69,7 +83,7 @@ function rerenderClient({
     let virtualRoot = prevVirtualRoot;
 
     return throttle(function() {
-        const nextVirtualRoot = new VRoot();
+        const nextVirtualRoot = new VRoot(rootNode);
         const config = {
             store,
             events,

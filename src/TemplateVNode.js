@@ -55,18 +55,18 @@ TemplateVNode.prototype = {
         let attrs = '';
         let needHashAttr;
 
-        if (this.attrs) {
-            for (let name in this.attrs) {
-                attrs += stringifyAttr(name, this.attrs[name]);
-            }
-        }
-
         if (config.hashEnabled) {
             if (config.hash === 0) {
                 needHashAttr = true;
             }
 
             this.calcHash(config);
+        }
+
+        if (this.attrs) {
+            for (let name in this.attrs) {
+                attrs += stringifyAttr(name, this.attrs[name]);
+            }
         }
 
         if (this.children) {
@@ -76,7 +76,7 @@ TemplateVNode.prototype = {
         }
 
         if (needHashAttr) {
-            attrs += ` data-rerender-hash="${config.hash}"`;
+            attrs += ` data-rerender-hash="${escapeHtml(config.hash)}"`;
         }
 
         return '<' + tag + attrs +
@@ -86,6 +86,10 @@ TemplateVNode.prototype = {
     },
 
     render(config, context) {
+        if (config.hashEnabled) {
+            this.calcHash(config);
+        }
+
         const nextNode = new VNode(this.tag, this.attrs, context);
         config.nextNodes[context.getId()] = nextNode;
 
@@ -127,6 +131,9 @@ function renderChildren(items, config, context, needKeys) {
             } else if (isObject && item.type === TEMPLATE_FRAGMENT) {
                 childs.push.apply(childs, renderChildren(item.fragment, config, context.addIdLevel(), false));
             } else {
+                if (config.hashEnabled && item) {
+                    config.hash = calcHash(config.hash, String(item));
+                }
                 const nextContext = context.incrementDom(needKeys ? '$' + i : undefined);
                 const nextTextNode = new VText(item ? String(item) : '', nextContext);
                 childs.push(nextTextNode);
@@ -158,9 +165,12 @@ function stringifyChildrenItem(item, config) {
                 if (config.hashEnabled) {
                     config.hash = calcHash(config.hash, String(item));
                 }
-                escapeHtml(item);
+                children += escapeHtml(item);
             }
         } else {
+            if (config.hashEnabled) {
+                config.hash = calcHash(config.hash, String(item));
+            }
             children += escapeHtml(item);
         }
     }

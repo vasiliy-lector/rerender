@@ -228,7 +228,7 @@ function throttle(fn, milliseconds, { leading }) {
 function calcHash(hash) {
     for (let j = 1, argsLength = arguments.length; j < argsLength; j++) {
         const word = arguments[j];
-        if (word.length === 0) return hash;
+        if (typeof word !== 'string' || word.length === 0) return hash;
 
         for (let i = 0, l = word.length; i < l; i++) {
             hash  = (((hash << 5) - hash) + word.charCodeAt(i)) | 0;
