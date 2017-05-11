@@ -115,7 +115,7 @@ function rerenderClient({
         unmount(config.nextComponents, components);
         const activeElement = document.activeElement;
         patch.apply();
-        // FIXME: maybe another way
+        // FIXME: problem not neccessary blur and focus event
         if (document.activeElement !== activeElement && activeElement.parentNode) {
             activeElement.focus();
         }
