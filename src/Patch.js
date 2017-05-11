@@ -206,14 +206,14 @@ Update.prototype = {
 
         if (nextAttrs) {
             for (let name in nextAttrs) {
-                if (nextAttrs[name] !== attrs[name] && !specialAttrs[name]) {
+                if ((!attrs || nextAttrs[name] !== attrs[name]) && !specialAttrs[name]) {
                     domNode[name.substr(0, 2) === 'on' ? name.toLowerCase() : name] = nextAttrs[name];
                 }
             }
         }
         if (attrs) {
             for (let name in attrs) {
-                if (nextAttrs[name] === undefined) {
+                if (!nextAttrs || nextAttrs[name] === undefined) {
                     domNode[name.substr(0, 2) === 'on' ? name.toLowerCase() : name] = null;
                 }
             }
