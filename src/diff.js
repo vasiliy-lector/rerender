@@ -25,7 +25,8 @@ function diffNext(nextNode, options, insideCreation) {
                 childrenNeedCreation = true;
             }
 
-            if (!shallowEqual(node.attrs, nextNode.attrs)) {
+            if (!shallowEqual(node.attrs, nextNode.attrs)
+                || (nextNode.dynamic && nextNode.dynamic.prevAttrs)) {
                 options.patch.push(new Update(nextNode, node));
             }
         }
