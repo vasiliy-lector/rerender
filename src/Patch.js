@@ -133,7 +133,7 @@ Remove.prototype = {
 
     apply(options, domNode) {
         if (this.node.type === VNODE && this.node.attrs && typeof this.node.attrs.ref === 'function') {
-            this.node.attrs.ref(null);
+            this.node.attrs.ref(null, null);
         }
 
         if (domNode.parentNode) {
@@ -149,7 +149,7 @@ RemoveRef.prototype = {
     type: REMOVE_REF,
 
     apply() {
-        this.node.attrs.ref(null);
+        this.node.attrs.ref(null, null);
     }
 };
 
