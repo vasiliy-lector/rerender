@@ -1,5 +1,5 @@
 import Events from './Events';
-import Component from './Component';
+import componentLifeCycle from './componentLifeCycle';
 import Context from './Context';
 import createInitialPatch from './createInitialPatch';
 import diff from './diff';
@@ -137,7 +137,7 @@ function rerenderClient({
 
 function mount(instances) {
     for (let id in instances) {
-        Component.mount(instances[id]);
+        componentLifeCycle.mount(instances[id]);
     }
 }
 
@@ -147,15 +147,15 @@ function unmount(nextComponents, components) {
             && (!nextComponents[id] || nextComponents[id].componentType !== components[id].componentType)
         ) {
             const instance = components[id].instance;
-            Component.unmount(instance);
-            Component.destroy(instance);
+            componentLifeCycle.unmount(instance);
+            componentLifeCycle.destroy(instance);
         }
     }
 }
 
 function update(instances) {
     for (let id in instances) {
-        Component.update(instances[id]);
+        componentLifeCycle.update(instances[id]);
     }
 }
 

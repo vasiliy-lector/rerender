@@ -2,7 +2,7 @@ import { TEMPLATE, TEMPLATE_COMPONENT, TEMPLATE_VNODE, VCOMPONENT } from './type
 import VComponent from './VComponent';
 import { shallowEqualProps } from './utils';
 import VText from './VText';
-import Component from './Component';
+import componentLifeCycle from './componentLifeCycle';
 import reuseTemplate from './reuseTemplate';
 
 const SPECIAL_PROPS = {
@@ -43,10 +43,29 @@ TemplateComponent.prototype = {
     type: TEMPLATE,
     subtype: TEMPLATE_COMPONENT,
 
+    preprocessInstance(instance) {
+        const antibind = this.componentType.antibind;
+
+        if (antibind && Array.isArray(antibind)) {
+            for (let i = 0, l = antibind.length; i < l; i++) {
+                let name = antibind[i];
+
+                if (typeof instance[name] === 'function') {
+                    instance[name] = instance[name].bind(instance);
+                }
+            }
+        }
+
+        if (typeof instance.init !== 'undefined') {
+            instance.init();
+        }
+    },
+
     renderToString(config) {
         const componentType = this.componentType;
-        const instance = new componentType(this.props, this.children, { store: config.store, antibind: componentType.antibind });
-        const template = Component.render(instance);
+        const instance = new componentType(this.props, this.children, { store: config.store });
+        this.preprocessInstance(instance);
+        const template = componentLifeCycle.render(instance);
 
         return template ? template.renderToString(config) : '';
     },
@@ -69,12 +88,13 @@ TemplateComponent.prototype = {
         let prev = components[id];
 
         if (prev === undefined || prev.type !== VCOMPONENT || prev.componentType !== componentType) {
-            const instance = new componentType(props, children, { store, events, antibind: componentType.antibind });
+            const instance = new componentType(props, children, { store, events, id });
+            this.preprocessInstance(instance);
             if (this.ref && typeof this.ref === 'function') {
                 this.ref(instance);
             }
-            Component.beforeRender(instance);
-            template = Component.render(instance);
+            componentLifeCycle.beforeRender(instance);
+            template = componentLifeCycle.render(instance);
 
             component = new VComponent(
                 componentType,
@@ -92,7 +112,7 @@ TemplateComponent.prototype = {
             component = prev;
             const instance = component.instance;
 
-            Component.beforeRender(instance);
+            componentLifeCycle.beforeRender(instance);
 
             const sameProps = shallowEqualProps(component.props, props);
             // FIXME
@@ -119,9 +139,9 @@ TemplateComponent.prototype = {
                 template = component.template;
             } else {
                 if (!sameProps || !sameChildren) {
-                    Component.setProps(instance, props, children);
+                    componentLifeCycle.setProps(instance, props, children);
                 }
-                template = reuseTemplate(Component.render(instance), prev.template);
+                template = reuseTemplate(componentLifeCycle.render(instance), prev.template);
                 component.set('template', template);
                 updateComponents[id] = component.instance;
             }
