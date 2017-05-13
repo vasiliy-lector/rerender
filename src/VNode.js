@@ -13,6 +13,10 @@ function VNode(tag, attrs, context) {
 VNode.prototype = {
     type: VNODE,
 
+    setDynamic(dynamic) {
+        this.dynamic = dynamic;
+    },
+
     setChilds(childs) {
         this.childs = childs;
     },

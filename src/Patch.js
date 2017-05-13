@@ -5,6 +5,7 @@ const MOVE = 'MOVE';
 const REMOVE = 'REMOVE';
 const REPLACE = 'REPLACE';
 const UPDATE = 'UPDATE';
+const UPDATE_DYNAMIC = 'UPDATE_DYNAMIC';
 const SPLIT_TEXT = 'SPLIT_TEXT';
 const SET_REF = 'SET_REF';
 const REMOVE_REF = 'REMOVE_REF';
@@ -201,22 +202,91 @@ Update.prototype = {
     type: UPDATE,
 
     apply(options, domNode) {
+        if (this.nextNode.dynamic && this.nextNode.dynamic.prevAttrs) {
+            this.applyDynamic(options, domNode);
+        } else {
+            const nextAttrs = this.nextNode.attrs;
+            const attrs = this.node.attrs;
+
+            if (nextAttrs) {
+                for (let name in nextAttrs) {
+                    if ((!attrs || nextAttrs[name] !== attrs[name]) && !specialAttrs[name]) {
+                        domNode[name] = nextAttrs[name];
+                    }
+                }
+            }
+            if (attrs) {
+                for (let name in attrs) {
+                    if (!nextAttrs || nextAttrs[name] === undefined) {
+                        domNode[name] = null;
+                    }
+                }
+            }
+        }
+    },
+
+    applyDynamic(options, domNode) {
+        const nextAttrsDynamic = this.nextNode.dynamic.attrs;
+        const attrsDynamic = this.nextNode.dynamic.prevAttrs;
         const nextAttrs = this.nextNode.attrs;
         const attrs = this.node.attrs;
 
+        for (let name in nextAttrsDynamic) {
+            if (nextAttrsDynamic[name] !== attrsDynamic[name]) {
+                domNode[name] = nextAttrsDynamic[name];
+            }
+        }
+
+        for (let name in attrsDynamic) {
+            if (!nextAttrsDynamic[name]) {
+                domNode[name] = nextAttrs && nextAttrs[name] || null;
+            }
+        }
+
         if (nextAttrs) {
             for (let name in nextAttrs) {
-                if ((!attrs || nextAttrs[name] !== attrs[name]) && !specialAttrs[name]) {
-                    domNode[name.substr(0, 2) === 'on' ? name.toLowerCase() : name] = nextAttrs[name];
+                if (!nextAttrsDynamic[name] && (!attrs || nextAttrs[name] !== attrs[name]) && !specialAttrs[name]) {
+                    domNode[name] = nextAttrs[name];
                 }
             }
         }
         if (attrs) {
             for (let name in attrs) {
-                if (!nextAttrs || nextAttrs[name] === undefined) {
-                    domNode[name.substr(0, 2) === 'on' ? name.toLowerCase() : name] = null;
+                if (!nextAttrsDynamic[name] && !attrsDynamic[name] && (!nextAttrs || nextAttrs[name] === undefined)) {
+                    domNode[name] = null;
                 }
             }
+        }
+
+        delete this.node.dynamic.prevAttrs;
+    }
+};
+
+function UpdateDynamic(node) {
+    this.node = node;
+}
+UpdateDynamic.prototype = {
+    type: UPDATE_DYNAMIC,
+
+    apply() {
+        const prevAttrs = this.node.dynamic.prevAttrs;
+        const attrs = this.node.dynamic.attrs;
+        const domNode = this.node.getDomNode();
+
+        if (prevAttrs) {
+            for (let name in attrs) {
+                if (attrs[name] !== prevAttrs[name]) {
+                    domNode[name] = attrs[name];
+                }
+            }
+
+            for (let name in prevAttrs) {
+                if (!attrs[name]) {
+                    domNode[name] = this.node.attrs && this.node.attrs[name] || null;
+                }
+            }
+
+            delete this.node.dynamic.prevAttrs;
         }
     }
 };
@@ -233,7 +303,7 @@ AttachEvents.prototype = {
 
         for (let name in nextAttrs) {
             if (name.substr(0,2) === 'on') {
-                domNode[name.toLowerCase()] = nextAttrs[name];
+                domNode[name] = nextAttrs[name];
             }
         }
     }
@@ -248,11 +318,7 @@ function createElement(nextNode, document, skipCreation) {
 
             if (nextNode.attrs) {
                 for (let name in nextNode.attrs) {
-                    if (specialAttrs[name]) {
-                        continue;
-                    } else if (name.substr(0, 2) === 'on') {
-                        nextDomNode[name.toLowerCase()] = nextNode.attrs[name];
-                    } else {
+                    if (!specialAttrs[name]) {
                         nextDomNode[name] = nextNode.attrs[name];
                     }
                 }

@@ -22,6 +22,8 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document,
         updateComponents: {},
         nodes: {},
         nextNodes: {},
+        dynamicNodes: {},
+        nextDynamicNodes: {},
         hashEnabled,
         fullHash,
         hash: 0
@@ -64,6 +66,7 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document,
         prevNodes: config.nextNodes,
         prevComponents: config.nextComponents,
         prevVirtualRoot: nextVirtualRoot,
+        prevDynamicNodes: config.nextDynamicNodes,
         document
     }));
 }
@@ -76,11 +79,13 @@ function rerenderClient({
     rootNode,
     prevNodes,
     prevComponents,
-    prevVirtualRoot
+    prevVirtualRoot,
+    prevDynamicNodes
 }) {
     let components = prevComponents;
     let nodes = prevNodes;
     let virtualRoot = prevVirtualRoot;
+    let dynamicNodes = prevDynamicNodes;
 
     return throttle(function() {
         const nextVirtualRoot = new VRoot(rootNode);
@@ -92,7 +97,9 @@ function rerenderClient({
             mountComponents: {},
             updateComponents: {},
             nodes,
-            nextNodes: {}
+            nextNodes: {},
+            dynamicNodes,
+            nextDynamicNodes: {}
         };
         const context = new Context({
             parentId: 'r',
@@ -115,7 +122,7 @@ function rerenderClient({
         unmount(config.nextComponents, components);
         const activeElement = document.activeElement;
         patch.apply();
-        // FIXME: problem not neccessary blur and focus event
+        // FIXME: move inside patch? and problem not neccessary blur and focus event
         if (document.activeElement !== activeElement && activeElement.parentNode) {
             activeElement.focus();
         }

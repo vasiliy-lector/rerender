@@ -4,11 +4,18 @@ import { escapeHtml, escapeAttr, escapeStyle, calcHash } from './utils';
 import { voidTags } from './constants';
 import VNode from './VNode';
 import VText from './VText';
+import DynamicVNode from './DynamicVNode';
 
 const specialProps = {
     key: true,
     uniqid: true,
     ref: true
+};
+// TODO: full list
+const interactiveTags = {
+    input: true,
+    textarea: true,
+    select: true
 };
 
 function TemplateVNode(tag, attrs, children) {
@@ -19,6 +26,10 @@ function TemplateVNode(tag, attrs, children) {
 
         if (attrs.uniqid) {
             this.uniqid = attrs.uniqid;
+        }
+
+        if (typeof attrs.ref === 'function') {
+            this.ref = attrs.ref;
         }
     }
 
@@ -85,13 +96,25 @@ TemplateVNode.prototype = {
                 : '>' + children + '</' + tag + '>');
     },
 
+    needDynamic() {
+        return this.ref || interactiveTags[this.tag];
+    },
+
     render(config, context) {
         if (config.hashEnabled) {
             this.calcHash(config);
         }
 
         const nextNode = new VNode(this.tag, this.attrs, context);
-        config.nextNodes[context.getId()] = nextNode;
+        const id = context.getId();
+
+        if (this.needDynamic()) {
+            const dynamic = config.dynamicNodes[id] || (new DynamicVNode(nextNode));
+            nextNode.setDynamic(dynamic);
+            config.nextDynamicNodes[id] = dynamic;
+        }
+
+        config.nextNodes[id] = nextNode;
 
         nextNode.setChilds(renderChildren(
             this.children,
