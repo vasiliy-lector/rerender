@@ -2,7 +2,7 @@ import { TEMPLATE, TEMPLATE_COMPONENT, TEMPLATE_VNODE, VCOMPONENT } from './type
 import VComponent from './VComponent';
 import { shallowEqualProps } from './utils';
 import VText from './VText';
-import componentLifeCycle from './componentLifeCycle';
+import { componentRender, componentBeforeRender, componentSetProps } from './componentLifeCycle';
 import reuseTemplate from './reuseTemplate';
 
 const SPECIAL_PROPS = {
@@ -65,7 +65,7 @@ TemplateComponent.prototype = {
         const componentType = this.componentType;
         const instance = new componentType(this.props, this.children, { store: config.store });
         this.preprocessInstance(instance);
-        const template = componentLifeCycle.render(instance);
+        const template = componentRender(instance);
 
         return template ? template.renderToString(config) : '';
     },
@@ -93,8 +93,8 @@ TemplateComponent.prototype = {
             if (this.ref && typeof this.ref === 'function') {
                 this.ref(instance);
             }
-            componentLifeCycle.beforeRender(instance);
-            template = componentLifeCycle.render(instance);
+            componentBeforeRender(instance);
+            template = componentRender(instance);
 
             component = new VComponent(
                 componentType,
@@ -112,7 +112,7 @@ TemplateComponent.prototype = {
             component = prev;
             const instance = component.instance;
 
-            componentLifeCycle.beforeRender(instance);
+            componentBeforeRender(instance);
 
             const sameProps = shallowEqualProps(component.props, props);
             // FIXME
@@ -139,9 +139,9 @@ TemplateComponent.prototype = {
                 template = component.template;
             } else {
                 if (!sameProps || !sameChildren) {
-                    componentLifeCycle.setProps(instance, props, children);
+                    componentSetProps(instance, props, children);
                 }
-                template = reuseTemplate(componentLifeCycle.render(instance), prev.template);
+                template = reuseTemplate(componentRender(instance), prev.template);
                 component.set('template', template);
                 updateComponents[id] = component.instance;
             }

@@ -1,22 +1,22 @@
-function beforeRender(instance) {
+function componentBeforeRender(instance) {
     if (!instance._componentMounted && typeof instance.componentWillMount !== 'undefined') {
         instance.componentWillMount();
     }
 }
 
-function destroy(instance) {
+function componentDestroy(instance) {
     if (typeof instance.componentWillDestroy !== 'undefined') {
         instance.componentWillDestroy();
     }
 }
 
-function update(instance) {
+function componentUpdate(instance) {
     if (typeof instance.componentDidUpdate !== 'undefined') {
         instance.componentDidUpdate();
     }
 }
 
-function mount(instance) {
+function componentMount(instance) {
     instance._componentMounted = true;
 
     if (typeof instance.componentDidMount !== 'undefined') {
@@ -24,11 +24,11 @@ function mount(instance) {
     }
 }
 
-function render(instance) {
+function componentRender(instance) {
     return instance.render();
 }
 
-function setProps(instance, props, children) {
+function componentSetProps(instance, props, children) {
     if (typeof instance.componentWillReceiveProps !== 'undefined') {
         instance._settingProps = true;
         instance.componentWillReceiveProps(props, children);
@@ -39,7 +39,7 @@ function setProps(instance, props, children) {
     instance.children = children;
 }
 
-function unmount(instance) {
+function componentUnmount(instance) {
     instance._componentMounted = false;
 
     if (typeof instance.componentWillUnmount !== 'undefined') {
@@ -47,12 +47,12 @@ function unmount(instance) {
     }
 }
 
-export default {
-    beforeRender,
-    destroy,
-    update,
-    mount,
-    render,
-    setProps,
-    unmount
+export {
+    componentBeforeRender,
+    componentDestroy,
+    componentUpdate,
+    componentMount,
+    componentRender,
+    componentSetProps,
+    componentUnmount
 };

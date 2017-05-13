@@ -1,5 +1,5 @@
 import Events from './Events';
-import componentLifeCycle from './componentLifeCycle';
+import { componentMount, componentUnmount, componentDestroy, componentUpdate } from './componentLifeCycle';
 import Context from './Context';
 import createInitialPatch from './createInitialPatch';
 import diff from './diff';
@@ -62,12 +62,12 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document,
         rootTemplate,
         store,
         events,
+        document,
         rootNode,
         prevNodes: config.nextNodes,
         prevComponents: config.nextComponents,
         prevVirtualRoot: nextVirtualRoot,
-        prevDynamicNodes: config.nextDynamicNodes,
-        document
+        prevDynamicNodes: config.nextDynamicNodes
     }));
 }
 
@@ -137,7 +137,7 @@ function rerenderClient({
 
 function mount(instances) {
     for (let id in instances) {
-        componentLifeCycle.mount(instances[id]);
+        componentMount(instances[id]);
     }
 }
 
@@ -147,15 +147,15 @@ function unmount(nextComponents, components) {
             && (!nextComponents[id] || nextComponents[id].componentType !== components[id].componentType)
         ) {
             const instance = components[id].instance;
-            componentLifeCycle.unmount(instance);
-            componentLifeCycle.destroy(instance);
+            componentUnmount(instance);
+            componentDestroy(instance);
         }
     }
 }
 
 function update(instances) {
     for (let id in instances) {
-        componentLifeCycle.update(instances[id]);
+        componentUpdate(instances[id]);
     }
 }
 
