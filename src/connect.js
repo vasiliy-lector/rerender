@@ -3,7 +3,7 @@ import jsx from './jsx';
 import { hoistStatics } from './utils';
 
 export default function connect({ actions = {}, get, merge, watch }) {
-    return (Wrapped) => hoistStatics((() => {
+    return Wrapped => {
         class Connect extends Component {
             constructor(props, children, options) {
                 super(props, children, options);
@@ -47,6 +47,6 @@ export default function connect({ actions = {}, get, merge, watch }) {
             }
         }
 
-        return Connect;
-    })(), Wrapped);
+        return hoistStatics(Connect, Wrapped);
+    };
 }
