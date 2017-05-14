@@ -203,9 +203,9 @@ function throttle(fn, milliseconds, { leading }) {
     let timeout,
         called = false;
 
-    return function() {
+    return function(...args) {
         if (leading && !timeout) {
-            fn();
+            fn(...args);
             called = true;
         }
 

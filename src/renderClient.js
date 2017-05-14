@@ -58,81 +58,71 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document,
 
     mount(config.mountComponents);
 
-    events.on('rerender', rerenderClient({
+    const rerenderConfig = {
         rootTemplate,
         store,
         events,
         document,
         rootNode,
-        prevNodes: config.nextNodes,
-        prevComponents: config.nextComponents,
-        prevVirtualRoot: nextVirtualRoot,
-        prevDynamicNodes: config.nextDynamicNodes
-    }));
+        nodes: config.nextNodes,
+        components: config.nextComponents,
+        virtualRoot: nextVirtualRoot,
+        dynamicNodes: config.nextDynamicNodes
+    };
+
+    events.on('rerender', throttle(
+        rerenderClient.bind(null, rerenderConfig),
+        RENDER_THROTTLE,
+        { leading: true }
+    ));
 }
 
-function rerenderClient({
-    rootTemplate,
-    store,
-    events,
-    document,
-    rootNode,
-    prevNodes,
-    prevComponents,
-    prevVirtualRoot,
-    prevDynamicNodes
-}) {
-    let components = prevComponents;
-    let nodes = prevNodes;
-    let virtualRoot = prevVirtualRoot;
-    let dynamicNodes = prevDynamicNodes;
+function rerenderClient(rerenderConfig, id) {
+    const nextVirtualRoot = new VRoot(rerenderConfig.rootNode);
+    const config = {
+        store: rerenderConfig.store,
+        events: rerenderConfig.events,
+        components: rerenderConfig.components,
+        nextComponents: {},
+        mountComponents: {},
+        updateComponents: {},
+        nodes: rerenderConfig.nodes,
+        nextNodes: {},
+        dynamicNodes: rerenderConfig.dynamicNodes,
+        nextDynamicNodes: {}
+    };
+    const context = new Context({
+        parentId: 'r',
+        parentNodeId: 'r',
+        index: 0,
+        parentPosition: '',
+        domIndex: 0,
+        parent: nextVirtualRoot,
+        parentNode: nextVirtualRoot,
+        rootNode: rerenderConfig.rootNode
+    });
+    nextVirtualRoot.setChilds([rerenderConfig.rootTemplate.render(config, context)]);
 
-    return throttle(function() {
-        const nextVirtualRoot = new VRoot(rootNode);
-        const config = {
-            store,
-            events,
-            components,
-            nextComponents: {},
-            mountComponents: {},
-            updateComponents: {},
-            nodes,
-            nextNodes: {},
-            dynamicNodes,
-            nextDynamicNodes: {}
-        };
-        const context = new Context({
-            parentId: 'r',
-            parentNodeId: 'r',
-            index: 0,
-            parentPosition: '',
-            domIndex: 0,
-            parent: nextVirtualRoot,
-            parentNode: nextVirtualRoot,
-            rootNode
-        });
-        nextVirtualRoot.setChilds([rootTemplate.render(config, context)]);
+    const patch = diff(nextVirtualRoot.childNodes[0], rerenderConfig.virtualRoot.childNodes[0], {
+        nextNodesById: config.nextNodes,
+        nodesById: rerenderConfig.nodes,
+        document
+    });
 
-        const patch = diff(nextVirtualRoot.childNodes[0], virtualRoot.childNodes[0], {
-            nextNodesById: config.nextNodes,
-            nodesById: nodes,
-            document
-        });
+    unmount(config.nextComponents, rerenderConfig.components);
+    const activeElement = document.activeElement;
+    patch.apply();
+    // FIXME: move inside patch? and problem not neccessary blur and focus event
+    if (document.activeElement !== activeElement && activeElement.parentNode) {
+        activeElement.focus();
+    }
+    mount(config.mountComponents);
+    update(config.updateComponents);
 
-        unmount(config.nextComponents, components);
-        const activeElement = document.activeElement;
-        patch.apply();
-        // FIXME: move inside patch? and problem not neccessary blur and focus event
-        if (document.activeElement !== activeElement && activeElement.parentNode) {
-            activeElement.focus();
-        }
-        mount(config.mountComponents);
-        update(config.updateComponents);
-
-        virtualRoot = nextVirtualRoot;
-        nodes = config.nextNodes;
-        components = config.nextComponents;
-    }, RENDER_THROTTLE, { leading: true });
+    rerenderConfig.virtualRoot = nextVirtualRoot;
+    rerenderConfig.nodes = config.nextNodes;
+    rerenderConfig.components = config.nextComponents;
+    rerenderConfig.dynamicNodes = config.nextDynamicNodes;
 }
 
 function mount(instances) {

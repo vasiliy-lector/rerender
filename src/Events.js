@@ -19,20 +19,20 @@ class Events {
         this.callbacks[eventName] = callbacks;
     }
 
-    emit(eventName, payload) {
+    emit(eventName, ...payload) {
         let { [eventName]: callbacks = [] } = this.callbacks;
 
-        callbacks.forEach(callback => callback(payload, eventName));
+        callbacks.forEach(callback => callback(...payload));
     }
 
-    emitNextTick(eventName, payload) {
+    emitNextTick(eventName, ...payload) {
         if (!this.nextTickTriggers[eventName]) {
             this.nextTickTriggers[eventName] = true;
             nextTick(() => {
                 delete this.nextTickTriggers[eventName];
                 const { [eventName]: callbacks = [] } = this.callbacks;
 
-                callbacks.forEach(callback => callback(payload, eventName));
+                callbacks.forEach(callback => callback(...payload));
             });
         }
     }
