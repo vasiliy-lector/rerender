@@ -28,7 +28,7 @@ Component.prototype = {
             this.state = nextState;
 
             if (this._componentMounted && !this._settingProps) {
-                this._events.emitNextTick('rerender', null, this._id);
+                this._events.emit('rerender-one', this._id);
             }
         }
     },

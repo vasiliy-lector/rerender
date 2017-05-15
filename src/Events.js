@@ -25,6 +25,7 @@ class Events {
         callbacks.forEach(callback => callback(...payload));
     }
 
+    // FIXME: no need any more?
     emitNextTick(eventName, ...payload) {
         if (!this.nextTickTriggers[eventName]) {
             this.nextTickTriggers[eventName] = true;

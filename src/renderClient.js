@@ -4,7 +4,6 @@ import Context from './Context';
 import createInitialPatch from './createInitialPatch';
 import diff from './diff';
 import { debug } from './debug';
-import { throttle } from './utils';
 import VRoot from './VRoot';
 import { VCOMPONENT } from './types';
 
@@ -70,11 +69,59 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document,
         dynamicNodes: config.nextDynamicNodes
     };
 
-    events.on('rerender', throttle(
-        rerenderClient.bind(null, rerenderConfig),
-        RENDER_THROTTLE,
-        { leading: true }
-    ));
+    listenEvents(rerenderConfig);
+}
+
+function listenEvents(rerenderConfig) {
+    let throttleTimeout;
+    let rerenderOneTimeout;
+    let scheduled;
+    let scheduledOneId;
+
+    rerenderConfig.events.on('rerender', () => {
+        if (scheduled) {
+            return;
+        }
+        if (scheduledOneId) {
+            clearTimeout(rerenderOneTimeout);
+            scheduledOneId = undefined;
+        }
+
+        if (throttleTimeout === undefined) {
+            setTimeout(() => {
+                rerenderClient(rerenderConfig);
+                scheduled = false;
+            }, 0);
+
+            throttleTimeout = setTimeout(() => {
+                throttleTimeout = undefined;
+                if (scheduled) {
+                    rerenderClient(rerenderConfig);
+                    scheduled = false;
+                }
+            }, RENDER_THROTTLE);
+        }
+
+        scheduled = true;
+    });
+
+    rerenderConfig.store.on('change', () => rerenderConfig.events.emit('rerender'));
+
+    rerenderConfig.events.on('rerender-one', id => {
+        if (scheduled || scheduledOneId === id) {
+            return;
+        }
+
+        if (!scheduledOneId) {
+            rerenderOneTimeout = setTimeout(() => {
+                rerenderClient(rerenderConfig, id);
+                scheduledOneId = undefined;
+            }, 0);
+            scheduledOneId = id;
+        } else {
+            rerenderConfig.events.emit('rerender');
+        }
+    });
 }
 
 function rerenderClient(rerenderConfig, id) {
