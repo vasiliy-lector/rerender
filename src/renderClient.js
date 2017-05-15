@@ -108,7 +108,13 @@ function listenEvents(rerenderConfig) {
     rerenderConfig.store.on('change', () => rerenderConfig.events.emit('rerender'));
 
     rerenderConfig.events.on('rerender-one', id => {
-        if (scheduled || scheduledOneId === id) {
+        if (scheduled || scheduledOneId === id
+            || (scheduledOneId && scheduledOneId.length < id.length && id.indexOf(scheduledOneId) !== -1)) {
+            return;
+        }
+
+        if (scheduledOneId && id.length < scheduledOneId.length && scheduledOneId.indexOf(id) !== -1) {
+            scheduledOneId = id;
             return;
         }
 
