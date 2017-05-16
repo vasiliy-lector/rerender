@@ -28,8 +28,8 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document,
         hash: 0
     };
     const context = new Context({
-        parentId: 'r',
-        parentNodeId: 'r',
+        parentId: '',
+        parentNodeId: '',
         index: 0,
         parentPosition: '',
         domIndex: 0,
@@ -145,8 +145,8 @@ function rerenderClient(rerenderConfig, id) {
         nextDynamicNodes: {}
     };
     const context = new Context({
-        parentId: 'r',
-        parentNodeId: 'r',
+        parentId: '',
+        parentNodeId: '',
         index: 0,
         parentPosition: '',
         domIndex: 0,
