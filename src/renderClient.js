@@ -8,13 +8,17 @@ import { VCOMPONENT } from './types';
 
 const RENDER_THROTTLE = 16;
 
-function renderClient(userTemplate, store, rootNode, { document = self.document, hashEnabled = true, fullHash = false } = {}) {
+function renderClient(userTemplate, store, rootNode, {
+    document = self.document,
+    hashEnabled = true,
+    fullHash = false
+} = {}) {
     const events = new Events();
     const rootTemplate = new TemplateVSandbox(rootNode, userTemplate);
     const config = {
         store,
         events,
-        // rootTemplate, document, rootNode need only inside renderClient file
+        // rootTemplate, document, rootNode, virtualRoot need only inside renderClient file
         rootTemplate,
         document,
         rootNode,
@@ -35,7 +39,6 @@ function renderClient(userTemplate, store, rootNode, { document = self.document,
         nextNodesById: config.nextNodes,
         document
     });
-
     const firstChild = rootNode.childNodes[0];
     const hash = firstChild && firstChild.getAttribute('data-rerender-hash');
 
@@ -58,7 +61,7 @@ function renderClient(userTemplate, store, rootNode, { document = self.document,
     listenEvents(config);
 }
 
-function rerenderClient(config, id) {
+function rerenderClient(config) {
     const nextVirtualRoot = config.rootTemplate.render(config);
     const patch = diff(nextVirtualRoot.childNodes[0], config.virtualRoot.childNodes[0], {
         nextNodesById: config.nextNodes,
@@ -67,12 +70,24 @@ function rerenderClient(config, id) {
     });
 
     unmount(config.nextComponents, config.components);
-    const activeElement = document.activeElement;
     patch.apply();
-    // FIXME: move inside patch? and problem not neccessary blur and focus event
-    if (document.activeElement !== activeElement && activeElement.parentNode) {
-        activeElement.focus();
-    }
+    mount(config.mountComponents);
+    update(config.updateComponents);
+
+    config.virtualRoot = nextVirtualRoot;
+    prepearConfig(config);
+}
+
+function rerenderClientOne(config, id) {
+    const nextVirtualRoot = config.components[id].componentTemplate.render(config, context);
+    const patch = diff(nextVirtualRoot.childNodes[0], config.virtualRoot.childNodes[0], {
+        nextNodesById: config.nextNodes,
+        nodesById: config.nodes,
+        document
+    });
+
+    unmount(config.nextComponents, config.components);
+    patch.apply();
     mount(config.mountComponents);
     update(config.updateComponents);
 
@@ -96,8 +111,9 @@ function listenEvents(config) {
     let rerenderOneTimeout;
     let scheduled;
     let scheduledOneId;
+    const { events, store } = config;
 
-    config.events.on('rerender', () => {
+    events.on('rerender', () => {
         if (scheduled) {
             return;
         }
@@ -124,9 +140,9 @@ function listenEvents(config) {
         scheduled = true;
     });
 
-    config.store.on('change', () => config.events.emit('rerender'));
+    store.on('change', () => events.emit('rerender'));
 
-    config.events.on('rerender-one', id => {
+    events.on('rerender-one', id => {
         if (scheduled || scheduledOneId === id
             || (scheduledOneId && scheduledOneId.length < id.length && id.indexOf(scheduledOneId) !== -1)) {
             return;
@@ -139,12 +155,12 @@ function listenEvents(config) {
 
         if (!scheduledOneId) {
             rerenderOneTimeout = setTimeout(() => {
-                rerenderClient(config, id);
+                rerenderClientOne(config, id);
                 scheduledOneId = undefined;
             }, 0);
             scheduledOneId = id;
         } else {
-            config.events.emit('rerender');
+            events.emit('rerender');
         }
     });
 }

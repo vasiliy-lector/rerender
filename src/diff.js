@@ -81,7 +81,7 @@ function diffPrev(node, options, insideRemove) {
     }
 }
 
-function diff(nextNode, node, options) {
+function diff(nextNode, node, options = {}) {
     const patch = new Patch(options.document);
 
     diffNext(nextNode, {

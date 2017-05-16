@@ -10,6 +10,9 @@ const SPLIT_TEXT = 'SPLIT_TEXT';
 const SET_REF = 'SET_REF';
 const REMOVE_REF = 'REMOVE_REF';
 const ATTACH_EVENTS = 'ATTACH_EVENTS';
+const catchEvent = function(event) {
+    event.stopPropagation();
+};
 
 function Patch (document = self.document) {
     this.document = document;
@@ -22,8 +25,9 @@ function Patch (document = self.document) {
 Patch.prototype = {
     apply() {
         const domNodes = [];
+        const document = this.document;
         const options = {
-            document: this.document,
+            document,
             skipCreation: {}
         };
 
@@ -38,8 +42,31 @@ Patch.prototype = {
             }
         }
 
+        const prevActiveElement = document.activeElement;
+        const body = document.body;
+        let prevOnblur;
+
+        if (prevActiveElement && prevActiveElement !== body) {
+            prevOnblur = prevActiveElement.onblur;
+            prevActiveElement.onblur = catchEvent;
+        }
+
         for (let i = 0, l = this.commands.length; i < l; i++) {
             this.commands[i].apply(options, domNodes[i]);
+        }
+
+        const activeElement = document.activeElement;
+
+        if (prevActiveElement && prevActiveElement !== body) {
+            if (prevActiveElement.onblur === catchEvent) {
+                prevActiveElement.onblur = prevOnblur;
+            }
+            if ((!activeElement || activeElement === document.body) && prevActiveElement.parentNode) {
+                const prevOnfocus = prevActiveElement.onfocus;
+                prevActiveElement.onfocus = catchEvent;
+                prevActiveElement.focus();
+                prevActiveElement.onfocus = prevOnfocus;
+            }
         }
     },
 

@@ -40,7 +40,7 @@ function createInitialPatchRecursive(nextNode, options, insideCreation, nextSibl
     }
 }
 
-function createInitialPatch(nextNode, options) {
+function createInitialPatch(nextNode, options = {}) {
     const patch = new Patch(options.document);
 
     createInitialPatchRecursive(nextNode, { patch });
