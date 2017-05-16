@@ -1,20 +1,23 @@
 import Events from './Events';
 import { componentMount, componentUnmount, componentDestroy, componentUpdate } from './componentLifeCycle';
-import Context from './Context';
 import createInitialPatch from './createInitialPatch';
 import diff from './diff';
 import { debug } from './debug';
-import VRoot from './VRoot';
+import TemplateVSandbox from './TemplateVSandbox';
 import { VCOMPONENT } from './types';
 
 const RENDER_THROTTLE = 16;
 
-function renderClient(rootTemplate, store, rootNode, { document = self.document, hashEnabled = true, fullHash = false } = {}) {
+function renderClient(userTemplate, store, rootNode, { document = self.document, hashEnabled = true, fullHash = false } = {}) {
     const events = new Events();
-    const nextVirtualRoot = new VRoot(rootNode);
+    const rootTemplate = new TemplateVSandbox(rootNode, userTemplate);
     const config = {
         store,
         events,
+        // rootTemplate, document, rootNode need only inside renderClient file
+        rootTemplate,
+        document,
+        rootNode,
         components: {},
         nextComponents: {},
         mountComponents: {},
@@ -27,18 +30,7 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document,
         fullHash,
         hash: 0
     };
-    const context = new Context({
-        parentId: '',
-        parentNodeId: '',
-        index: 0,
-        parentPosition: '',
-        domIndex: 0,
-        parent: nextVirtualRoot,
-        parentNode: nextVirtualRoot,
-        rootNode
-    });
-    nextVirtualRoot.setChilds([rootTemplate.render(config, context)]);
-
+    const nextVirtualRoot = rootTemplate.render(config);
     const patch = createInitialPatch(nextVirtualRoot.childNodes[0], {
         nextNodesById: config.nextNodes,
         document
@@ -57,28 +49,55 @@ function renderClient(rootTemplate, store, rootNode, { document = self.document,
 
     mount(config.mountComponents);
 
-    const rerenderConfig = {
-        rootTemplate,
-        store,
-        events,
-        document,
-        rootNode,
-        nodes: config.nextNodes,
-        components: config.nextComponents,
-        virtualRoot: nextVirtualRoot,
-        dynamicNodes: config.nextDynamicNodes
-    };
+    config.hashEnabled = false;
+    config.hash = undefined;
+    config.fullHash = undefined;
+    config.virtualRoot = nextVirtualRoot;
+    prepearConfig(config);
 
-    listenEvents(rerenderConfig);
+    listenEvents(config);
 }
 
-function listenEvents(rerenderConfig) {
+function rerenderClient(config, id) {
+    const nextVirtualRoot = config.rootTemplate.render(config);
+    const patch = diff(nextVirtualRoot.childNodes[0], config.virtualRoot.childNodes[0], {
+        nextNodesById: config.nextNodes,
+        nodesById: config.nodes,
+        document
+    });
+
+    unmount(config.nextComponents, config.components);
+    const activeElement = document.activeElement;
+    patch.apply();
+    // FIXME: move inside patch? and problem not neccessary blur and focus event
+    if (document.activeElement !== activeElement && activeElement.parentNode) {
+        activeElement.focus();
+    }
+    mount(config.mountComponents);
+    update(config.updateComponents);
+
+    config.virtualRoot = nextVirtualRoot;
+    prepearConfig(config);
+}
+
+function prepearConfig(config) {
+    config.nodes = config.nextNodes;
+    config.nextNodes = {};
+    config.components = config.nextComponents;
+    config.nextComponents = {};
+    config.dynamicNodes = config.nextDynamicNodes;
+    config.nextDynamicNodes = {};
+    config.mountComponents = {};
+    config.updateComponents = {};
+}
+
+function listenEvents(config) {
     let throttleTimeout;
     let rerenderOneTimeout;
     let scheduled;
     let scheduledOneId;
 
-    rerenderConfig.events.on('rerender', () => {
+    config.events.on('rerender', () => {
         if (scheduled) {
             return;
         }
@@ -89,14 +108,14 @@ function listenEvents(rerenderConfig) {
 
         if (throttleTimeout === undefined) {
             setTimeout(() => {
-                rerenderClient(rerenderConfig);
+                rerenderClient(config);
                 scheduled = false;
             }, 0);
 
             throttleTimeout = setTimeout(() => {
                 throttleTimeout = undefined;
                 if (scheduled) {
-                    rerenderClient(rerenderConfig);
+                    rerenderClient(config);
                     scheduled = false;
                 }
             }, RENDER_THROTTLE);
@@ -105,9 +124,9 @@ function listenEvents(rerenderConfig) {
         scheduled = true;
     });
 
-    rerenderConfig.store.on('change', () => rerenderConfig.events.emit('rerender'));
+    config.store.on('change', () => config.events.emit('rerender'));
 
-    rerenderConfig.events.on('rerender-one', id => {
+    config.events.on('rerender-one', id => {
         if (scheduled || scheduledOneId === id
             || (scheduledOneId && scheduledOneId.length < id.length && id.indexOf(scheduledOneId) !== -1)) {
             return;
@@ -120,62 +139,14 @@ function listenEvents(rerenderConfig) {
 
         if (!scheduledOneId) {
             rerenderOneTimeout = setTimeout(() => {
-                rerenderClient(rerenderConfig, id);
+                rerenderClient(config, id);
                 scheduledOneId = undefined;
             }, 0);
             scheduledOneId = id;
         } else {
-            rerenderConfig.events.emit('rerender');
+            config.events.emit('rerender');
         }
     });
-}
-
-function rerenderClient(rerenderConfig, id) {
-    const nextVirtualRoot = new VRoot(rerenderConfig.rootNode);
-    const config = {
-        store: rerenderConfig.store,
-        events: rerenderConfig.events,
-        components: rerenderConfig.components,
-        nextComponents: {},
-        mountComponents: {},
-        updateComponents: {},
-        nodes: rerenderConfig.nodes,
-        nextNodes: {},
-        dynamicNodes: rerenderConfig.dynamicNodes,
-        nextDynamicNodes: {}
-    };
-    const context = new Context({
-        parentId: '',
-        parentNodeId: '',
-        index: 0,
-        parentPosition: '',
-        domIndex: 0,
-        parent: nextVirtualRoot,
-        parentNode: nextVirtualRoot,
-        rootNode: rerenderConfig.rootNode
-    });
-    nextVirtualRoot.setChilds([rerenderConfig.rootTemplate.render(config, context)]);
-
-    const patch = diff(nextVirtualRoot.childNodes[0], rerenderConfig.virtualRoot.childNodes[0], {
-        nextNodesById: config.nextNodes,
-        nodesById: rerenderConfig.nodes,
-        document
-    });
-
-    unmount(config.nextComponents, rerenderConfig.components);
-    const activeElement = document.activeElement;
-    patch.apply();
-    // FIXME: move inside patch? and problem not neccessary blur and focus event
-    if (document.activeElement !== activeElement && activeElement.parentNode) {
-        activeElement.focus();
-    }
-    mount(config.mountComponents);
-    update(config.updateComponents);
-
-    rerenderConfig.virtualRoot = nextVirtualRoot;
-    rerenderConfig.nodes = config.nextNodes;
-    rerenderConfig.components = config.nextComponents;
-    rerenderConfig.dynamicNodes = config.nextDynamicNodes;
 }
 
 function mount(instances) {

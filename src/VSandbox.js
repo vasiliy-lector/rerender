@@ -1,14 +1,14 @@
-import { VROOT } from './types';
+import { VSANDBOX } from './types';
 
-function VRoot(domNode) {
+function VSandbox(domNode) {
     this.parent = null;
     this.parentNode = null;
     this.childNodes = [];
     this.domNode = domNode;
 }
 
-VRoot.prototype = {
-    type: VROOT,
+VSandbox.prototype = {
+    type: VSANDBOX,
 
     setChilds(childs) {
         this.childs = childs;
@@ -23,4 +23,4 @@ VRoot.prototype = {
     }
 };
 
-export default VRoot;
+export default VSandbox;

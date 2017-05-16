@@ -64,12 +64,14 @@ TemplateComponent.prototype = {
                 props,
                 children,
                 id,
-                template
+                template,
+                this
             );
 
             nextComponents[id] = component;
         } else {
             component = prev;
+            component.set('templateComponent', this);
             const sameProps = shallowEqualProps(component.props, props);
             // FIXME
             const sameChildren = false; // children.isEqual(component.children);

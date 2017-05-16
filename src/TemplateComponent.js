@@ -102,6 +102,7 @@ TemplateComponent.prototype = {
                 children,
                 id,
                 template,
+                this,
                 instance,
                 instance.state
             );
@@ -110,6 +111,7 @@ TemplateComponent.prototype = {
             mountComponents[id] = component.instance;
         } else {
             component = prev;
+            component.set('templateComponent', this);
             const instance = component.instance;
 
             componentBeforeRender(instance);

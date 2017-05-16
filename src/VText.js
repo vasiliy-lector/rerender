@@ -2,6 +2,8 @@ import { VTEXT } from './types';
 
 function VText(value, context) {
     this.value = value;
+    this.parent = context.getParent();
+    this.parentNode = context.getParentNode();
     this.context = context;
     context.getParentNode().appendChild(this);
 }

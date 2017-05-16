@@ -5,13 +5,15 @@ function VComponentStateless(
     props,
     children,
     id,
-    template
+    template,
+    templateComponent
 ) {
     this.componentType = componentType;
     this.props = props;
     this.children = children;
     this.id = id;
     this.template = template;
+    this.templateComponent = templateComponent;
 }
 
 VComponentStateless.prototype = {
