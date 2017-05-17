@@ -1,4 +1,4 @@
-import { TEMPLATE } from './types';
+import { TEMPLATE, VCOMPONENT } from './types';
 import { styleProps } from './constants';
 
 const getFunctionName = (function getFunctionName() {
@@ -238,12 +238,37 @@ function calcHash(hash) {
     return hash;
 }
 
+function groupByIdNodes(node, memo) {
+    // TODO: take id from context
+    memo[node.context.getId()] = node;
+
+    for (let i = 0, l = node.childNodes.length; i < l; i++) {
+        groupByIdNodes(node.childNodes[i], memo);
+    }
+
+    return memo;
+}
+
+function groupByIdComponents(component, memo) {
+    if (component.type === VCOMPONENT) {
+        memo[component.id] = component;
+    }
+
+    for (let i = 0, l = component.childs.length; i < l; i++) {
+        groupByIdComponents(component.childs[i], memo);
+    }
+
+    return memo;
+}
+
 export {
     calcHash,
     escapeAttr,
     escapeHtml,
     escapeStyle,
     getFunctionName,
+    groupByIdNodes,
+    groupByIdComponents,
     hoistStatics,
     nextTick,
     shallowEqual,

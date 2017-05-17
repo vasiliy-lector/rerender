@@ -103,6 +103,7 @@ TemplateComponent.prototype = {
                 id,
                 template,
                 this,
+                context,
                 instance,
                 instance.state
             );
@@ -112,6 +113,7 @@ TemplateComponent.prototype = {
         } else {
             component = prev;
             component.set('templateComponent', this);
+            component.set('context', context);
             const instance = component.instance;
 
             componentBeforeRender(instance);

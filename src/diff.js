@@ -1,6 +1,6 @@
 import { VNODE, VTEXT } from './types';
 import Patch, { Create, Replace, Move, Update, Remove, RemoveRef } from './Patch';
-import { shallowEqual } from './utils';
+import { shallowEqual, groupByIdNodes } from './utils';
 
 function diffNext(nextNode, options, insideCreation) {
     if (nextNode.type === VNODE) {
@@ -83,14 +83,16 @@ function diffPrev(node, options, insideRemove) {
 
 function diff(nextNode, node, options = {}) {
     const patch = new Patch(options.document);
+    const nodesById = options.nodesById || groupByIdNodes(node, {});
+    const nextNodesById = options.nextNodesById || groupByIdNodes(nextNode, {});
 
     diffNext(nextNode, {
-        nodesById: options.nodesById,
+        nodesById,
         patch
     });
 
     diffPrev(node, {
-        nextNodesById: options.nextNodesById,
+        nextNodesById,
         patch
     });
 

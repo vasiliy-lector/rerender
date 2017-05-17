@@ -4,7 +4,9 @@ import createInitialPatch from './createInitialPatch';
 import diff from './diff';
 import { debug } from './debug';
 import TemplateVSandbox from './TemplateVSandbox';
-import { VCOMPONENT } from './types';
+import Context from './Context';
+import { VNODE, VTEXT, VCOMPONENT } from './types';
+import { groupByIdComponents, groupByIdNodes } from './utils';
 
 const RENDER_THROTTLE = 16;
 
@@ -79,20 +81,49 @@ function rerenderClient(config) {
 }
 
 function rerenderClientOne(config, id) {
-    const nextVirtualRoot = config.components[id].componentTemplate.render(config, context);
-    const patch = diff(nextVirtualRoot.childNodes[0], config.virtualRoot.childNodes[0], {
+    const component = config.components[id];
+    const node = getFirstNode(component);
+    const sandbox = new TemplateVSandbox(node.parentNode, component.componentTemplate);
+    const nextSanboxNode = sandbox.render(config, new Context(component.context));
+    const nodesById = groupByIdNodes(node);
+    const options = {
+        nodesById,
         nextNodesById: config.nextNodes,
-        nodesById: config.nodes,
         document
-    });
+    };
+    const nextNode = nextSanboxNode.childNodes[0];
+    const patch = diff(nextNode, node, options);
 
-    unmount(config.nextComponents, config.components);
+    const components = groupByIdComponents(component, {});
+    const unmounted = unmountOne(config.nextComponents, components);
+
     patch.apply();
     mount(config.mountComponents);
     update(config.updateComponents);
 
-    config.virtualRoot = nextVirtualRoot;
-    prepearConfig(config);
+    const nextComponent = nextSanboxNode.childs[0];
+    component.parent.childs[component.context.index] = nextComponent;
+    node.parentNode.childNodes[node.context.domIndex] = nextNode;
+    nextComponent.set('context', component.context);
+    nextComponent.parent = component.parent;
+    nextNode.parentNode = node.parentNode;
+
+    const removedNodes = {};
+    for (let id in nodesById) {
+        if (!config.nextNodesById[id]) {
+            removedNodes[id] = nodesById[id];
+        }
+    }
+
+    prepearConfigOne(config, unmounted, removedNodes);
+}
+
+function getFirstNode(node) {
+    if (node.type === VNODE || node.type === VTEXT) {
+        return node;
+    }
+
+    return getFirstNode(node.childs[0]);
 }
 
 function prepearConfig(config) {
@@ -101,6 +132,36 @@ function prepearConfig(config) {
     config.components = config.nextComponents;
     config.nextComponents = {};
     config.dynamicNodes = config.nextDynamicNodes;
+    config.nextDynamicNodes = {};
+    config.mountComponents = {};
+    config.updateComponents = {};
+}
+
+function prepearConfigOne(config, unmounted, removedNodes) {
+    for (let id in config.nextNodes) {
+        config.nodes[id] = config.nextNodes[id];
+    }
+    for (let id in removedNodes) {
+        delete config.nodes[id];
+    }
+    config.nextNodes = {};
+
+    for (let id in config.nextComponents) {
+        config.components[id] = config.nextComponents[id];
+    }
+    for (let id in unmounted) {
+        delete config.components[id];
+    }
+    config.nextComponents = {};
+
+    for (let id in config.nextDynamicNodes) {
+        config.dynamicNodes[id] = config.nextDynamicNodes[id];
+    }
+    for (let id in removedNodes) {
+        delete config.dynamicNodes[id];
+    }
+    config.nextDynamicNodes = {};
+
     config.nextDynamicNodes = {};
     config.mountComponents = {};
     config.updateComponents = {};
@@ -181,6 +242,23 @@ function unmount(nextComponents, components) {
             componentDestroy(instance);
         }
     }
+}
+
+function unmountOne(nextComponents, components) {
+    const unmounted = {};
+
+    for (let id in components) {
+        if (components[id].type === VCOMPONENT
+            && (!nextComponents[id] || nextComponents[id].componentType !== components[id].componentType)
+        ) {
+            const instance = components[id].instance;
+            componentUnmount(instance);
+            componentDestroy(instance);
+            unmounted[components[id].id] = components[id];
+        }
+    }
+
+    return unmounted;
 }
 
 function update(instances) {
