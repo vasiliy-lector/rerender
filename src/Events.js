@@ -25,19 +25,6 @@ class Events {
         callbacks.forEach(callback => callback(...payload));
     }
 
-    // FIXME: no need any more?
-    emitNextTick(eventName, ...payload) {
-        if (!this.nextTickTriggers[eventName]) {
-            this.nextTickTriggers[eventName] = true;
-            nextTick(() => {
-                delete this.nextTickTriggers[eventName];
-                const { [eventName]: callbacks = [] } = this.callbacks;
-
-                callbacks.forEach(callback => callback(...payload));
-            });
-        }
-    }
-
     on(eventNames, callback) {
         eventNames.split(',').forEach(eventName => this.onEvent(eventName, callback));
     }

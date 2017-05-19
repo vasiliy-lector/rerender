@@ -1,13 +1,11 @@
-function Component(props, children, { events, id }) {
-    this._events = events;
-    this._id = id;
-    this.state = {};
-    this.props = props;
-    this.children = children;
-}
-
-Component.prototype = {
-    type: 'Component',
+class Component {
+    constructor(props, children, { events, id }) {
+        this._events = events;
+        this._id = id;
+        this.state = {};
+        this.props = props;
+        this.children = children;
+    }
 
     setState(changes) {
         const nextState = {};
@@ -31,11 +29,11 @@ Component.prototype = {
                 this._events.emit('rerender-one', this._id);
             }
         }
-    },
+    }
 
     render() {
         return;
     }
-};
+}
 
 export default Component;

@@ -11,7 +11,6 @@ const getFunctionName = (function getFunctionName() {
 
 const SKIP_HOIST = {
         defaults: true,
-        uniqid: true,
         antibind: true
     },
     NEXT_TICK_TIMEOUT = 0;
