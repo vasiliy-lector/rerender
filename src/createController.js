@@ -1,34 +1,36 @@
 import Component from './Component';
 import createTemplate from './createTemplate';
+import { shallowEqual } from './utils';
 
-function createController (controller, controllerStatic) {
+function createController (pseudoConstructor, controllerPrototype, controllerStatic) {
     return options => Wrapped => {
-        const superInit = controller.init;
+        class Controller extends Component {
+            constructor(...args) {
+                super(...args);
 
-        class Controller extends Component {}
+                this.options = options;
+                this.Wrapped = Wrapped;
 
-        Controller.prototype = controller;
-        Controller.prototype.init = function() {
-            this.options = options;
+                if (pseudoConstructor) {
+                    pseudoConstructor.apply(this, args);
+                }
+            }
+        }
 
-            if (superInit) {
-                superInit.apply(this, arguments);
+        if (controllerPrototype) {
+            Controller.prototype = controllerPrototype;
+        }
+
+        Controller.prototype.setChildProps = function(nextChildProps) {
+            if (!shallowEqual(nextChildProps, this.state.childProps)) {
+                this.setState({
+                    childProps: nextChildProps
+                });
             }
         };
 
-        // Controller.prototype.postConnect = function() {
-        //     const childProps = this.disableMerge ? this.state.connect : {
-        //         ...this.props,
-        //         ...this.state.connect
-        //     };
-        //
-        //     this.setState({
-        //         childProps
-        //     });
-        // };
-        //
         Controller.prototype.render = function() {
-            return createTemplate(Wrapped, this.state.childProps || this.props, this.children);
+            return createTemplate(this.Wrapped, this.state.childProps || this.props, this.children);
         };
 
         if (controllerStatic) {
@@ -37,7 +39,7 @@ function createController (controller, controllerStatic) {
             }
         }
 
-        Controller.wrapper = true;
+        Controller.controller = true;
 
         return Controller;
     };

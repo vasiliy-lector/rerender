@@ -189,7 +189,7 @@ function hoistStatics(Target, Source) {
         }
     }
 
-    Target.wrapper = true;
+    Target.controller = true;
 
     return Target;
 }

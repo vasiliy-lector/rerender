@@ -1,52 +1,67 @@
-import Component from './Component';
-import jsx from './jsx';
-import { hoistStatics } from './utils';
+import createController from './createController';
+import memoize from './memoize';
 
-export default function connect({ actions = {}, get, merge, watch }) {
-    return Wrapped => {
-        class Connect extends Component {
-            constructor(props, children, options) {
-                super(props, children, options);
-                let { store } = options;
-                this.store = store;
-                this.bindedActions = this.bindActions();
-                this.state = this.getMergedProps();
-                if (typeof watch === 'undefined' && get) {
-                    watch = 'change';
-                }
-                if (watch) {
-                    store.on(watch, () => this.updateState());
-                }
-            }
+const connect = createController(function (props, children, { storeState }) {
+    this.storeState = storeState;
 
-            bindActions() {
-                let { store } = this;
+    if (typeof this.options.preMap === 'function') {
+        this.preMap = memoize(this.options.preMap);
+    }
 
-                return Object.keys(actions).reduce((memo, name) => {
-                    memo[name] = actions[name]({ store });
+    if (typeof this.options.preProps === 'function') {
+        this.preProps = memoize(this.options.preProps);
+    }
 
-                    return memo;
-                }, {});
-            }
+    if (typeof this.options.map === 'function') {
+        this.map = memoize(this.options.map);
+    }
 
-            updateState() {
-                this.setState(this.getMergedProps());
-            }
+    if (typeof this.options.merge === 'function') {
+        this.merge = memoize(this.options.merge);
+    }
+}, {
+    init() {
+        const map = this.merge(this.map(this.storeState, this.props));
+        this.setState({
+            childProps: this.merge(map)
+        });
+    },
 
-            getMergedProps() {
-                let { props } = this,
-                    { state } = this.store,
-                    storeProps = get ? get(state) : null,
-                    allProps = Object.assign({}, props, storeProps || {}, this.bindedActions);
+    componentWillReceiveProps(nextProps, nextChildren, nextStoreState) {
+        if (nextProps !== this.props || nextStoreState !== this.storeState) {
+            this.storeState = nextStoreState;
+            this.setChildProps(this.merge(this.map(nextStoreState, nextProps)));
+        }
+    },
 
-                return merge ? merge(allProps) : allProps;
-            }
+    preMap(storeState) {
+        return storeState;
+    },
 
-            render() {
-                return jsx `<${Wrapped} ${this.state}>${this.children}</${Wrapped}>`;
-            }
+    preProps(props) {
+        return props;
+    },
+
+    map(storeState) {
+        return storeState;
+    },
+
+    merge(map, props) {
+        const childProps = {};
+
+        for (let name in props) {
+            childProps[name] = props[name];
         }
 
-        return hoistStatics(Connect, Wrapped);
-    };
-}
+        for (let name in map) {
+            childProps[name] = map[name];
+        }
+
+        return childProps;
+    }
+}, {
+    displayName: 'Connect',
+    connect: true
+});
+
+export default connect;

@@ -1,3 +1,9 @@
+function componentInit(instance) {
+    if (typeof instance.init === 'function') {
+        instance.init();
+    }
+}
+
 function componentBeforeRender(instance) {
     if (!instance._componentMounted && typeof instance.componentWillMount !== 'undefined') {
         instance.componentWillMount();
@@ -48,6 +54,7 @@ function componentUnmount(instance) {
 }
 
 export {
+    componentInit,
     componentBeforeRender,
     componentDestroy,
     componentUpdate,

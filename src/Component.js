@@ -1,7 +1,8 @@
 class Component {
-    constructor(props, children, { events, id }) {
+    constructor(props, children, { events, id, dispatch }) {
         this._events = events;
         this._id = id;
+        this.dispatch = dispatch;
         this.state = {};
         this.props = props;
         this.children = children;

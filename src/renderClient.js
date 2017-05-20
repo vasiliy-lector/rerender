@@ -25,6 +25,7 @@ function renderClient(userTemplate, {
     const rootTemplate = new TemplateVSandbox(rootNode, userTemplate);
     const config = {
         store,
+        storeState: store.getState(),
         dispatcher,
         events,
         // rootTemplate, document, rootNode, virtualRoot need only inside renderClient file
@@ -71,6 +72,7 @@ function renderClient(userTemplate, {
 }
 
 function rerenderClient(config) {
+    config.storeState = config.store.getState();
     const nextVirtualRoot = config.rootTemplate.render(config);
     const patch = diff(nextVirtualRoot.childNodes[0], config.virtualRoot.childNodes[0], {
         nextNodesById: config.nextNodes,
