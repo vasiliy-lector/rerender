@@ -63,7 +63,8 @@ TemplateComponent.prototype = {
 
     renderToString(config) {
         const componentType = this.componentType;
-        const instance = new componentType(this.props, this.children, { store: config.store });
+        const options = { store: config.store };
+        const instance = new componentType(this.props, this.children, options);
         this.preprocessInstance(instance);
         const template = componentRender(instance);
 
@@ -88,7 +89,8 @@ TemplateComponent.prototype = {
         let prev = components[id];
 
         if (prev === undefined || prev.type !== VCOMPONENT || prev.componentType !== componentType) {
-            const instance = new componentType(props, children, { store, events, id });
+            const options = { store, events, id };
+            const instance = new componentType(props, children, options);
             this.preprocessInstance(instance);
             if (this.ref && typeof this.ref === 'function') {
                 this.ref(instance);
@@ -112,7 +114,7 @@ TemplateComponent.prototype = {
             mountComponents[id] = component.instance;
         } else {
             component = prev;
-            component.set('templateComponent', this);
+            component.set('componentTemplate', this);
             component.set('context', context);
             const instance = component.instance;
 

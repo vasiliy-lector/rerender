@@ -6,14 +6,17 @@ function VComponentStateless(
     children,
     id,
     template,
-    templateComponent
+    componentTemplate,
+    context
 ) {
     this.componentType = componentType;
     this.props = props;
     this.children = children;
     this.id = id;
     this.template = template;
-    this.templateComponent = templateComponent;
+    this.componentTemplate = componentTemplate;
+    this.context = context;
+    this.parent = context.parent;
 }
 
 VComponentStateless.prototype = {

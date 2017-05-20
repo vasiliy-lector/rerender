@@ -11,6 +11,7 @@ class Store extends Events {
 
         this.state = this.rehydrate(state);
         this.setState = this.setState.bind(this);
+        this.getState = this.getState.bind(this);
     }
 
     dehydrate() {
@@ -19,6 +20,10 @@ class Store extends Events {
 
     rehydrate(state) {
         return this.providedRehydrate ? this.providedRehydrate(state) : state;
+    }
+
+    getState() {
+        return this.state;
     }
 
     setState(changes) {

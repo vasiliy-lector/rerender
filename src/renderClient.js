@@ -85,7 +85,7 @@ function rerenderClientOne(config, id) {
     const node = getFirstNode(component);
     const sandbox = new TemplateVSandbox(node.parentNode, component.componentTemplate);
     const nextSanboxNode = sandbox.render(config, new Context(component.context));
-    const nodesById = groupByIdNodes(node);
+    const nodesById = groupByIdNodes(node, {});
     const options = {
         nodesById,
         nextNodesById: config.nextNodes,
@@ -110,7 +110,7 @@ function rerenderClientOne(config, id) {
 
     const removedNodes = {};
     for (let id in nodesById) {
-        if (!config.nextNodesById[id]) {
+        if (!config.nextNodes[id]) {
             removedNodes[id] = nodesById[id];
         }
     }

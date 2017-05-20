@@ -6,7 +6,8 @@ function VComponent(
     children,
     id,
     template,
-    templateComponent,
+    componentTemplate,
+    context,
     instance,
     state
 ) {
@@ -15,9 +16,11 @@ function VComponent(
     this.children = children;
     this.id = id;
     this.template = template;
-    this.templateComponent = templateComponent;
+    this.componentTemplate = componentTemplate;
+    this.context = context;
     this.instance = instance;
     this.state = state;
+    this.parent = context.parent;
 }
 
 VComponent.prototype = {

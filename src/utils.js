@@ -241,8 +241,10 @@ function groupByIdNodes(node, memo) {
     // TODO: take id from context
     memo[node.context.getId()] = node;
 
-    for (let i = 0, l = node.childNodes.length; i < l; i++) {
-        groupByIdNodes(node.childNodes[i], memo);
+    if (node.childNodes) {
+        for (let i = 0, l = node.childNodes.length; i < l; i++) {
+            groupByIdNodes(node.childNodes[i], memo);
+        }
     }
 
     return memo;
@@ -253,8 +255,10 @@ function groupByIdComponents(component, memo) {
         memo[component.id] = component;
     }
 
-    for (let i = 0, l = component.childs.length; i < l; i++) {
-        groupByIdComponents(component.childs[i], memo);
+    if (component.childs) {
+        for (let i = 0, l = component.childs.length; i < l; i++) {
+            groupByIdComponents(component.childs[i], memo);
+        }
     }
 
     return memo;

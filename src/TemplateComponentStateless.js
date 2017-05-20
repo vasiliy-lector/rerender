@@ -9,7 +9,7 @@ const SPECIAL_PROPS = {
     uniqid: true
 };
 
-function TemplateComponent(componentType, props, children) {
+function TemplateComponentStateless(componentType, props, children) {
     let nextProps = props || {};
 
     if (nextProps.key || componentType.defaults || nextProps.uniqid) {
@@ -37,7 +37,7 @@ function TemplateComponent(componentType, props, children) {
     this.children = children;
 }
 
-TemplateComponent.prototype = {
+TemplateComponentStateless.prototype = {
     type: TEMPLATE,
     subtype: TEMPLATE_COMPONENT_STATELESS,
 
@@ -72,7 +72,7 @@ TemplateComponent.prototype = {
             nextComponents[id] = component;
         } else {
             component = prev;
-            component.set('templateComponent', this);
+            component.set('componentTemplate', this);
             component.set('context', context);
             const sameProps = shallowEqualProps(component.props, props);
             // FIXME
@@ -125,4 +125,4 @@ TemplateComponent.prototype = {
     }
 };
 
-export default TemplateComponent;
+export default TemplateComponentStateless;
