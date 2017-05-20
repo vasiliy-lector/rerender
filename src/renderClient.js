@@ -1,4 +1,6 @@
 import Events from './Events';
+import Store from './Store';
+import Dispatcher from './Dispatcher';
 import { componentMount, componentUnmount, componentDestroy, componentUpdate } from './componentLifeCycle';
 import createInitialPatch from './createInitialPatch';
 import diff from './diff';
@@ -10,15 +12,20 @@ import { groupByIdComponents, groupByIdNodes } from './utils';
 
 const RENDER_THROTTLE = 16;
 
-function renderClient(userTemplate, store, rootNode, {
-    document = self.document,
+function renderClient(userTemplate, {
+    window = self,
+    rootNode = window.document.getElementById('rerender-app'),
+    store = new Store({ state: window.RERENDER_STORE_STATE }),
+    dispatcher = new Dispatcher({ store, state: window.RERENDER_DISPATCHER_STATE }),
     hashEnabled = true,
     fullHash = false
 } = {}) {
+    const document = window.document;
     const events = new Events();
     const rootTemplate = new TemplateVSandbox(rootNode, userTemplate);
     const config = {
         store,
+        dispatcher,
         events,
         // rootTemplate, document, rootNode, virtualRoot need only inside renderClient file
         rootTemplate,
