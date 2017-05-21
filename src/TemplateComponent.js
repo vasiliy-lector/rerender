@@ -64,7 +64,7 @@ TemplateComponent.prototype = {
         };
 
         if (componentType.connect) {
-            options.getStoreState = config.store.getState;
+            options.storeState = config.store.storeState;
         }
 
         const instance = new componentType(this.props, this.children, options);

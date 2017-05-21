@@ -1,14 +1,13 @@
 import { escapeAttr, escapeHtml } from './utils';
 
-export default function defaultHtmlWrapper({
+const defaultHtmlWrapper = ({
     title,
     head,
     applicationId,
     application,
     applicationAfter,
     bodyEnd
-}) {
-    return `<!DOCTYPE html>
+}) => `<!DOCTYPE html>
 <html>
 <head>
     <title>${escapeHtml(title)}</title>
@@ -19,11 +18,20 @@ export default function defaultHtmlWrapper({
     ${bodyEnd}
 </body>
 </html>`;
-}
 
-export function getApplicationAfter(store, dispatcher) {
-    return `<script>
-        window.RERENDER_STORE_STATE = ${JSON.stringify(store.dehydrate())};
-        window.RERENDER_DISPATCHER_STATE = ${JSON.stringify(dispatcher.dehydrate())};
-    </script>`;
-}
+export const getApplicationAfter = (store, dispatcher, {
+    applicationId,
+    hashEnabled,
+    fullHash
+}) => `<script>
+    window.__RERENDER = {};
+    window.__RERENDER.storeState = ${JSON.stringify(store.dehydrate())};
+    window.__RERENDER.dispatcherState = ${JSON.stringify(dispatcher.dehydrate())};
+    window.__RERENDER.settings = ${JSON.stringify({
+        applicationId,
+        hashEnabled,
+        fullHash
+    })};
+</script>`;
+
+export default defaultHtmlWrapper;

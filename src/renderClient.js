@@ -12,15 +12,23 @@ import { groupByIdComponents, groupByIdNodes } from './utils';
 
 const RENDER_THROTTLE = 16;
 
-function renderClient(userTemplate, {
-    window = self,
-    rootNode = window.document.getElementById('rerender-app'),
-    store = new Store({ state: window.RERENDER_STORE_STATE }),
-    dispatcher = new Dispatcher({ store, state: window.RERENDER_DISPATCHER_STATE }),
-    hashEnabled = true,
-    fullHash = false
-} = {}) {
+function renderClient(userTemplate, settings = {}) {
+    const { window = self } = settings;
     const document = window.document;
+    const {
+        storeState,
+        dispatcherState,
+        settings: serverSettings = {}
+    } = window.__RERENDER || {};
+
+    const {
+        rootNode = document.getElementById(serverSettings.applicationId),
+        store = new Store({ state: storeState }),
+        dispatcher = new Dispatcher({ store, state: dispatcherState }),
+        hashEnabled = serverSettings.hashEnabled,
+        fullHash = serverSettings.fullHash
+    } = settings;
+
     const events = new Events();
     const rootTemplate = new TemplateVSandbox(rootNode, userTemplate);
     const config = {

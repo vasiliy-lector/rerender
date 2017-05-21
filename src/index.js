@@ -1,6 +1,6 @@
 export { default as Component } from './Component';
 export { default as connect } from './connect';
-export { default as createController } from './crateController';
+export { default as createController } from './createController';
 export { default as createTemplate } from './createTemplate';
 export { debug, performanceStart, performanceEnd } from './debug';
 export { default as Dispatcher } from './Dispatcher';

@@ -1,20 +1,7 @@
 import { TEMPLATE, VCOMPONENT } from './types';
 import { styleProps } from './constants';
 
-const getFunctionName = (function getFunctionName() {
-    if (getFunctionName.name) {
-        return fn => fn.name;
-    } else {
-        return fn => fn.toString().match(/^function\s*([^\s(]+)/)[1];
-    }
-})();
-
-const SKIP_HOIST = {
-        defaults: true,
-        antibind: true
-    },
-    NEXT_TICK_TIMEOUT = 0;
-
+const NEXT_TICK_TIMEOUT = 0;
 const REGEXP_ATTR = /[<>"&]/;
 const REGEXP_HTML = /[<>&]/;
 
@@ -182,45 +169,8 @@ function shallowEqualArray(array1, array2) {
     return true;
 }
 
-function hoistStatics(Target, Source) {
-    for( let name in Source ) {
-        if (Source.hasOwnProperty(name) && !SKIP_HOIST[name]) {
-            Target[name] = Source[name];
-        }
-    }
-
-    Target.controller = true;
-
-    return Target;
-}
-
 function nextTick(fn) {
     return setTimeout(fn, NEXT_TICK_TIMEOUT);
-}
-
-function throttle(fn, milliseconds, { leading }) {
-    let timeout,
-        called = false;
-
-    return function(...args) {
-        if (leading && !timeout) {
-            fn(...args);
-            called = true;
-        }
-
-        if (!timeout) {
-            timeout = setTimeout(() => {
-                timeout = undefined;
-
-                if (!called) {
-                    fn();
-                    called = true;
-                }
-            }, milliseconds);
-        } else {
-            called = false;
-        }
-    };
 }
 
 // FIXME: optimize
@@ -264,18 +214,42 @@ function groupByIdComponents(component, memo) {
     return memo;
 }
 
+function memoize(fn) {
+    let lastResult;
+    let lastArgs;
+
+    return function(...args) {
+        if (lastArgs) {
+            let same = true;
+
+            for (let i = 0, l = args.length; i < l; i++) {
+                if (args[i] === lastArgs[i]) {
+                    same = false;
+                    break;
+                }
+            }
+
+            if (same && args.length === lastArgs.length) {
+                return lastResult;
+            }
+        }
+        lastArgs = args;
+        lastResult = fn(...args);
+
+        return lastResult;
+    };
+}
+
 export {
     calcHash,
     escapeAttr,
     escapeHtml,
     escapeStyle,
-    getFunctionName,
     groupByIdNodes,
     groupByIdComponents,
-    hoistStatics,
+    memoize,
     nextTick,
     shallowEqual,
     shallowEqualProps,
-    shallowEqualArray,
-    throttle
+    shallowEqualArray
 };

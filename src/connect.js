@@ -1,49 +1,26 @@
 import createController from './createController';
-import memoize from './memoize';
+import { memoize } from './utils';
 
 const connect = createController(function (props, children, { storeState }) {
     this.storeState = storeState;
 
-    if (typeof this.options.preMap === 'function') {
-        this.preMap = memoize(this.options.preMap);
-    }
-
-    if (typeof this.options.preProps === 'function') {
-        this.preProps = memoize(this.options.preProps);
-    }
-
-    if (typeof this.options.map === 'function') {
+    if (this.options.map) {
         this.map = memoize(this.options.map);
     }
+    this.merge = memoize(typeof this.options.merge === 'function' ? this.options.merge : this.merge);
 
-    if (typeof this.options.merge === 'function') {
-        this.merge = memoize(this.options.merge);
-    }
+    this.setState({
+        childProps: this.getChildProps(storeState, props)
+    });
 }, {
-    init() {
-        const map = this.merge(this.map(this.storeState, this.props));
-        this.setState({
-            childProps: this.merge(map)
-        });
-    },
-
     componentWillReceiveProps(nextProps, nextChildren, nextStoreState) {
-        if (nextProps !== this.props || nextStoreState !== this.storeState) {
-            this.storeState = nextStoreState;
-            this.setChildProps(this.merge(this.map(nextStoreState, nextProps)));
-        }
+        this.setChildProps(this.getChildProps(nextStoreState, nextProps));
     },
 
-    preMap(storeState) {
-        return storeState;
-    },
+    getChildProps(storeState, props) {
+        const map = this.map ? this.map(storeState, props) : storeState;
 
-    preProps(props) {
-        return props;
-    },
-
-    map(storeState) {
-        return storeState;
+        return  this.merge(map, props);
     },
 
     merge(map, props) {
