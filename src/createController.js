@@ -1,48 +1,14 @@
-import Component from './Component';
-import createTemplate from './createTemplate';
 import { shallowEqual } from './utils';
 
-function createController (pseudoConstructor, controllerPrototype, controllerStatic) {
-    return options => Wrapped => {
-        class Controller extends Component {
-            constructor(...args) {
-                super(...args);
-
-                this.options = options;
-                this.Wrapped = Wrapped;
-
-                if (pseudoConstructor) {
-                    pseudoConstructor.apply(this, args);
-                }
-            }
-        }
-
-        if (controllerPrototype) {
-            Controller.prototype = controllerPrototype;
-        }
-
-        Controller.prototype.setChildProps = function(nextChildProps) {
-            if (!shallowEqual(nextChildProps, this.state.childProps)) {
-                this.setState({
-                    childProps: nextChildProps
-                });
-            }
-        };
-
-        Controller.prototype.render = function() {
-            return createTemplate(this.Wrapped, this.state.childProps || this.props, this.children);
-        };
-
-        if (controllerStatic) {
-            for (let name in controllerStatic) {
-                Controller[name] = controllerStatic[name];
-            }
-        }
-
-        Controller.controller = true;
-
-        return Controller;
-    };
+export default function createController (Wrapper) {
+    return (options, settings) => ({
+        controller: Wrapper,
+        options,
+        settings
+    });
 }
 
-export default createController;
+export function controllersEqual(obj1, obj2) {
+    return obj1.controller ===  obj2.controller
+        && (obj1.options === obj2.options || shallowEqual(obj1.options, obj2.options));
+}

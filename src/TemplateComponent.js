@@ -4,19 +4,15 @@ import { shallowEqualProps } from './utils';
 import VText from './VText';
 import { componentInit, componentRender, componentBeforeRender, componentSetProps } from './componentLifeCycle';
 import reuseTemplate from './reuseTemplate';
+import { Connect } from './connect';
+import { specialAttrs, specialAttrsWrapper } from './constants';
 
-const SPECIAL_PROPS = {
-    key: true,
-    uniqid: true,
-    ref: true
-};
-
-function TemplateComponent(componentType, props, children) {
+function TemplateComponent(componentType, props, children, targetComponentType) {
     let nextProps = props || {};
 
-    if (nextProps.key !== undefined || componentType.defaults || nextProps.uniqid || (nextProps.ref && !componentType.controller)) {
+    if (componentType.wrapper) {
         nextProps = Object.keys(nextProps).reduce((memo, key) => {
-            if (SPECIAL_PROPS[key] && (key !== 'ref' || !componentType.controller)) {
+            if (specialAttrsWrapper[key]) {
                 this[key] = nextProps[key];
             } else {
                 memo[key] = nextProps[key];
@@ -24,13 +20,30 @@ function TemplateComponent(componentType, props, children) {
 
             return memo;
         }, {});
-
-        if (componentType.defaults) {
-            for (let name in componentType.defaults) {
-                if (nextProps[name] === undefined) {
-                    nextProps[name] = componentType.defaults[name];
-                }
+    } else {
+        nextProps = Object.keys(nextProps).reduce((memo, key) => {
+            if (specialAttrs[key]) {
+                this[key] = nextProps[key];
+            } else {
+                memo[key] = nextProps[key];
             }
+
+            return memo;
+        }, {});
+    }
+
+    if (componentType.defaults) {
+        for (let name in componentType.defaults) {
+            if (nextProps[name] === undefined) {
+                nextProps[name] = componentType.defaults[name];
+            }
+        }
+    }
+
+    if (targetComponentType) {
+        nextProps.targetComponentType = targetComponentType;
+        if (this.controller) {
+            nextProps.targetController = this.controller;
         }
     }
 
@@ -63,8 +76,8 @@ TemplateComponent.prototype = {
             dispatch: config.dispatcher.dispatch
         };
 
-        if (componentType.connect) {
-            options.storeState = config.store.storeState;
+        if (componentType instanceof Connect) {
+            options.storeState = config.store.getState();
         }
 
         const instance = new componentType(this.props, this.children, options);
@@ -86,13 +99,13 @@ TemplateComponent.prototype = {
             nextComponents,
             mountComponents,
             updateComponents,
-            storeState,
+            store,
             dispatcher,
             events
         } = config;
         const id = context.getId();
         let prev = components[id];
-        const isConnect = componentType.connect;
+        const isConnect = componentType instanceof Connect;
 
         if (prev === undefined || prev.type !== VCOMPONENT || prev.componentType !== componentType) {
             const options = {
@@ -100,6 +113,7 @@ TemplateComponent.prototype = {
                 id,
                 dispatch: dispatcher.dispatch
             };
+            const storeState = store.getState();
 
             if (isConnect) {
                 options.storeState = storeState;
@@ -110,6 +124,9 @@ TemplateComponent.prototype = {
             componentInit(instance);
             if (this.ref && typeof this.ref === 'function') {
                 this.ref(instance);
+            }
+            if (this.wrapperRef && typeof this.wrapperRef === 'function') {
+                this.wrapperRef(instance);
             }
             componentBeforeRender(instance);
             template = componentRender(instance);
@@ -137,6 +154,7 @@ TemplateComponent.prototype = {
             component.set('componentTemplate', this);
             component.set('context', context);
             const instance = component.instance;
+            const storeState = store.getState();
 
             componentBeforeRender(instance);
 
@@ -161,8 +179,14 @@ TemplateComponent.prototype = {
             if (sameProps && sameChildren && sameState && sameStoreState) {
                 template = component.template;
             } else {
-                if (!sameProps || !sameChildren) {
-                    componentSetProps(instance, props, children, isConnect ? storeState : undefined);
+                if (!sameProps || !sameChildren || !sameStoreState) {
+                    let additional;
+
+                    if (isConnect) {
+                        additional = storeState;
+                    }
+
+                    componentSetProps(instance, props, children, additional);
                 }
                 component.set('state', instance.state);
                 if (isConnect) {

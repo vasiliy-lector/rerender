@@ -1,3 +1,18 @@
+export const specialAttrs = {
+    controller: true,
+    ref: true,
+    uniqid: true,
+    key: true,
+    wrapperRef: true
+};
+
+export const specialAttrsWrapper = {
+    controller: true,
+    uniqid: true,
+    key: true,
+    wrapperRef: true
+};
+
 export const voidTags = {
     area: true,
     base: true,

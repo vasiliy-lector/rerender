@@ -1,10 +1,9 @@
-import Event from './Event';
-
-function Dispatcher({ store, state = {}, dehydrate, rehydrate }) {
+function Dispatcher({ store, state = {}, server = false, dehydrate, rehydrate }) {
     this.providedDehydrate = dehydrate;
     this.providedRehydrate = rehydrate;
     this.store = store;
     this.state = state;
+    this.server = server;
     this.dispatch = this.dispatch.bind(this);
     this.actionOptions = {
         dispatch: this.dispatch,
@@ -18,10 +17,6 @@ function Dispatcher({ store, state = {}, dehydrate, rehydrate }) {
 
 Dispatcher.prototype = {
     dispatch(event, ...payload) {
-        if (!(event instanceof Event)) {
-            return Promise.reject(Error(`Event ${JSON.stringify(event)} is not instance of class Event`));
-        }
-
         if (typeof event.action !== 'function') {
             this.runReducers(event, payload[0]);
 

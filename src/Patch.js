@@ -1,4 +1,5 @@
 import { VNODE } from './types';
+import { specialAttrs } from './constants';
 
 const CREATE = 'CREATE';
 const MOVE = 'MOVE';
@@ -101,12 +102,6 @@ Patch.prototype = {
                 break;
         }
     }
-};
-
-const specialAttrs = {
-    ref: true,
-    uniqid: true,
-    key: true
 };
 
 function Create(nextNode) {

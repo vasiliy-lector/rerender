@@ -1,47 +1,49 @@
-import Component from './Component';
 import createTemplate from './createTemplate';
-import { shallowEqual } from './utils';
 
-function createDecorator (pseudoConstructor, controllerPrototype, controllerStatic) {
-    return options => Wrapped => {
-        class Controller extends Component {
+function createDecorator (Wrapper) {
+    return (options, settings) => Wrapped => {
+        class Decorator extends Wrapper {
             constructor(...args) {
                 super(...args);
-
-                this.options = options;
-                this.Wrapped = Wrapped;
-
-                if (pseudoConstructor) {
-                    pseudoConstructor.apply(this, args);
-                }
-            }
-        }
-
-        if (controllerPrototype) {
-            Controller.prototype = controllerPrototype;
-        }
-
-        Controller.prototype.setChildProps = function(nextChildProps) {
-            if (!shallowEqual(nextChildProps, this.state.childProps)) {
+                this.setState = this.setState.bind(this); // hoist in prototype chain
                 this.setState({
-                    childProps: nextChildProps
+                    options,
+                    settings
+                });
+                this.Wrapped = Wrapped;
+                this.getProps && this.setState({
+                    props: this.getProps()
                 });
             }
-        };
 
-        Controller.prototype.render = function() {
-            return createTemplate(this.Wrapped, this.state.childProps || this.props, this.children);
-        };
+            setOptions(options, settings) {
+                this.setState({
+                    options,
+                    settings
+                });
 
-        if (controllerStatic) {
-            for (let name in controllerStatic) {
-                Controller[name] = controllerStatic[name];
+                this.getProps && this.setState({
+                    props: this.getProps()
+                });
             }
         }
 
-        Controller.controller = true;
+        if (!Wrapper.prototype.hasOwnProperty('render')) {
+            Decorator.prototype.render = function() {
+                const { props = this.props } = this.state;
 
-        return Controller;
+                return createTemplate(this.Wrapped, props, this.children);
+            };
+        }
+
+        const wrapperStaticKeys = Object.keys(Wrapper);
+        for (let i = 0, l = wrapperStaticKeys.length; i < l; i++) {
+            Wrapper[wrapperStaticKeys[i]] = Wrapper[wrapperStaticKeys[i]];
+        }
+
+        Decorator.wrapper = true;
+
+        return Decorator;
     };
 }
 

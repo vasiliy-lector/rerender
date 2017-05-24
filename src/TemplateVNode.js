@@ -1,16 +1,11 @@
 import { TEMPLATE, TEMPLATE_VNODE, TEMPLATE_FRAGMENT } from './types';
 import { debug } from './debug';
 import { escapeHtml, escapeAttr, escapeStyle, calcHash } from './utils';
-import { voidTags } from './constants';
+import { voidTags, specialAttrs } from './constants';
 import VNode from './VNode';
 import VText from './VText';
 import DynamicVNode from './DynamicVNode';
 
-const specialProps = {
-    key: true,
-    uniqid: true,
-    ref: true
-};
 // TODO: full list
 const interactiveTags = {
     input: true,
@@ -202,7 +197,7 @@ function stringifyChildrenItem(item, config) {
 }
 
 function stringifyAttr(name, value) {
-    if (name.substr(0, 2) === 'on' || specialProps[name]) {
+    if (name.substr(0, 2) === 'on' || specialAttrs[name]) {
         return '';
     } else if (name === 'dataset') {
         const datasetKeys = Object.keys(value);
