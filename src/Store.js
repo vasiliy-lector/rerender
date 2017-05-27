@@ -1,6 +1,5 @@
 import Events from './Events';
-import { shallowEqual } from './utils';
-import { debug } from './debug';
+import { shallowClone } from './utils';
 
 class Store extends Events {
     constructor({ state = {}, dehydrate, rehydrate } = {}) {
@@ -22,28 +21,53 @@ class Store extends Events {
         return this.providedRehydrate ? this.providedRehydrate(state) : state;
     }
 
-    getState() {
-        return this.state;
+    getState(path, snapshot) {
+        if (this.prevState && snapshot) {
+            delete this.prevState;
+        }
+
+        if (path && Array.isArray(path)) {
+            let result = this.state;
+
+            for (let i = 0, l = path.length; result !== undefined && i < l; i++) {
+                result = result[path[i]];
+            }
+
+            return result;
+        } else {
+            return this.state;
+        }
     }
 
-    setState(changes) {
-        let reallyChanged = Object.keys(changes).reduce((memo, key) => {
-                if (!this.state[key] || !shallowEqual(changes[key], this.state[key])) {
-                    memo[key] = changes[key];
-                } else {
-                    debug.warn(`Store setState: value with property "${key}" of new state is same as previous. So event with name "${key}" will not triggered. It is recommended to transfer only the changed values and do not mutate objects.`);
+    setState(value, path) {
+        if (path && Array.isArray(path)) {
+            if (this.getState(path, false) !== value) {
+                if (!this.prevState) {
+                    this.prevState = this.state;
+                    this.state = shallowClone(this.prevState);
                 }
 
-                return memo;
-            }, {}),
-            reallyChangedKeys = Object.keys(reallyChanged);
+                let stateParent = this.state;
+                let prevStateParent = this.prevState;
+                let last = path.length - 1;
 
-        if (reallyChangedKeys.length) {
-            // FIXME: no Object.assign
-            this.state = Object.assign({}, this.state, changes);
-            reallyChangedKeys.forEach(key => this.emit(key));
+                for (let i = 0, l = last; i < l; i++) {
+                    if (typeof prevStateParent[path[i]] === 'object'
+                        && stateParent[path[i]] === prevStateParent[path[i]]) {
+                        stateParent[path[i]] = shallowClone(prevStateParent[path[i]] || {});
+                    } else {
+                        stateParent[path[i]] = {};
+                    }
+
+                    stateParent = stateParent[path[i]];
+                }
+
+                stateParent[path[last]] = value;
+                this.emit('change');
+            }
+        } else if (value !== this.state) {
+            this.state = value;
             this.emit('change');
-            debug.log('New state', this.state);
         }
     }
 }

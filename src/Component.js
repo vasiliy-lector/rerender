@@ -1,3 +1,5 @@
+import { shallowClone } from './utils';
+
 class Component {
     constructor(props, children, { events, id, dispatch }) {
         this._events = events;
@@ -8,27 +10,52 @@ class Component {
         this.children = children;
     }
 
-    setState(changes) {
-        const nextState = {};
-        let changed;
-
-        for (let name in this.state) {
-            nextState[name] = this.state[name];
+    getState(path, snapshot) {
+        if (this._prevState && snapshot) {
+            delete this._prevState;
         }
 
-        for (let name in changes) {
-            if (changes[name] !== this.state[name]) {
-                changed = true;
-                nextState[name] = changes[name];
+        if (path && Array.isArray(path)) {
+            let result = this.state;
+
+            for (let i = 0, l = path.length; result !== undefined && i < l; i++) {
+                result = result[path[i]];
             }
+
+            return result;
+        } else {
+            return this.state;
         }
+    }
 
-        if (changed) {
-            this.state = nextState;
+    setState(value, path) {
+        if (path && Array.isArray(path)) {
+            if (this.getState(path, false) !== value) {
+                if (!this._prevState) {
+                    this._prevState = this.state;
+                    this.state = shallowClone(this._prevState);
+                }
 
-            if (this._componentMounted && !this._settingProps) {
+                let stateParent = this.state;
+                let prevStateParent = this._prevState;
+                let last = path.length - 1;
+
+                for (let i = 0, l = last; i < l; i++) {
+                    if (typeof prevStateParent[path[i]] === 'object'
+                        && stateParent[path[i]] === prevStateParent[path[i]]) {
+                        stateParent[path[i]] = shallowClone(prevStateParent[path[i]] || {});
+                    } else {
+                        stateParent[path[i]] = {};
+                    }
+
+                    stateParent = stateParent[path[i]];
+                }
+
+                stateParent[path[last]] = value;
                 this._events.emit('rerender-one', this._id);
             }
+        } else if (value && typeof value === 'object'){
+            Object.keys(value).forEach(path => this.setState(value[path], [path]));
         }
     }
 

@@ -214,6 +214,12 @@ function groupByIdComponents(component, memo) {
     return memo;
 }
 
+function shallowClone(obj) {
+    return Object.keys(obj).reduce((memo, name) => {
+        memo[name] = obj[name];
+    }, {});
+}
+
 function memoizeLast(fn, { shallow }) {
     let lastResult;
     let lastArgs;
@@ -224,7 +230,7 @@ function memoizeLast(fn, { shallow }) {
 
             for (let i = 0, l = args.length; i < l; i++) {
                 if (args[i] !== lastArgs[i]) {
-                    if (!shallow || shallowEqual(args[i], lastArgs[i])) {
+                    if (!shallow || !shallowEqual(args[i], lastArgs[i])) {
                         same = false;
                         break;
                     }
@@ -251,6 +257,7 @@ export {
     groupByIdComponents,
     memoizeLast,
     nextTick,
+    shallowClone,
     shallowEqual,
     shallowEqualProps,
     shallowEqualArray
