@@ -214,7 +214,7 @@ function groupByIdComponents(component, memo) {
     return memo;
 }
 
-function memoize(fn) {
+function memoizeLast(fn, { shallow }) {
     let lastResult;
     let lastArgs;
 
@@ -223,9 +223,11 @@ function memoize(fn) {
             let same = true;
 
             for (let i = 0, l = args.length; i < l; i++) {
-                if (args[i] === lastArgs[i]) {
-                    same = false;
-                    break;
+                if (args[i] !== lastArgs[i]) {
+                    if (!shallow || shallowEqual(args[i], lastArgs[i])) {
+                        same = false;
+                        break;
+                    }
                 }
             }
 
@@ -247,7 +249,7 @@ export {
     escapeStyle,
     groupByIdNodes,
     groupByIdComponents,
-    memoize,
+    memoizeLast,
     nextTick,
     shallowEqual,
     shallowEqualProps,

@@ -1,31 +1,43 @@
 import Component from './Component';
 import createDecorator from './createDecorator';
-import { memoize } from './utils';
+import { memoizeLast } from './utils';
+
+const identity = value => value;
 
 class Connect extends Component {
-    constructor(props, children, options) {
-        super(props, children, options);
+    constructor(...args) {
+        super(...args);
 
-        this.storeState = options.storeState;
+        const {
+            init,
+            select,
+            map,
+            useProps,
+            merge = true
+        } = this.options;
 
-        if (this.options.map) {
-            this.map = memoize(this.options.map);
+        if (init) {
+            this.init = init.bind(this, this.dispatch);
         }
-        this.merge = memoize(typeof this.options.merge === 'function' ? this.options.merge : this.merge);
 
-        this.setState({
-            childProps: this.getChildProps(this.storeState, props)
-        });
+        this.selectProps = useProps ? memoizeLast(this.selectProps) : identity;
+        this.select = select ? memoizeLast(select) : identity;
+        this.map = map ? memoizeLast(map, { shallow: true }) : identity;
+        this.merge = merge !== false ? memoizeLast(this.merge) : identity;
     }
 
     componentWillReceiveProps(nextProps, nextChildren, nextStoreState) {
-        this.setChildProps(this.getChildProps(nextStoreState, nextProps));
+        this.setState({
+            storeState: nextStoreState
+        });
     }
 
-    getChildProps(storeState, props) {
-        const map = this.map ? this.map(storeState, props) : storeState;
+    selectProps(props) {
+        return this.options.useProps.reduce((memo, name) => {
+            memo[name] = props[name];
 
-        return this.merge(map, props);
+            return memo;
+        }, {});
     }
 
     merge(map, props) {
@@ -40,40 +52,22 @@ class Connect extends Component {
         }
 
         return childProps;
+    }
+
+    renderProps() {
+        return this.merge(
+            this.map(
+                this.select(this.state.storeState),
+                this.selectProps(this.props)
+            ),
+            this.props
+        );
     }
 }
 
 Connect.displayName = 'Connect';
 
-const connect = createDecorator(function (props, children, { storeState }) {
-}, {
-    componentWillReceiveProps(nextProps, nextChildren, nextStoreState) {
-        this.setChildProps(this.getChildProps(nextStoreState, nextProps));
-    },
-
-    getChildProps(storeState, props) {
-        const map = this.map ? this.map(storeState, props) : storeState;
-
-        return  this.merge(map, props);
-    },
-
-    merge(map, props) {
-        const childProps = {};
-
-        for (let name in props) {
-            childProps[name] = props[name];
-        }
-
-        for (let name in map) {
-            childProps[name] = map[name];
-        }
-
-        return childProps;
-    }
-}, {
-    displayName: 'Connect',
-    connect: true
-});
+const connect = createDecorator(Connect);
 
 export default connect;
 export { Connect };
