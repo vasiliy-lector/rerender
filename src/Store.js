@@ -22,7 +22,7 @@ class Store extends Events {
     }
 
     getState(path, snapshot) {
-        if (this.prevState && snapshot) {
+        if (this.prevState && snapshot === true) {
             delete this.prevState;
         }
 
@@ -41,7 +41,7 @@ class Store extends Events {
 
     setState(value, path) {
         if (path && Array.isArray(path)) {
-            if (this.getState(path, false) !== value) {
+            if (this.getState(path) !== value) {
                 if (!this.prevState) {
                     this.prevState = this.state;
                     this.state = shallowClone(this.prevState);

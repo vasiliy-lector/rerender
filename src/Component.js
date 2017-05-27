@@ -1,17 +1,31 @@
 import { shallowClone } from './utils';
 
 class Component {
-    constructor(props, children, { events, id, dispatch }) {
-        this._events = events;
-        this._id = id;
-        this.dispatch = dispatch;
+    constructor(props, children, componentOptions) {
+        this._componentOptions = componentOptions;
         this.state = {};
         this.props = props;
         this.children = children;
     }
 
+    dispatch() {
+        this._componentOptions.dispatch.apply(null, arguments);
+    }
+
+    emit() {
+        this._componentOptions.emit.apply(null, arguments);
+    }
+
+    on() {
+        this._componentOptions.on.apply(null, arguments);
+    }
+
+    un() {
+        this._componentOptions.un.apply(null, arguments);
+    }
+
     getState(path, snapshot) {
-        if (this._prevState && snapshot) {
+        if (this._prevState && snapshot === true) {
             delete this._prevState;
         }
 
@@ -30,7 +44,7 @@ class Component {
 
     setState(value, path) {
         if (path && Array.isArray(path)) {
-            if (this.getState(path, false) !== value) {
+            if (this.getState(path) !== value) {
                 if (!this._prevState) {
                     this._prevState = this.state;
                     this.state = shallowClone(this._prevState);
@@ -52,7 +66,10 @@ class Component {
                 }
 
                 stateParent[path[last]] = value;
-                this._events.emit('rerender-one', this._id);
+
+                if (this._componentMounted && !this._settingProps) {
+                    this._componentOptions.events.emit('rerender-one', this._componentOptions.id);
+                }
             }
         } else if (value && typeof value === 'object'){
             Object.keys(value).forEach(path => this.setState(value[path], [path]));

@@ -5,6 +5,7 @@ function Dispatcher({ store, state = {}, server = false, dehydrate, rehydrate })
     this.state = state;
     this.server = server;
     this.dispatch = this.dispatch.bind(this);
+    // FIXME: disable change inside reducers and actions
     this.actionOptions = {
         dispatch: this.dispatch,
         getState: store.getState

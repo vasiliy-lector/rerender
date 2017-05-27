@@ -113,7 +113,7 @@ TemplateComponent.prototype = {
                 id,
                 dispatch: dispatcher.dispatch
             };
-            const storeState = store.getState();
+            const storeState = store.getState(undefined, true);
 
             if (isConnect) {
                 options.storeState = storeState;
@@ -140,7 +140,7 @@ TemplateComponent.prototype = {
                 this,
                 context,
                 instance,
-                instance.state
+                instance.getState(undefined, true)
             );
 
             if (isConnect) {
@@ -154,14 +154,14 @@ TemplateComponent.prototype = {
             component.set('componentTemplate', this);
             component.set('context', context);
             const instance = component.instance;
-            const storeState = store.getState();
+            const storeState = store.getState(undefined, true);
 
             componentBeforeRender(instance);
 
             const sameProps = shallowEqualProps(component.props, props);
             // FIXME
             const sameChildren = false; // children.isEqual(component.children);
-            const sameState = instance.state !== component.state;
+            const sameState = instance.getState(undefined, true) !== component.state;
             const sameStoreState = !isConnect || component.storeState === storeState;
 
             if (sameProps) {
@@ -188,7 +188,7 @@ TemplateComponent.prototype = {
 
                     componentSetProps(instance, props, children, additional);
                 }
-                component.set('state', instance.state);
+                component.set('state', instance.getState(undefined, true));
                 if (isConnect) {
                     component.set('storeState', storeState);
                 }
