@@ -8,7 +8,7 @@ function VComponent(
     template,
     componentTemplate,
     context,
-    instance,
+    ref,
     state
 ) {
     this.componentType = componentType;
@@ -18,7 +18,7 @@ function VComponent(
     this.template = template;
     this.componentTemplate = componentTemplate;
     this.context = context;
-    this.instance = instance;
+    this.ref = ref;
     this.state = state;
     this.parent = context.parent;
 }

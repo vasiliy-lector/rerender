@@ -3,8 +3,8 @@ import { VNODE } from './types';
 function VNode(tag, attrs, context) {
     this.tag = tag;
     this.attrs = attrs;
-    this.parent = context.getParent();
-    this.parentNode = context.getParentNode();
+    this.parent = context.parent;
+    this.parentNode = context.parentNode;
     this.childNodes = [];
     this.context = context;
     context.getParentNode().appendChild(this);

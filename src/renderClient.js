@@ -33,10 +33,13 @@ function renderClient(userTemplate, settings = {}) {
     const rootTemplate = new TemplateVSandbox(rootNode, userTemplate);
     const config = {
         store,
-        storeState: store.getState(),
         dispatcher,
+        componentOptions: {
+            dispatch: dispatcher.dispatch,
+            events
+        },
+        // events, rootTemplate, document, rootNode, virtualRoot need only inside renderClient file
         events,
-        // rootTemplate, document, rootNode, virtualRoot need only inside renderClient file
         rootTemplate,
         document,
         rootNode,
@@ -52,6 +55,7 @@ function renderClient(userTemplate, settings = {}) {
         fullHash,
         hash: 0
     };
+    config.getParent = getParent(config);
     const nextVirtualRoot = rootTemplate.render(config);
     const patch = createInitialPatch(nextVirtualRoot.childNodes[0], {
         nextNodesById: config.nextNodes,
@@ -80,7 +84,6 @@ function renderClient(userTemplate, settings = {}) {
 }
 
 function rerenderClient(config) {
-    config.storeState = config.store.getState();
     const nextVirtualRoot = config.rootTemplate.render(config);
     const patch = diff(nextVirtualRoot.childNodes[0], config.virtualRoot.childNodes[0], {
         nextNodesById: config.nextNodes,
@@ -254,7 +257,7 @@ function unmount(nextComponents, components) {
         if (components[id].type === VCOMPONENT
             && (!nextComponents[id] || nextComponents[id].componentType !== components[id].componentType)
         ) {
-            const instance = components[id].instance;
+            const instance = components[id].ref;
             componentUnmount(instance);
             componentDestroy(instance);
         }
@@ -268,7 +271,7 @@ function unmountOne(nextComponents, components) {
         if (components[id].type === VCOMPONENT
             && (!nextComponents[id] || nextComponents[id].componentType !== components[id].componentType)
         ) {
-            const instance = components[id].instance;
+            const instance = components[id].ref;
             componentUnmount(instance);
             componentDestroy(instance);
             unmounted[components[id].id] = components[id];
@@ -276,6 +279,10 @@ function unmountOne(nextComponents, components) {
     }
 
     return unmounted;
+}
+
+function getParent(config) {
+    return id => config.components[id] && config.components[id].parent;
 }
 
 function update(instances) {

@@ -71,33 +71,33 @@ TemplateComponentStateless.prototype = {
 
             nextComponents[id] = component;
         } else {
-            component = prev;
-            component.set('componentTemplate', this);
-            component.set('context', context);
-            const sameProps = shallowEqualProps(component.props, props);
+            const sameProps = shallowEqualProps(prev.props, props);
             // FIXME
-            const sameChildren = false; // children.isEqual(component.children);
+            const sameChildren = false; // children.isEqual(prev.children);
 
             if (sameProps) {
-                props = component.props;
-            } else {
-                component.set('props', props);
+                props = prev.props;
             }
 
             if (sameChildren) {
-                children = component.children;
-            } else {
-                component.set('children', children);
+                children = prev.children;
             }
 
             if (sameProps && sameChildren) {
-                template = component.template;
+                template = prev.template;
             } else {
                 template = reuseTemplate(componentType(props, children), prev.template);
-                component.set('template', template);
             }
 
-            nextComponents[id] = component;
+            nextComponents[id] = new VComponentStateless(
+                componentType,
+                props,
+                children,
+                id,
+                template,
+                this,
+                context
+            );
         }
 
         // FIXME: createText and move increment inside render

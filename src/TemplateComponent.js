@@ -72,15 +72,7 @@ TemplateComponent.prototype = {
 
     renderToString(config) {
         const componentType = this.componentType;
-        const options = {
-            dispatch: config.dispatcher.dispatch
-        };
-
-        if (componentType instanceof Connect) {
-            options.storeState = config.store.getState();
-        }
-
-        const instance = new componentType(this.props, this.children, options);
+        const instance = new componentType(this.props, this.children, config.componentOptions, undefined, config.store.getState());
         this.preprocessInstance(instance);
         componentInit(instance);
         const template = componentRender(instance);
@@ -100,26 +92,24 @@ TemplateComponent.prototype = {
             mountComponents,
             updateComponents,
             store,
-            dispatcher,
-            events
+            componentOptions
         } = config;
         const id = context.getId();
         let prev = components[id];
         const isConnect = componentType instanceof Connect;
 
         if (prev === undefined || prev.type !== VCOMPONENT || prev.componentType !== componentType) {
-            const options = {
-                events,
-                id,
-                dispatch: dispatcher.dispatch
-            };
-            const storeState = store.getState(undefined, true);
-
+            let storeState;
             if (isConnect) {
-                options.storeState = storeState;
+                storeState = store.getState(undefined, true);
             }
-
-            const instance = new componentType(props, children, options);
+            const instance = new componentType(
+                props,
+                children,
+                componentOptions,
+                id,
+                isConnect ? storeState : undefined
+            );
             this.preprocessInstance(instance);
             componentInit(instance);
             if (this.ref && typeof this.ref === 'function') {
@@ -148,36 +138,29 @@ TemplateComponent.prototype = {
             }
 
             nextComponents[id] = component;
-            mountComponents[id] = component.instance;
+            mountComponents[id] = component.ref;
         } else {
-            component = prev;
-            component.set('componentTemplate', this);
-            component.set('context', context);
-            const instance = component.instance;
+            const instance = prev.ref;
             const storeState = store.getState(undefined, true);
 
             componentBeforeRender(instance);
 
-            const sameProps = shallowEqualProps(component.props, props);
+            const sameProps = shallowEqualProps(prev.props, props);
             // FIXME
-            const sameChildren = false; // children.isEqual(component.children);
-            const sameState = instance.getState(undefined, true) !== component.state;
-            const sameStoreState = !isConnect || component.storeState === storeState;
+            const sameChildren = false; // children.isEqual(prev.children);
+            const sameState = instance.getState(undefined, true) !== prev.state;
+            const sameStoreState = !isConnect || prev.storeState === storeState;
 
             if (sameProps) {
-                props = component.props;
-            } else {
-                component.set('props', props);
+                props = prev.props;
             }
 
             if (sameChildren) {
-                children = component.children;
-            } else {
-                component.set('children', children);
+                children = prev.children;
             }
 
             if (sameProps && sameChildren && sameState && sameStoreState) {
-                template = component.template;
+                template = prev.template;
             } else {
                 if (!sameProps || !sameChildren || !sameStoreState) {
                     let additional;
@@ -188,16 +171,27 @@ TemplateComponent.prototype = {
 
                     componentSetProps(instance, props, children, additional);
                 }
-                component.set('state', instance.getState(undefined, true));
-                if (isConnect) {
-                    component.set('storeState', storeState);
-                }
                 template = reuseTemplate(componentRender(instance), prev.template);
-                component.set('template', template);
-                updateComponents[id] = component.instance;
+            }
+
+            component = new VComponent(
+                componentType,
+                props,
+                children,
+                id,
+                template,
+                this,
+                context,
+                instance,
+                instance.getState(undefined, true)
+            );
+
+            if (isConnect) {
+                component.set('storeState', storeState);
             }
 
             nextComponents[id] = component;
+            updateComponents[id] = component.ref;
         }
 
         // FIXME: createText and move increment inside render

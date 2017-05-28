@@ -16,6 +16,10 @@ function renderServer(userTemplate, settings = {}) {
         fullHash = false
     } = settings;
 
+    settings.componentOptions = {
+        dispatch: dispatcher.dispatch
+    };
+
     const application = userTemplate.renderToString({
         store,
         dispatcher,

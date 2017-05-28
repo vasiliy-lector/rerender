@@ -1,27 +1,17 @@
 import { shallowClone } from './utils';
+import Events from './Events';
+import VEvent from './VEvent';
+import debug from './debug';
+import VComponent from './VComponent';
 
-class Component {
-    constructor(props, children, componentOptions) {
-        this._componentOptions = componentOptions;
+class Component extends Events {
+    constructor(props, children, options, id) {
+        super();
+        this._options = options;
+        this._id = id;
         this.state = {};
         this.props = props;
         this.children = children;
-    }
-
-    dispatch() {
-        this._componentOptions.dispatch.apply(null, arguments);
-    }
-
-    emit() {
-        this._componentOptions.emit.apply(null, arguments);
-    }
-
-    on() {
-        this._componentOptions.on.apply(null, arguments);
-    }
-
-    un() {
-        this._componentOptions.un.apply(null, arguments);
     }
 
     getState(path, snapshot) {
@@ -68,12 +58,38 @@ class Component {
                 stateParent[path[last]] = value;
 
                 if (this._componentMounted && !this._settingProps) {
-                    this._componentOptions.events.emit('rerender-one', this._componentOptions.id);
+                    this._options.events.emit('rerender-one', this._id);
                 }
             }
         } else if (value && typeof value === 'object'){
             Object.keys(value).forEach(path => this.setState(value[path], [path]));
         }
+    }
+
+    dispatch() {
+        this._options.dispatch.apply(null, arguments);
+    }
+
+    emit(eventName, payload) {
+        if (payload.constructor === VEvent) {
+            super(eventName, payload);
+        } else if (this._componentMounted) {
+            const event = new VEvent(eventName, payload);
+            let parent = this._getParent();
+            while (parent && !event.isStopped()) {
+                if (parent instanceof VComponent && parent.ref) {
+                    parent.ref.emit(eventName, event);
+                } else {
+                    parent = parent._getParent();
+                }
+            }
+        } else {
+            debug.warn('Try emit event on unmounted component, event not triggered');
+        }
+    }
+
+    getParent() {
+        return this._options.getParent(this._id);
     }
 
     render() {

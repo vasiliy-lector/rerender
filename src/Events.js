@@ -1,42 +1,45 @@
-import { nextTick } from './utils';
-
 class Events {
-    constructor() {
-        this.callbacks = {};
-        this.nextTickTriggers = {};
-    }
-
-    onEvent(eventName, callback) {
-        let { [eventName]: callbacks = [] } = this.callbacks,
-            index = callbacks.indexOf(callback);
-
-        if (index !== -1) {
+    emit(eventName, ...payload) {
+        if (!this.callbacks || !this.callbacks[eventName]) {
             return;
         }
 
-        callbacks.push(callback);
-
-        this.callbacks[eventName] = callbacks;
-    }
-
-    emit(eventName, ...payload) {
-        let { [eventName]: callbacks = [] } = this.callbacks;
-
-        callbacks.forEach(callback => callback(...payload));
+        this.callbacks[eventName].forEach(callback => callback(...payload));
     }
 
     on(eventNames, callback) {
-        eventNames.split(',').forEach(eventName => this.onEvent(eventName, callback));
+        eventNames.split(' ').forEach(eventName => this.onEvent(eventName, callback));
     }
 
-    un(eventName, callback) {
-        let { [eventName]: callbacks = [] } = this.callbacks,
-            index = callback && callbacks.indexOf(callback);
+    onEvent(eventName, callback) {
+        if (!this.callbacks) {
+            this.callbacks = {};
+        }
+
+        if (!this.callbacks[eventName]) {
+            this.callbacks[eventName] = [];
+        } else if (this.callbacks[eventName].indexOf(callback) !== -1) {
+            return;
+        }
+
+        this.callbacks[eventName].push(callback);
+    }
+
+    un(eventNames, callback) {
+        eventNames.split(' ').forEach(eventName => this.onEvent(eventName, callback));
+    }
+
+    unEvent(eventName, callback) {
+        if (!this.callbacks || !this.callbacks[eventName]) {
+            return;
+        }
+
+        const index = this.callbacks[eventName].indexOf(callback);
 
         if (!callback) {
-            this.callbacks[eventName] = [];
+            delete this.callbacks[eventName];
         } else if (index !== -1) {
-            callbacks.splice(index, 1);
+            this.callbacks[eventName].splice(index, 1);
         }
     }
 }

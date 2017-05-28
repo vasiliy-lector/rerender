@@ -16,6 +16,10 @@ class Connect extends Component {
             merge = true
         } = this.options;
 
+        this.setState({
+            storeState: this._options.storeState
+        });
+
         if (init) {
             this.init = init.bind(this, this.dispatch);
         }
