@@ -8,6 +8,12 @@ class Connect extends Component {
     constructor(...args) {
         super(...args);
 
+        this.setState({
+            storeState: args[4]
+        });
+    }
+
+    init() {
         const {
             init,
             select,
@@ -16,18 +22,14 @@ class Connect extends Component {
             merge = true
         } = this.options;
 
-        this.setState({
-            storeState: this._options.storeState
-        });
-
-        if (init) {
-            this.init = init.bind(this, this.dispatch);
-        }
-
         this.selectProps = useProps ? memoizeLast(this.selectProps) : identity;
         this.select = select ? memoizeLast(select) : identity;
         this.map = map ? memoizeLast(map, { shallow: true }) : identity;
         this.merge = merge !== false ? memoizeLast(this.merge) : identity;
+
+        if (typeof init === 'function') {
+            init.call(this);
+        }
     }
 
     componentWillReceiveProps(nextProps, nextChildren, nextStoreState) {

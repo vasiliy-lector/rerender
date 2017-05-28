@@ -34,10 +34,6 @@ function renderClient(userTemplate, settings = {}) {
     const config = {
         store,
         dispatcher,
-        componentOptions: {
-            dispatch: dispatcher.dispatch,
-            events
-        },
         // events, rootTemplate, document, rootNode, virtualRoot need only inside renderClient file
         events,
         rootTemplate,
@@ -55,7 +51,11 @@ function renderClient(userTemplate, settings = {}) {
         fullHash,
         hash: 0
     };
-    config.getParent = getParent(config);
+    config.componentOptions = {
+        dispatch: dispatcher.dispatch,
+        getParent: getParent(config),
+        events
+    };
     const nextVirtualRoot = rootTemplate.render(config);
     const patch = createInitialPatch(nextVirtualRoot.childNodes[0], {
         nextNodesById: config.nextNodes,
