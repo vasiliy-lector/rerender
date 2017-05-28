@@ -4,7 +4,6 @@ export { default as createController } from './createController';
 export { default as createTemplate } from './createTemplate';
 export { debug, performanceStart, performanceEnd } from './debug';
 export { default as Dispatcher } from './Dispatcher';
-export { default as Event } from './Event';
 export { default as Events } from './Events';
 export { default as jsx } from './jsx';
 export { default as renderClient } from './renderClient';

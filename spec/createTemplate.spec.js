@@ -12,7 +12,7 @@ describe('createTemplate', () => {
 
         expect(template instanceof TemplateVNode).toBe(true);
         expect(template.tag).toBe('p');
-        expect(template.attrs).toBe(props);
+        expect(template.attrs).toEqual(props);
         expect(template.children).toEqual(['text', 'another text']);
     });
 
@@ -36,7 +36,7 @@ describe('createTemplate', () => {
         const template = createTemplate(Block, props, 'text', 'another text');
 
         expect(template instanceof TemplateComponent).toBe(true);
-        expect(template.props).toBe(props);
+        expect(template.props).toEqual(props);
         expect(template.children instanceof TemplateFragment).toBe(true);
         expect(template.children.fragment).toEqual(['text', 'another text']);
     });
@@ -64,7 +64,7 @@ describe('createTemplate', () => {
         const template = createTemplate(function() {}, props, 'text', 'another text');
 
         expect(template instanceof TemplateComponentStateless).toBe(true);
-        expect(template.props).toBe(props);
+        expect(template.props).toEqual(props);
         expect(template.children instanceof TemplateFragment).toBe(true);
         expect(template.children.fragment).toEqual(['text', 'another text']);
     });
