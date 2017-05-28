@@ -70,10 +70,8 @@ class Component extends Events {
         this._options.dispatch.apply(null, arguments);
     }
 
-    emit(eventName, payload) {
-        if (payload.constructor === VEvent) {
-            super(eventName, payload);
-        } else if (this._componentMounted) {
+    trigger(eventName, payload) {
+        if (this._componentMounted) {
             const event = new VEvent(eventName, payload);
             let parent = this._getParent();
             while (parent && !event.isStopped()) {
