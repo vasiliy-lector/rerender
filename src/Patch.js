@@ -156,7 +156,7 @@ Remove.prototype = {
 
     apply(options, domNode) {
         if (this.node.type === VNODE && this.node.attrs && typeof this.node.attrs.ref === 'function') {
-            this.node.attrs.ref(null, null);
+            this.node.attrs.ref(null);
         }
 
         if (domNode.parentNode) {
@@ -172,7 +172,7 @@ RemoveRef.prototype = {
     type: REMOVE_REF,
 
     apply() {
-        this.node.attrs.ref(null, null);
+        this.node.attrs.ref(null);
     }
 };
 
@@ -200,7 +200,7 @@ SetRef.prototype = {
     type: SET_REF,
 
     apply() {
-        this.nextNode.attrs.ref(this.nextNode, this.nextNode.getDomNode());
+        this.nextNode.attrs.ref(this.nextNode.dynamic);
     }
 };
 
@@ -346,7 +346,7 @@ function createElement(nextNode, document, skipCreation) {
                 }
 
                 if (typeof nextNode.attrs.ref === 'function') {
-                    nextNode.attrs.ref(nextNode, nextDomNode);
+                    nextNode.attrs.ref(nextNode.dynamic);
                 }
             }
 

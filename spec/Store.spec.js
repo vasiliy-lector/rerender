@@ -77,4 +77,56 @@ describe('Store', () => {
             expect(store.getState(['noexist', 'list', 'items', 5])).toBe(undefined);
         });
     });
+
+    describe('immutability', () => {
+        let store;
+        const state = {
+            todos: {
+                list: [
+                    { id: 1, text: 'todo1' },
+                    { id: 2, text: 'todo2' }
+                ]
+            }
+        };
+
+        beforeEach(() => {
+            store = new Store({
+                state
+            });
+        });
+
+        it('should replace state if no path parameter', () => {
+            const newState = {
+                todos: {}
+            };
+            store.setState(newState);
+            expect(store.getState()).not.toBe(state);
+            expect(store.getState()).toBe(newState);
+        });
+
+        it('should change state object by ref if no snapshot created', () => {
+            const newState = {
+                todos: {}
+            };
+            store.setState(newState);
+            expect(store.getState()).not.toBe(state);
+            expect(store.getState()).toBe(newState);
+            const newList = [];
+            store.setState(newList, ['todos', 'list']);
+            expect(store.getState(['todos', 'list'])).toBe(newList);
+            const muttable = store.getState();
+            expect(muttable).not.toBe(newState);
+            store.setState({}, ['todos']);
+            expect(store.getState()).toBe(muttable);
+            const snapshot = store.getState(undefined, true);
+            expect(snapshot).toBe(muttable);
+            store.setState([1], ['todos', 'list']);
+            expect(store.getState()).toEqual({
+                todos: {
+                    list: [1]
+                }
+            });
+            expect(store.getState()).not.toBe(snapshot);
+        });
+    });
 });

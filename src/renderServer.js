@@ -2,20 +2,18 @@ import defaultHtmlWrapper, { getApplicationAfter } from './defaultHtmlWrapper';
 import Store from './Store';
 import Dispatcher from './Dispatcher';
 
-function renderServer(userTemplate, settings = {}) {
-    const {
-        store = new Store(),
-        dispatcher = new Dispatcher({ store }),
-        applicationId = 'rerender-app',
-        wrap = true,
-        htmlWrapper = defaultHtmlWrapper,
-        title = '',
-        head = '',
-        bodyEnd = '',
-        hashEnabled = true,
-        fullHash = false
-    } = settings;
-
+function renderServer(userTemplate, {
+    store = new Store(),
+    dispatcher = new Dispatcher({ store }),
+    applicationId = 'rerender-app',
+    wrap = true,
+    htmlWrapper = defaultHtmlWrapper,
+    title = '',
+    head = '',
+    bodyEnd = '',
+    hashEnabled = true,
+    fullHash = false
+} = {}) {
     const application = userTemplate.renderToString({
         store,
         dispatcher,
@@ -36,7 +34,11 @@ function renderServer(userTemplate, settings = {}) {
         head,
         applicationId,
         application,
-        applicationAfter: getApplicationAfter(store, dispatcher, settings),
+        applicationAfter: getApplicationAfter(store, dispatcher, {
+            applicationId,
+            hashEnabled,
+            fullHash
+        }),
         bodyEnd
     });
 }

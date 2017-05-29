@@ -104,14 +104,14 @@ function rerenderClientOne(config, id) {
     const component = config.components[id];
     const node = getFirstNode(component);
     const sandbox = new TemplateVSandbox(node.parentNode, component.componentTemplate);
-    const nextSanboxNode = sandbox.render(config, new Context(component.context));
+    const nextSandboxNode = sandbox.render(config, new Context(component.context));
     const nodesById = groupByIdNodes(node, {});
     const options = {
         nodesById,
         nextNodesById: config.nextNodes,
         document
     };
-    const nextNode = nextSanboxNode.childNodes[0];
+    const nextNode = nextSandboxNode.childNodes[0];
     const patch = diff(nextNode, node, options);
 
     const components = groupByIdComponents(component, {});
@@ -121,7 +121,7 @@ function rerenderClientOne(config, id) {
     mount(config.mountComponents);
     update(config.updateComponents);
 
-    const nextComponent = nextSanboxNode.childs[0];
+    const nextComponent = nextSandboxNode.childs[0];
     component.parent.childs[component.context.index] = nextComponent;
     node.parentNode.childNodes[node.context.domIndex] = nextNode;
     nextComponent.set('context', component.context);
