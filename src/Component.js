@@ -75,7 +75,7 @@ class Component extends Events {
             const event = new VEvent(eventName, payload);
             let parent = this._getParent();
             while (parent && !event.isStopped()) {
-                if (parent instanceof VComponent && parent.ref) {
+                if (parent.prototype instanceof VComponent && parent.ref) {
                     parent.ref.emit(eventName, event);
                 } else {
                     parent = parent._getParent();

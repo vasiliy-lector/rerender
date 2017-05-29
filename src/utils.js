@@ -217,6 +217,8 @@ function groupByIdComponents(component, memo) {
 function shallowClone(obj) {
     return Object.keys(obj).reduce((memo, name) => {
         memo[name] = obj[name];
+
+        return memo;
     }, {});
 }
 

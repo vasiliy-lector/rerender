@@ -5,20 +5,23 @@ class Store extends Events {
     constructor({ state = {}, dehydrate, rehydrate } = {}) {
         super();
 
-        this.providedDehydrate = dehydrate;
-        this.providedRehydrate = rehydrate;
-
-        this.state = this.rehydrate(state);
         this.setState = this.setState.bind(this);
         this.getState = this.getState.bind(this);
+
+        this.state = state;
+        if (rehydrate) {
+            rehydrate({ getState: this.getState, setState: this.setState });
+        }
+
+        if (typeof dehydrate === 'function') {
+            this.providedDehydrate = dehydrate;
+        }
     }
 
     dehydrate() {
-        return this.providedDehydrate ? this.providedDehydrate(this.state) : this.state;
-    }
-
-    rehydrate(state) {
-        return this.providedRehydrate ? this.providedRehydrate(state) : state;
+        return this.providedDehydrate
+            ? this.providedDehydrate({ getState: this.getState })
+            : this.getState();
     }
 
     getState(path, snapshot) {
@@ -30,7 +33,7 @@ class Store extends Events {
             let result = this.state;
 
             for (let i = 0, l = path.length; result !== undefined && i < l; i++) {
-                result = result[path[i]];
+                result = typeof result === 'object' ? result[path[i]] : undefined;
             }
 
             return result;
@@ -47,7 +50,7 @@ class Store extends Events {
                     this.state = shallowClone(this.prevState);
                 }
 
-                let stateParent = this.state;
+                let stateParent = this.getState();
                 let prevStateParent = this.prevState;
                 let last = path.length - 1;
 
@@ -56,7 +59,7 @@ class Store extends Events {
                         && stateParent[path[i]] === prevStateParent[path[i]]) {
                         stateParent[path[i]] = shallowClone(prevStateParent[path[i]] || {});
                     } else {
-                        stateParent[path[i]] = {};
+                        stateParent[path[i]] = typeof path[i + 1] === 'number' ? [] : {};
                     }
 
                     stateParent = stateParent[path[i]];

@@ -34,7 +34,7 @@ Dispatcher.prototype = {
     runAction(event, payload) {
         const actionResult = event.action(this.actionOptions, ...payload);
 
-        if (actionResult instanceof Promise) {
+        if (actionResult && actionResult.prototype instanceof Promise) {
             return actionResult;
         } else {
             return Promise.resolve(actionResult);

@@ -96,7 +96,7 @@ TemplateComponent.prototype = {
         } = config;
         const id = context.getId();
         let prev = components[id];
-        const isConnect = componentType instanceof Connect;
+        const isConnect = componentType.prototype instanceof Connect;
 
         if (prev === undefined || prev.type !== VCOMPONENT || prev.componentType !== componentType) {
             let storeState;
