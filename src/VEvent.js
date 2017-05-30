@@ -1,5 +1,5 @@
 export default class VEvent {
-    constructor(name, ...payload) {
+    constructor(name, payload) {
         this.name = name;
         this.payload = payload;
         this.stopped = false;

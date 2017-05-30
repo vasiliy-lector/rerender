@@ -215,11 +215,13 @@ function groupByIdComponents(component, memo) {
 }
 
 function shallowClone(obj) {
-    return Object.keys(obj).reduce((memo, name) => {
-        memo[name] = obj[name];
+    return Array.isArray(obj)
+        ? obj.map(item => item)
+        : Object.keys(obj).reduce((memo, name) => {
+            memo[name] = obj[name];
 
-        return memo;
-    }, {});
+            return memo;
+        }, {});
 }
 
 function memoizeLast(fn, { shallow } = {}) {

@@ -89,7 +89,7 @@ TemplateComponentStateless.prototype = {
                 template = reuseTemplate(componentType(props, children), prev.template);
             }
 
-            nextComponents[id] = new VComponentStateless(
+            component = new VComponentStateless(
                 componentType,
                 props,
                 children,
@@ -98,6 +98,7 @@ TemplateComponentStateless.prototype = {
                 this,
                 context
             );
+            nextComponents[id] = component;
         }
 
         // FIXME: createText and move increment inside render

@@ -55,9 +55,11 @@ class Store extends Events {
                 let last = path.length - 1;
 
                 for (let i = 0, l = last; i < l; i++) {
-                    if (typeof prevStateParent[path[i]] === 'object'
-                        && stateParent[path[i]] === prevStateParent[path[i]]) {
-                        stateParent[path[i]] = shallowClone(prevStateParent[path[i]] || {});
+                    if (prevStateParent && typeof prevStateParent[path[i]] === 'object') {
+                        if (stateParent[path[i]] === prevStateParent[path[i]]) {
+                            stateParent[path[i]] = shallowClone(prevStateParent[path[i]]);
+                        }
+                        prevStateParent = prevStateParent[path[i]] || undefined;
                     } else {
                         stateParent[path[i]] = typeof path[i + 1] === 'number' ? [] : {};
                     }

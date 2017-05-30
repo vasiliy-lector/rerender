@@ -18,6 +18,10 @@ VSandbox.prototype = {
         this.childNodes.push(childNode);
     },
 
+    getParent() {
+        return this.parent;
+    },
+
     getDomNode() {
         return this.domNode;
     }

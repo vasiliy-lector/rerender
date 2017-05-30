@@ -34,10 +34,10 @@ function componentRender(instance) {
     return instance.render();
 }
 
-function componentSetProps(instance, props, children) {
+function componentSetProps(instance, props, children, additional) {
     if (typeof instance.componentWillReceiveProps !== 'undefined') {
         instance._settingProps = true;
-        instance.componentWillReceiveProps(props, children);
+        instance.componentWillReceiveProps(props, children, additional);
         instance._settingProps = false;
     }
 

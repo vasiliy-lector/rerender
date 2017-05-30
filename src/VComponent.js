@@ -26,6 +26,10 @@ function VComponent(
 VComponent.prototype = {
     type: VCOMPONENT,
 
+    getParent() {
+        return this.parent;
+    },
+
     set(name, value) {
         this[name] = value;
     }

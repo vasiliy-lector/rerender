@@ -25,6 +25,10 @@ VNode.prototype = {
         this.childNodes.push(childNode);
     },
 
+    getParent() {
+        return this.parent;
+    },
+
     getDomNode() {
         return this._node || (this._node = this.context.getDomNode());
     }

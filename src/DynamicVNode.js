@@ -26,7 +26,7 @@ DynamicVNode.prototype = {
     },
 
     get(name) {
-        return this.attrs[name];
+        return this.attrs[name] || (this.node.attrs && this.node.attrs[name]);
     },
 
     reset(name) {
@@ -65,9 +65,9 @@ DynamicVNode.prototype = {
         // TODO: textarea, radio, select, contenteditable
         if (this.tag === 'input') {
             if (!nodeAttrs || (!nodeAttrs.type || nodeAttrs.type === 'text')) {
-                this.attrs.oninput = this._handleInput;
+                this.attrs.oninput = this._handleInput.bind(this);
             } else if (nodeAttrs.type === 'checkbox'){
-                this.attrs.onchange = this._handleCheckboxChange;
+                this.attrs.onchange = this._handleCheckboxChange.bind(this);
             }
         }
     },

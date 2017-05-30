@@ -45,11 +45,13 @@ class Component extends Events {
                 let last = path.length - 1;
 
                 for (let i = 0, l = last; i < l; i++) {
-                    if (typeof prevStateParent[path[i]] === 'object'
-                        && stateParent[path[i]] === prevStateParent[path[i]]) {
-                        stateParent[path[i]] = shallowClone(prevStateParent[path[i]] || {});
+                    if (prevStateParent && typeof prevStateParent[path[i]] === 'object') {
+                        if (stateParent[path[i]] === prevStateParent[path[i]]) {
+                            stateParent[path[i]] = shallowClone(prevStateParent[path[i]]);
+                        }
+                        prevStateParent = prevStateParent[path[i]] || undefined;
                     } else {
-                        stateParent[path[i]] = {};
+                        stateParent[path[i]] = typeof path[i + 1] === 'number' ? [] : {};
                     }
 
                     stateParent = stateParent[path[i]];
@@ -73,13 +75,13 @@ class Component extends Events {
     trigger(eventName, payload) {
         if (this._componentMounted) {
             const event = new VEvent(eventName, payload);
-            let parent = this._getParent();
+            let parent = this.getParent();
             while (parent && !event.isStopped()) {
-                if (parent.prototype instanceof VComponent && parent.ref) {
+                if (parent instanceof VComponent && parent.ref) {
                     parent.ref.emit(eventName, event);
-                } else {
-                    parent = parent._getParent();
                 }
+
+                parent = parent.getParent();
             }
         } else {
             debug.warn('Try emit event on unmounted component, event not triggered');

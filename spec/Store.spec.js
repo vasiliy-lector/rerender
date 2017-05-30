@@ -41,6 +41,26 @@ describe('Store', () => {
                 }]
             });
         });
+
+        it('should change partially state by path parameter for changed path', () => {
+            store.setState([{ id: 4 }], ['todos', 'list']);
+            expect(store.getState()).toEqual({
+                todos: {
+                    list: [
+                        { id: 4 }
+                    ]
+                }
+            });
+            store.setState({ id: 5 }, ['todos', 'list', 1]);
+            expect(store.getState()).toEqual({
+                todos: {
+                    list: [
+                        { id: 4 },
+                        { id: 5 }
+                    ]
+                }
+            });
+        });
     });
 
     describe('method getState', () => {

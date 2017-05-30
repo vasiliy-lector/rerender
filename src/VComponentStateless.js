@@ -22,6 +22,10 @@ function VComponentStateless(
 VComponentStateless.prototype = {
     type: VCOMPONENT_STATELESS,
 
+    getParent() {
+        return this.parent;
+    },
+
     set(name, value) {
         this[name] = value;
     }

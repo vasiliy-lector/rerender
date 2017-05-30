@@ -338,7 +338,23 @@ function createElement(nextNode, document, skipCreation) {
         if (!skipCreation[nextNode.context.id]) {
             nextDomNode = document.createElement(nextNode.tag);
 
-            if (nextNode.attrs) {
+            if (nextNode.dynamic) {
+                for (let name in nextNode.dynamic.attrs) {
+                    nextDomNode[name] = nextNode.dynamic.attrs[name];
+                }
+
+                if (nextNode.attrs) {
+                    for (let name in nextNode.attrs) {
+                        if (!specialAttrs[name] && !nextNode.dynamic.attrs[name]) {
+                            nextDomNode[name] = nextNode.attrs[name];
+                        }
+                    }
+
+                    if (typeof nextNode.attrs.ref === 'function') {
+                        nextNode.attrs.ref(nextNode.dynamic);
+                    }
+                }
+            } else if (nextNode.attrs) {
                 for (let name in nextNode.attrs) {
                     if (!specialAttrs[name]) {
                         nextDomNode[name] = nextNode.attrs[name];
