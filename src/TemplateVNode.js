@@ -104,9 +104,15 @@ TemplateVNode.prototype = {
         const id = context.getId();
 
         if (this.needDynamic()) {
-            const dynamic = config.dynamicNodes[id] || (new DynamicVNode(nextNode));
-            nextNode.setDynamic(dynamic);
+            let dynamic;
+            if (config.dynamicNodes[id]) {
+                dynamic = config.dynamicNodes[id];
+                dynamic._replaceNode(nextNode);
+            } else {
+                dynamic = new DynamicVNode(nextNode);
+            }
             config.nextDynamicNodes[id] = dynamic;
+            nextNode.setDynamic(dynamic);
         }
 
         config.nextNodes[id] = nextNode;

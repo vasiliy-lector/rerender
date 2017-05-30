@@ -86,6 +86,10 @@ DynamicVNode.prototype = {
         }
     },
 
+    _setUpdated() {
+        delete this.prevAttrs;
+    },
+
     _handleInput(event) {
         this.attrs.value = event.target.value;
         const nodeAttrs = this.node.attrs;

@@ -11,12 +11,17 @@ function createInitialPatchRecursive(nextNode, options, insideCreation, nextSibl
         }
 
         if (nextNode.attrs) {
-            for (let name in nextNode.attrs) {
-                if (name === 'ref' && typeof nextNode.attrs.ref === 'function') {
-                    options.patch.pushNormalize(new SetRef(nextNode));
-                } else if (name.substr(0, 2) === 'on') {
-                    options.patch.pushNormalize(new AttachEvents(nextNode));
-                    break;
+            if (typeof nextNode.attrs.ref === 'function') {
+                options.patch.pushNormalize(new SetRef(nextNode));
+            }
+            if (nextNode.dynamic) {
+                options.patch.pushNormalize(new AttachEvents(nextNode));
+            } else {
+                for (let name in nextNode.attrs) {
+                    if (name.substr(0, 2) === 'on') {
+                        options.patch.pushNormalize(new AttachEvents(nextNode));
+                        break;
+                    }
                 }
             }
         }

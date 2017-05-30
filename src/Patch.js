@@ -267,7 +267,7 @@ Update.prototype = {
 
         if (nextAttrs) {
             for (let name in nextAttrs) {
-                if (!nextAttrsDynamic[name] && (!attrs || nextAttrs[name] !== attrs[name]) && !specialAttrs[name]) {
+                if (nextAttrsDynamic[name] === undefined && (!attrs || nextAttrs[name] !== attrs[name]) && !specialAttrs[name]) {
                     domNode[name] = nextAttrs[name];
                 }
             }
@@ -303,16 +303,16 @@ UpdateDynamic.prototype = {
             }
 
             for (let name in prevAttrs) {
-                if (!attrs[name]) {
+                if (attrs[name] === undefined) {
                     domNode[name] = this.node.attrs && this.node.attrs[name] || null;
                 }
             }
 
-            delete this.node.dynamic.prevAttrs;
+            this.node.dynamic._setUpdated();
         }
     }
 };
-
+// TODO: rename AttachEventsAndDynamic
 function AttachEvents(nextNode) {
     this.nextNode = nextNode;
 }
@@ -323,8 +323,28 @@ AttachEvents.prototype = {
         const domNode = this.nextNode.getDomNode();
         const nextAttrs = this.nextNode.attrs;
 
+        if (this.nextNode.dynamic) {
+            this.applyDynamic();
+        } else {
+            for (let name in nextAttrs) {
+                if (name.substr(0,2) === 'on') {
+                    domNode[name] = nextAttrs[name];
+                }
+            }
+        }
+    },
+
+    applyDynamic() {
+        const domNode = this.nextNode.getDomNode();
+        const nextAttrs = this.nextNode.attrs;
+        const dynamicAttrs = this.nextNode.dynamic.attrs;
+
+        for (let name in dynamicAttrs) {
+            domNode[name] = dynamicAttrs[name];
+        }
+
         for (let name in nextAttrs) {
-            if (name.substr(0,2) === 'on') {
+            if (name.substr(0,2) === 'on' && dynamicAttrs[name] === undefined) {
                 domNode[name] = nextAttrs[name];
             }
         }
@@ -345,7 +365,7 @@ function createElement(nextNode, document, skipCreation) {
 
                 if (nextNode.attrs) {
                     for (let name in nextNode.attrs) {
-                        if (!specialAttrs[name] && !nextNode.dynamic.attrs[name]) {
+                        if (!specialAttrs[name] && nextNode.dynamic.attrs[name] === undefined) {
                             nextDomNode[name] = nextNode.attrs[name];
                         }
                     }
