@@ -1,10 +1,16 @@
-function Dispatcher({ store, state = {}, server = false, dehydrate, rehydrate }) {
-    this.providedDehydrate = dehydrate;
-    this.providedRehydrate = rehydrate;
+import { deepEqual } from './utils';
+
+const betweenUserCache = {};
+const maxAge = 600000;
+
+function Dispatcher({ store, server = false, betweenUserCacheEnabled = true }) {
     this.store = store;
-    this.state = state;
-    this.server = server;
+    this.isServer = server;
+    this.betweenUserCacheEnabled = betweenUserCacheEnabled;
     this.dispatch = this.dispatch.bind(this);
+    // user cache
+    this.cache = {};
+
     // FIXME: disable change inside reducers and actions
     this.actionOptions = {
         dispatch: this.dispatch,
@@ -17,11 +23,62 @@ function Dispatcher({ store, state = {}, server = false, dehydrate, rehydrate })
 }
 
 Dispatcher.prototype = {
-    dispatch(event, ...payload) {
-        if (typeof event.action !== 'function') {
-            this.runReducers(event, payload[0]);
+    dispatch(event, payload) {
+        if (this.isServer && event.serverDisabled || !this.isServer && event.clientDisabled) {
+            return Promise.reject();
+        }
 
-            return Promise.resolve(payload[0]);
+        let cache;
+        const hasCache = event.cache && event.name !== undefined;
+
+        if (hasCache) {
+            if (this.isServer && this.betweenUserCacheEnabled && event.userIndependent) {
+                cache = betweenUserCache;
+            } else {
+                cache = this.cache;
+            }
+
+            const cached = this.getCached(cache, event, payload);
+
+            if (cached !== undefined) {
+                return cached;
+            }
+        }
+
+        const result = this.run(event, payload);
+
+        if (hasCache) {
+            const cacheItem = {
+                event,
+                payload,
+                result
+            };
+
+            const cacheByName = cache[event.name] || (cache[event.name] = []);
+            cacheByName.push(cacheItem);
+            let timeout;
+
+            if (!this.isServer || cache === betweenUserCache) {
+                timeout = setTimeout(() => this.dropCacheItem(cacheByName, cacheItem), event.maxAge || maxAge);
+            }
+
+            result.catch(() => {
+                this.dropCacheItem(cacheByName, cacheItem);
+
+                if (timeout !== undefined) {
+                    clearTimeout(timeout);
+                }
+            });
+        }
+
+        return result;
+    },
+
+    run(event, payload) {
+        if (typeof event.action !== 'function') {
+            this.runReducers(event, payload);
+
+            return Promise.resolve(payload);
         }
 
         return this.runAction(event, payload).then(actionResult => {
@@ -31,10 +88,32 @@ Dispatcher.prototype = {
         });
     },
 
-    runAction(event, payload) {
-        const actionResult = event.action(this.actionOptions, ...payload);
+    getCached(cache, event, payload) {
+        if (cache[event.name] === undefined) {
+            return;
+        }
 
-        if (actionResult && actionResult.prototype instanceof Promise) {
+        for (let i = 0, l = cache[event.name].length; i < l; i++) {
+            const cacheItem = cache[event.name][i];
+            if (cacheItem.event === event && deepEqual(cacheItem.payload, payload)) {
+                return cacheItem.result;
+            }
+        }
+    },
+
+    dropCacheItem(cacheByName, item) {
+        for (let i = 0, l = cacheByName.length; i < l; i++) {
+            const cacheItem = cacheByName[i];
+            if (cacheByName[i] === item) {
+                cacheByName.splice(i, 1);
+            }
+        }
+    },
+
+    runAction(event, payload) {
+        const actionResult = event.action(this.actionOptions, payload);
+
+        if (actionResult && actionResult instanceof Promise) {
             return actionResult;
         } else {
             return Promise.resolve(actionResult);
@@ -52,15 +131,7 @@ Dispatcher.prototype = {
     },
 
     setServer() {
-        this.server = true;
-    },
-
-    dehydrate() {
-        return this.providedDehydrate ? this.providedDehydrate(this.state) : this.state;
-    },
-
-    rehydrate(state) {
-        return this.providedRehydrate ? this.providedRehydrate(state) : state;
+        this.isServer = true;
     }
 };
 

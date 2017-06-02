@@ -1,11 +1,11 @@
-import defaultHtmlWrapper, { getApplicationAfter } from './defaultHtmlWrapper';
+import { defaultHtmlWrapper, getApplicationAfter, applicationId as defaultApplicationId } from './defaults';
 import Store from './Store';
 import Dispatcher from './Dispatcher';
 
 function renderServer(userTemplate, {
     store = new Store(),
     dispatcher = new Dispatcher({ store }),
-    applicationId = 'rerender-app',
+    applicationId = defaultApplicationId,
     wrap = true,
     htmlWrapper = defaultHtmlWrapper,
     title = '',
@@ -34,7 +34,8 @@ function renderServer(userTemplate, {
         head,
         applicationId,
         application,
-        applicationAfter: getApplicationAfter(store, dispatcher, {
+        applicationAfter: getApplicationAfter({
+            store,
             applicationId,
             hashEnabled,
             fullHash

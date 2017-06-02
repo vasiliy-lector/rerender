@@ -9,22 +9,25 @@ import TemplateVSandbox from './TemplateVSandbox';
 import Context from './Context';
 import { VNODE, VTEXT, VCOMPONENT } from './types';
 import { groupByIdComponents, groupByIdNodes } from './utils';
+import { applicationId as defaultApplicationId } from './defaults';
 
 const RENDER_THROTTLE = 16;
 
 function renderClient(userTemplate, settings = {}) {
-    const { window = self } = settings;
+    const {
+        window = self,
+        applicationId = defaultApplicationId
+    } = settings;
     const document = window.document;
     const {
         storeState,
-        dispatcherState,
         settings: serverSettings = {}
-    } = window.__RERENDER || {};
+    } = window[`__RERENDER__${applicationId}`] || {};
 
     const {
-        rootNode = document.getElementById(serverSettings.applicationId),
+        rootNode = document.getElementById(applicationId),
         store = new Store({ state: storeState }),
-        dispatcher = new Dispatcher({ store, state: dispatcherState }),
+        dispatcher = new Dispatcher({ store }),
         hashEnabled = serverSettings.hashEnabled,
         fullHash = serverSettings.fullHash
     } = settings;

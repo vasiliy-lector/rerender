@@ -32,8 +32,12 @@ DynamicVNode.prototype = {
     reset(name) {
         if (name === undefined) {
             if (Object.keys(this.attrs).length) {
-                this.prevAttrs = this.attrs;
-                this.attrs = {};
+                for (let name in this.attrs) {
+                    if (name.substr(0, 2) !== 'on') {
+                        (this.prevAttrs || (this.prevAttrs = {}))[name] = this.attrs[name];
+                        this.attrs[name] = null;
+                    }
+                }
                 this._scheduleUpdate();
             }
         } else if (this.attrs[name] !== undefined) {
@@ -56,7 +60,6 @@ DynamicVNode.prototype = {
 
     _replaceNode(node) {
         this.node = node;
-        this._setListeners();
     },
 
     _setListeners() {
