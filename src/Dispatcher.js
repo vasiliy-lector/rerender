@@ -11,20 +11,19 @@ function Dispatcher({ store, server = false, betweenUserCacheEnabled = true }) {
     // user cache
     this.cache = {};
 
-    // FIXME: disable change inside reducers and actions
-    this.actionOptions = {
+    this.actionOptions = Object.freeze({
         dispatch: this.dispatch,
         getState: store.getState
-    };
-    this.reducerOptions = {
+    });
+    this.reducerOptions = Object.freeze({
         getState: store.getState,
         setState: store.setState
-    };
+    });
 }
 
 Dispatcher.prototype = {
     dispatch(event, payload) {
-        if (this.isServer && event.serverDisabled || !this.isServer && event.clientDisabled) {
+        if ((this.isServer && event.serverDisabled) || (!this.isServer && event.clientDisabled)) {
             return Promise.reject();
         }
 
@@ -45,7 +44,7 @@ Dispatcher.prototype = {
             }
         }
 
-        const result = this.run(event, payload);
+        const result = this._dispatchNoCache(event, payload);
 
         if (hasCache) {
             const cacheItem = {
@@ -62,19 +61,21 @@ Dispatcher.prototype = {
                 timeout = setTimeout(() => this.dropCacheItem(cacheByName, cacheItem), event.maxAge || maxAge);
             }
 
-            result.catch(() => {
+            result.catch(error => {
                 this.dropCacheItem(cacheByName, cacheItem);
 
                 if (timeout !== undefined) {
                     clearTimeout(timeout);
                 }
+
+                return Promise.reject(error);
             });
         }
 
         return result;
     },
 
-    run(event, payload) {
+    _dispatchNoCache(event, payload) {
         if (typeof event.action !== 'function') {
             this.runReducers(event, payload);
 
@@ -103,9 +104,10 @@ Dispatcher.prototype = {
 
     dropCacheItem(cacheByName, item) {
         for (let i = 0, l = cacheByName.length; i < l; i++) {
-            const cacheItem = cacheByName[i];
             if (cacheByName[i] === item) {
                 cacheByName.splice(i, 1);
+
+                return;
             }
         }
     },
