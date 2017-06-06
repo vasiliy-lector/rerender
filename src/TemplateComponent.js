@@ -69,14 +69,14 @@ TemplateComponent.prototype = {
         }
     },
 
-    renderToString(config) {
+    renderServer(config) {
         const componentType = this.componentType;
         const instance = new componentType(this.props, this.children, config.componentOptions, undefined, config.store.getState());
         this.preprocessInstance(instance);
         componentInit(instance);
         const template = componentRender(instance);
 
-        return template ? template.renderToString(config) : '';
+        return template ? template.renderServer(config) : '';
     },
 
     render(config, context) {

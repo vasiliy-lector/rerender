@@ -14,7 +14,7 @@ function renderServer(userTemplate, {
     hashEnabled = true,
     fullHash = false
 } = {}) {
-    const application = userTemplate.renderToString({
+    const application = userTemplate.renderServer({
         store,
         dispatcher,
         hashEnabled,

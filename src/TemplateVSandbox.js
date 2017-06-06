@@ -27,10 +27,6 @@ TemplateVSandbox.prototype = {
         sandbox.setChilds([this.template.render(config, context)]);
 
         return sandbox;
-    },
-
-    renderToString(config) {
-        return this.template.render(config);
     }
 };
 

@@ -41,10 +41,10 @@ TemplateComponentStateless.prototype = {
     type: TEMPLATE,
     subtype: TEMPLATE_COMPONENT_STATELESS,
 
-    renderToString(config) {
+    renderServer(config) {
         const template = this.componentType(this.props, this.children);
 
-        return template ? template.renderToString(config) : '';
+        return template ? template.renderServer(config) : '';
     },
 
     render(config, context) {

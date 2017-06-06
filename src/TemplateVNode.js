@@ -55,7 +55,7 @@ TemplateVNode.prototype = {
         config.hash = hash;
     },
 
-    renderToString(config) {
+    renderServer(config) {
         const tag = this.tag;
         let children = '';
         let attrs = '';
@@ -176,7 +176,7 @@ function stringifyChildrenItem(item, config) {
     if (item) {
         if (type === 'object') {
             if (item.type === TEMPLATE) {
-                children += item.renderToString(config);
+                children += item.renderServer(config);
             } else if (item.type === TEMPLATE_FRAGMENT) {
                 for (let j = 0, l1 = item.fragment.length; j < l1; j++) {
                     children += stringifyChildrenItem(item.fragment[j], config);
