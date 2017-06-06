@@ -75,6 +75,10 @@ TemplateVNode.prototype = {
             }
         }
 
+        if (config.streamEnabled && !voidTags[tag]) {
+            config.write('<' + tag + attrs + '>');
+        }
+
         if (this.children) {
             for (let i = 0, l = this.children.length; i < l; i++) {
                 children += stringifyChildrenItem(this.children[i], config);
@@ -83,6 +87,10 @@ TemplateVNode.prototype = {
 
         if (needHashAttr) {
             attrs += ` data-rerender-hash="${escapeHtml(config.hash)}"`;
+        }
+
+        if (config.streamEnabled && !voidTags[tag]) {
+            config.write('</' + tag + '>');
         }
 
         return '<' + tag + attrs +

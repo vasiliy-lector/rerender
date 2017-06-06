@@ -11,6 +11,8 @@ function renderServer(userTemplate, {
     title = '',
     head = '',
     bodyEnd = '',
+    streamEnabled = false,
+    write,
     hashEnabled = true,
     fullHash = false
 } = {}) {
@@ -18,6 +20,8 @@ function renderServer(userTemplate, {
         store,
         dispatcher,
         hashEnabled,
+        streamEnabled,
+        write,
         fullHash,
         componentOptions: {
             dispatch: dispatcher.dispatch
