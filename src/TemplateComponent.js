@@ -4,7 +4,6 @@ import { shallowEqualProps } from './utils';
 import VText from './VText';
 import { componentInit, componentRender, componentBeforeRender, componentSetProps } from './componentLifeCycle';
 import reuseTemplate from './reuseTemplate';
-import { Connect } from './connect';
 import { specialAttrs, specialAttrsWrapper } from './constants';
 
 function TemplateComponent(componentType, props, children, targetComponentType) {
@@ -96,11 +95,11 @@ TemplateComponent.prototype = {
         } = config;
         const id = context.getId();
         let prev = components[id];
-        const isConnect = componentType.prototype instanceof Connect;
+        const needStore = componentType.store;
 
         if (prev === undefined || prev.type !== VCOMPONENT || prev.componentType !== componentType) {
             let storeState;
-            if (isConnect) {
+            if (needStore) {
                 storeState = store.getState(undefined, true);
             }
             const instance = new componentType(
@@ -108,7 +107,7 @@ TemplateComponent.prototype = {
                 children,
                 componentOptions,
                 id,
-                isConnect ? storeState : undefined
+                needStore ? storeState : undefined
             );
             this.preprocessInstance(instance);
             componentInit(instance);
@@ -133,7 +132,7 @@ TemplateComponent.prototype = {
                 instance.getState(undefined, true)
             );
 
-            if (isConnect) {
+            if (needStore) {
                 component.set('storeState', storeState);
             }
 
@@ -149,7 +148,7 @@ TemplateComponent.prototype = {
             // FIXME
             const sameChildren = false; // children.isEqual(prev.children);
             const sameState = instance.getState(undefined, true) !== prev.state;
-            const sameStoreState = !isConnect || prev.storeState === storeState;
+            const sameStoreState = !needStore || prev.storeState === storeState;
 
             if (sameProps) {
                 props = prev.props;
@@ -165,7 +164,7 @@ TemplateComponent.prototype = {
                 if (!sameProps || !sameChildren || !sameStoreState) {
                     let additional;
 
-                    if (isConnect) {
+                    if (needStore) {
                         additional = storeState;
                     }
 
@@ -186,7 +185,7 @@ TemplateComponent.prototype = {
                 instance.getState(undefined, true)
             );
 
-            if (isConnect) {
+            if (needStore) {
                 component.set('storeState', storeState);
             }
 

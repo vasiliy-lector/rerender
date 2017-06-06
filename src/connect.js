@@ -72,6 +72,7 @@ class Connect extends Component {
 }
 
 Connect.displayName = 'Connect';
+Connect.store = true;
 
 const connect = createDecorator(Connect);
 
