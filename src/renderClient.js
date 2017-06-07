@@ -64,9 +64,9 @@ function renderClient(userTemplate, settings = {}) {
         nextNodesById: config.nextNodes,
         document
     });
-    const hash = serverSettings.hash;
+    const serverHash = serverSettings.hash;
 
-    if (!hashEnabled || hash !== config.hash) {
+    if (!hashEnabled || !serverHash || serverHash !== config.hash) {
         hashEnabled && debug.warn('Server and client html do not match!');
         rootNode.innerHTML = '';
         patch.apply();
