@@ -32,22 +32,28 @@ describe('render', () => {
     });
 
     describe('renderServer', () => {
-        it('should render div to div', () => {
-            expect(renderServer(jsx `<div className="block">Text of block</div>`, renderOptions))
-                .toEqual('<div class="block">Text of block</div>');
+        it('should return instance of Promise', () => {
+            expect(renderServer(jsx `<div className="block">Text of block</div>`, renderOptions) instanceof Promise).toBe(true);
+        });
 
-            expect(renderServer(jsx `<div className="block">Text of block</div>`, renderOptions))
-                .toEqual('<div class="block">Text of block</div>');
+        it('should render div to div', () => {
+            return renderServer(jsx `<div className="block">Text of block</div>`, renderOptions)
+                .then(html => {
+                    expect(html).toEqual('<div class="block">Text of block</div>');
+
+                    return renderServer(jsx `<div className="block">Text of block</div>`, renderOptions);
+                })
+                .then(html => expect(html).toEqual('<div class="block">Text of block</div>'));
         });
 
         it('should render component', () => {
-            expect(renderServer(jsx `<${Block} text="Text of block"><p>Text from parent</p></${Block}>`, renderOptions))
-                .toEqual('<div class="block"><p>Text of block</p><p>Text from parent</p></div>');
+            return renderServer(jsx `<${Block} text="Text of block"><p>Text from parent</p></${Block}>`, renderOptions)
+                .then(html => expect(html).toEqual('<div class="block"><p>Text of block</p><p>Text from parent</p></div>'));
         });
 
         it('should render stateless component', () => {
-            expect(renderServer(jsx `<${Stateless} text="Text of block"><p>Text from parent</p></${Stateless}>`, renderOptions))
-                .toEqual('<div class="block"><p>Text of block</p><p>Text from parent</p></div>');
+            return renderServer(jsx `<${Stateless} text="Text of block"><p>Text from parent</p></${Stateless}>`, renderOptions)
+                .then(html => expect(html) .toEqual('<div class="block"><p>Text of block</p><p>Text from parent</p></div>'));
         });
     });
 

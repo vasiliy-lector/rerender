@@ -1,4 +1,5 @@
-import { defaultHtmlWrapper, getApplicationAfter, applicationId as defaultApplicationId } from './defaults';
+import { getWrapHeader, getWrapFooter, getApplicationAfter, applicationId as defaultApplicationId } from './defaults';
+import Stream from './Stream';
 import Store from './Store';
 import Dispatcher from './Dispatcher';
 
@@ -6,42 +7,67 @@ function renderServer(userTemplate, {
     store = new Store(),
     dispatcher = new Dispatcher({ store }),
     applicationId = defaultApplicationId,
-    wrap = true,
-    htmlWrapper = defaultHtmlWrapper,
+    stream,
+    concat,
+    wrap = false,
     title = '',
     head = '',
     bodyEnd = '',
     hashEnabled = true,
     fullHash = false
 } = {}) {
-    const application = userTemplate.renderServer({
+    let html;
+
+    if (stream === undefined) {
+        stream = new Stream();
+        concat = true;
+    }
+
+    if (concat) {
+        html = '';
+        stream.on('data', data => {
+            html += data;
+        });
+    }
+
+    if (wrap) {
+        stream.emit('data', getWrapHeader({
+            title,
+            head,
+            applicationId
+        }));
+    }
+
+    const config = {
         store,
         dispatcher,
         hashEnabled,
         fullHash,
+        stream,
         componentOptions: {
             dispatch: dispatcher.dispatch
         },
         hash: 0
-    });
+    };
 
-    if (!wrap) {
-        return application;
+    userTemplate.renderServer(config);
+
+    if (wrap) {
+        stream.emit('data', getApplicationAfter({
+            dispatcherState: dispatcher.dehydrate(),
+            hashEnabled,
+            fullHash,
+            hash: config.hash
+        }));
+
+        stream.emit('data', getWrapFooter({
+            bodyEnd
+        }));
     }
 
-    return htmlWrapper({
-        title,
-        head,
-        applicationId,
-        application,
-        applicationAfter: getApplicationAfter({
-            store,
-            applicationId,
-            hashEnabled,
-            fullHash
-        }),
-        bodyEnd
-    });
+    stream.emit('end', concat ? html : undefined);
+
+    return Promise.resolve(concat ? html : undefined);
 }
 
 export default renderServer;

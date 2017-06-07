@@ -1,7 +1,7 @@
 import { TEMPLATE, TEMPLATE_VNODE, TEMPLATE_FRAGMENT } from './types';
 import { debug } from './debug';
 import { escapeHtml, escapeAttr, escapeStyle, calcHash } from './utils';
-import { voidTags, specialAttrs } from './constants';
+import { specialAttrs } from './constants';
 import VNode from './VNode';
 import VText from './VText';
 import DynamicVNode from './DynamicVNode';
@@ -57,15 +57,9 @@ TemplateVNode.prototype = {
 
     renderServer(config) {
         const tag = this.tag;
-        let children = '';
         let attrs = '';
-        let needHashAttr;
 
         if (config.hashEnabled) {
-            if (config.hash === 0) {
-                needHashAttr = true;
-            }
-
             this.calcHash(config);
         }
 
@@ -75,20 +69,15 @@ TemplateVNode.prototype = {
             }
         }
 
+        config.stream.emit('data', '<' + tag + attrs + '>');
+
         if (this.children) {
             for (let i = 0, l = this.children.length; i < l; i++) {
-                children += stringifyChildrenItem(this.children[i], config);
+                stringifyChildrenItem(this.children[i], config);
             }
         }
 
-        if (needHashAttr) {
-            attrs += ` data-rerender-hash="${escapeHtml(config.hash)}"`;
-        }
-
-        return '<' + tag + attrs +
-            (children === '' && voidTags[tag]
-                ? ' />'
-                : '>' + children + '</' + tag + '>');
+        config.stream.emit('data', '</' + tag + '>');
     },
 
     needDynamic() {
@@ -171,35 +160,33 @@ function renderChildren(items, config, context, needKeys) {
 
 function stringifyChildrenItem(item, config) {
     const type = typeof item;
-    let children = '';
 
     if (item) {
         if (type === 'object') {
             if (item.type === TEMPLATE) {
-                children += item.renderServer(config);
+                item.renderServer(config);
             } else if (item.type === TEMPLATE_FRAGMENT) {
                 for (let j = 0, l1 = item.fragment.length; j < l1; j++) {
-                    children += stringifyChildrenItem(item.fragment[j], config);
+                    stringifyChildrenItem(item.fragment[j], config);
                 }
             } else if (Array.isArray(item)) {
                 for (let j = 0, l1 = item.length; j < l1; j++) {
-                    children += stringifyChildrenItem(item[j], config);
+                    stringifyChildrenItem(item[j], config);
                 }
             } else if (item) {
                 if (config.hashEnabled) {
                     config.hash = calcHash(config.hash, String(item));
                 }
-                children += escapeHtml(item);
+                config.stream.emit('data', escapeHtml(item));
             }
         } else {
+            // TODO: null
             if (config.hashEnabled) {
                 config.hash = calcHash(config.hash, String(item));
             }
-            children += escapeHtml(item);
+            config.stream.emit('data', escapeHtml(item));
         }
     }
-
-    return children;
 }
 
 function stringifyAttr(name, value) {

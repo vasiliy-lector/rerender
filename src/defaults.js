@@ -7,22 +7,21 @@ export const eventDefaults = {
     clientDisabled: false
 };
 
-export const defaultHtmlWrapper = ({
+export const getWrapHeader = ({
     title,
     head,
-    applicationId,
-    application,
-    applicationAfter,
-    bodyEnd
+    applicationId
 }) => `<!DOCTYPE html>
 <html>
 <head>
     <title>${escapeHtml(title)}</title>
     ${head}
 </head>
-<body id="${escapeAttr(applicationId)}">${application}
-    ${applicationAfter}
-    ${bodyEnd}
+<body id="${escapeAttr(applicationId)}">`;
+
+export const getWrapFooter = ({
+    bodyEnd
+}) => `${bodyEnd}
 </body>
 </html>`;
 
