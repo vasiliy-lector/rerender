@@ -64,10 +64,9 @@ function renderClient(userTemplate, settings = {}) {
         nextNodesById: config.nextNodes,
         document
     });
-    const firstChild = rootNode.childNodes[0];
-    const hash = firstChild && firstChild.getAttribute('data-rerender-hash');
+    const hash = serverSettings.hash;
 
-    if (!hashEnabled || hash !== String(config.hash)) {
+    if (!hashEnabled || hash !== config.hash) {
         hashEnabled && debug.warn('Server and client html do not match!');
         rootNode.innerHTML = '';
         patch.apply();

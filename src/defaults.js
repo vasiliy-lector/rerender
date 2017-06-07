@@ -29,12 +29,14 @@ export const getApplicationAfter = ({
     store,
     applicationId,
     hashEnabled,
+    hash,
     fullHash
 }) => `<script>
     window.__RERENDER__${applicationId} = {};
     window.__RERENDER__${applicationId}.storeState = ${JSON.stringify(store.dehydrate())};
     window.__RERENDER__${applicationId}.settings = ${JSON.stringify({
         hashEnabled,
-        fullHash
+        fullHash,
+        hash
     })};
 </script>`;
