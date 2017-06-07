@@ -1,10 +1,12 @@
 class Events {
-    emit(eventName, ...payload) {
+    emit(eventName, payload) {
         if (!this.callbacks || !this.callbacks[eventName]) {
             return;
         }
 
-        this.callbacks[eventName].forEach(callback => callback(...payload));
+        for (let i = 0, l = this.callbacks[eventName].length; i < l; i++) {
+            this.callbacks[eventName][i](payload);
+        }
     }
 
     on(eventNames, callback) {
