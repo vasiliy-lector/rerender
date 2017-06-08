@@ -5,8 +5,7 @@ import Dispatcher from './Dispatcher';
 import { mayAsync } from './utils';
 
 function renderServer(userTemplate, {
-    store = new Store(),
-    dispatcher = new Dispatcher({ store }),
+    dispatcher,
     applicationId = defaultApplicationId,
     stream,
     concat,
@@ -18,11 +17,17 @@ function renderServer(userTemplate, {
     fullHash = false
 } = {}) {
     let html;
+    const store = new Store();
 
     if (stream === undefined) {
         stream = new Stream();
         concat = true;
     }
+
+    if (dispatcher === undefined) {
+        dispatcher = new Dispatcher({ store });
+    }
+    dispatcher.stopWarmUp();
 
     if (concat) {
         html = '';

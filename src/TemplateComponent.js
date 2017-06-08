@@ -69,6 +69,16 @@ TemplateComponent.prototype = {
         }
     },
 
+    serverInit(instance, config) {
+        const { dispatcher } = config;
+
+        dispatcher.beginCatch();
+        componentInit(instance);
+        dispatcher.endCatch();
+
+        return dispatcher.waitCatched();
+    },
+
     renderServer(config) {
         const componentType = this.componentType;
         const instance = new componentType(
@@ -80,7 +90,7 @@ TemplateComponent.prototype = {
         );
         this.preprocessInstance(instance);
 
-        return mayAsync(componentInit(instance), () => {
+        return mayAsync(this.serverInit(instance, config), () => {
             const template = componentRender(instance);
 
             if (template) {

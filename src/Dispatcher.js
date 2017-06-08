@@ -1,15 +1,20 @@
 import { deepEqual } from './utils';
+import NeverResolvePromise from './NeverResolvePromise';
 
 const betweenUserCache = {};
 const maxAge = 600000;
 
-function Dispatcher({ store, server = false, betweenUserCacheEnabled = true }) {
+function Dispatcher({ store, isServer = false, betweenUserCacheEnabled = true }) {
+    this.warmUp = true;
     this.store = store;
-    this.isServer = server;
+    this.isServer = isServer;
     this.betweenUserCacheEnabled = betweenUserCacheEnabled;
-    this.dispatch = this.dispatch.bind(this);
+    this.dispatch = isServer
+        ? this.dispatchServer.bind(this)
+        : this.dispatchFirstRender.bind(this);
     // user cache
     this.cache = {};
+    this.stack = [];
 
     this.actionOptions = Object.freeze({
         dispatch: this.dispatch,
@@ -22,13 +27,112 @@ function Dispatcher({ store, server = false, betweenUserCacheEnabled = true }) {
 }
 
 Dispatcher.prototype = {
-    dehydrate() {},
+    dehydrate() {
+        const deduplicate = {};
 
-    dispatch(event, payload) {
-        if ((this.isServer && event.serverDisabled) || (!this.isServer && event.clientDisabled)) {
-            return Promise.reject();
+        return this.stack.map(item => {
+            const deduplicateByName = deduplicate[item.name] || (deduplicate[item.name] = []);
+
+            for (let i = 0, l = deduplicateByName.length; i < l; i++) {
+                if (deduplicateByName[i] === item.promise) {
+                    return {
+                        name: item.name,
+                        status: item.status,
+                        duplicate: true
+                    };
+                }
+            }
+
+            deduplicateByName.push(item.promise);
+
+            return {
+                name: item.name,
+                status: item.status,
+                payload: item.payload,
+                error: item.error
+            };
+        });
+    },
+
+    rehydrate(stack) {
+        this.stack = stack;
+    },
+
+    stopWarmUp() {
+        this.warmUp = false;
+    },
+
+    beginCatch() {
+        this.executionEnabled = true;
+        this.beginCatchCount = this.stack.length;
+    },
+
+    endCatch() {
+        this.executionEnabled = false;
+        this.endCatchCount = this.stack.length;
+    },
+
+    waitCatched() {
+        const beginCatchCount = this.beginCatchCount;
+        const endCatchCount = this.endCatchCount;
+        const catchCount = endCatchCount - beginCatchCount;
+
+        if (catchCount === 0) {
+            return;
         }
 
+        const catched = this.stack.slice(-catchCount);
+
+        return new Promise(resolve => {
+            let settledCount = 0;
+            const settle = () => {
+                settledCount++;
+                if (catchCount <= settledCount) {
+                    resolve();
+                }
+            };
+
+            for (let i = 0; i < catchCount; i++) {
+                if (catched[i].promise instanceof NeverResolvePromise) {
+                    settledCount++;
+                } else {
+                    catched[i].promise.then(settle, settle);
+                }
+            }
+        });
+    },
+
+    dispatchServer(event, payload) {
+        if (this.warmUp) {
+            return event.serverDisabled ? Promise.reject() : this._dispatchWithCache(event, payload);
+        }
+
+        const promise = this.executionEnabled && !event.serverDisabled
+            ? this._dispatchWithCache(event, payload)
+            : new NeverResolvePromise();
+
+        const index = this.stack.push({
+            name: event.name,
+            promise,
+            status: 'pending'
+        }) - 1;
+
+        promise.then(payload => {
+            this.stack[index].status = 'resolved';
+            this.stack[index].payload = payload;
+        }, error => {
+            this.stack[index].status = 'rejected';
+            this.stack[index].error = error;
+        });
+
+        return promise;
+    },
+
+    dispatchFirstRender(event, payload) {
+        return this._dispatchWithCache(event, payload);
+    },
+
+    _dispatchWithCache(event, payload) {
         let cache;
         const hasCache = event.cache && event.name !== undefined;
 
@@ -46,7 +150,7 @@ Dispatcher.prototype = {
             }
         }
 
-        const result = this._dispatchNoCache(event, payload);
+        const result = this._dispatchPure(event, payload);
 
         if (hasCache) {
             const cacheItem = {
@@ -77,7 +181,7 @@ Dispatcher.prototype = {
         return result;
     },
 
-    _dispatchNoCache(event, payload) {
+    _dispatchPure(event, payload) {
         if (typeof event.action !== 'function') {
             this.runReducers(event, payload);
 
@@ -125,7 +229,7 @@ Dispatcher.prototype = {
     },
 
     runReducers(event, payload) {
-        if (!event.reducers || !event.reducers.length) {
+        if (this.warmUp || !event.reducers || !event.reducers.length) {
             return;
         }
 
@@ -134,7 +238,7 @@ Dispatcher.prototype = {
         }
     },
 
-    setServer() {
+    setIsServer() {
         this.isServer = true;
     }
 };
