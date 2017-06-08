@@ -1,4 +1,5 @@
 export { default as Component } from './Component';
+export { default as Stream } from './Stream';
 export { default as connect } from './connect';
 export { default as createController } from './createController';
 export { default as createTemplate } from './createTemplate';
