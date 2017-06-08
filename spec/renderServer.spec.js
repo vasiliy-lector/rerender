@@ -21,7 +21,7 @@ Stateless.defaults = {
     className: 'block'
 };
 
-var renderOptions = {
+const renderOptions = {
     hashEnabled: false,
     wrap: false
 };

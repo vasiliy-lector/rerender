@@ -7,7 +7,7 @@ import reuseTemplate from './reuseTemplate';
 import { specialAttrs, specialAttrsWrapper } from './constants';
 
 function TemplateComponent(componentType, props, children, targetComponentType) {
-    var nextProps = props || {};
+    let nextProps = props || {};
 
     if (componentType.wrapper) {
         nextProps = Object.keys(nextProps).reduce((memo, key) => {
@@ -32,7 +32,7 @@ function TemplateComponent(componentType, props, children, targetComponentType) 
     }
 
     if (componentType.defaults) {
-        for (var name in componentType.defaults) {
+        for (let name in componentType.defaults) {
             if (nextProps[name] === undefined) {
                 nextProps[name] = componentType.defaults[name];
             }
@@ -56,11 +56,11 @@ TemplateComponent.prototype = {
     subtype: TEMPLATE_COMPONENT,
 
     preprocessInstance(instance) {
-        var antibind = this.componentType.antibind;
+        const antibind = this.componentType.antibind;
 
         if (antibind && Array.isArray(antibind)) {
-            for (var i = 0, l = antibind.length; i < l; i++) {
-                var name = antibind[i];
+            for (let i = 0, l = antibind.length; i < l; i++) {
+                let name = antibind[i];
 
                 if (typeof instance[name] === 'function') {
                     instance[name] = instance[name].bind(instance);
@@ -70,22 +70,22 @@ TemplateComponent.prototype = {
     },
 
     renderServer(config) {
-        var componentType = this.componentType;
-        var instance = new componentType(this.props, this.children, config.componentOptions, undefined, config.store.getState());
+        const componentType = this.componentType;
+        const instance = new componentType(this.props, this.children, config.componentOptions, undefined, config.store.getState());
         this.preprocessInstance(instance);
         componentInit(instance);
-        var template = componentRender(instance);
+        const template = componentRender(instance);
 
         return template ? template.renderServer(config) : '';
     },
 
     render(config, context) {
-        var props = this.props;
-        var children = this.children;
-        var template;
-        var component;
-        var componentType = this.componentType;
-        var {
+        let props = this.props;
+        let children = this.children;
+        let template;
+        let component;
+        const componentType = this.componentType;
+        const {
             components,
             nextComponents,
             mountComponents,
@@ -93,16 +93,16 @@ TemplateComponent.prototype = {
             store,
             componentOptions
         } = config;
-        var id = context.getId();
-        var prev = components[id];
-        var needStore = componentType.store;
+        const id = context.getId();
+        let prev = components[id];
+        const needStore = componentType.store;
 
         if (prev === undefined || prev.type !== VCOMPONENT || prev.componentType !== componentType) {
-            var storeState;
+            let storeState;
             if (needStore) {
                 storeState = store.getState(undefined, true);
             }
-            var instance = new componentType(
+            const instance = new componentType(
                 props,
                 children,
                 componentOptions,
@@ -139,16 +139,16 @@ TemplateComponent.prototype = {
             nextComponents[id] = component;
             mountComponents[id] = component.ref;
         } else {
-            var instance = prev.ref;
-            var storeState = store.getState(undefined, true);
+            const instance = prev.ref;
+            const storeState = store.getState(undefined, true);
 
             componentBeforeRender(instance);
 
-            var sameProps = shallowEqualProps(prev.props, props);
+            const sameProps = shallowEqualProps(prev.props, props);
             // FIXME
-            var sameChildren = false; // children.isEqual(prev.children);
-            var sameState = instance.getState(undefined, true) !== prev.state;
-            var sameStoreState = !needStore || prev.storeState === storeState;
+            const sameChildren = false; // children.isEqual(prev.children);
+            const sameState = instance.getState(undefined, true) !== prev.state;
+            const sameStoreState = !needStore || prev.storeState === storeState;
 
             if (sameProps) {
                 props = prev.props;
@@ -162,7 +162,7 @@ TemplateComponent.prototype = {
                 template = prev.template;
             } else {
                 if (!sameProps || !sameChildren || !sameStoreState) {
-                    var additional;
+                    let additional;
 
                     if (needStore) {
                         additional = storeState;
@@ -194,7 +194,7 @@ TemplateComponent.prototype = {
         }
 
         // FIXME: createText and move increment inside render
-        var childs;
+        let childs;
 
         if (template) {
             childs = template.render(
@@ -206,8 +206,8 @@ TemplateComponent.prototype = {
                 ](template.key, template.uniqid)
             );
         } else {
-            var nextContext = context.addIdLevel(component).incrementDom();
-            var nextTextNode = new VText('', nextContext);
+            const nextContext = context.addIdLevel(component).incrementDom();
+            const nextTextNode = new VText('', nextContext);
             childs = nextTextNode;
             config.nextNodes[nextContext.getId()] = nextTextNode;
         }

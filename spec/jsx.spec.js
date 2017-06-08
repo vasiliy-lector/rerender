@@ -35,7 +35,7 @@ describe('jsx', () => {
     });
 
     it('should parse component with child', () => {
-        var Instance = { instance: true };
+        const Instance = { instance: true };
 
         expect(jsx `<instance of=${Instance} text="Text of block"><p>Text from parent</p></instance>`).toEqual({
             tag: 'instance',
@@ -52,7 +52,7 @@ describe('jsx', () => {
     });
 
     it('should work with components', () => {
-        var Component = {};
+        const Component = {};
         expect(jsx `<${Component}
             id='id1'
             value=${'value1'}

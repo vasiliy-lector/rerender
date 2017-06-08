@@ -3,7 +3,7 @@ import Patch, { Create, SetRef, AttachEvents, SplitText } from './Patch';
 
 function createInitialPatchRecursive(nextNode, options, insideCreation, nextSibling) {
     if (nextNode.type === VNODE) {
-        var childrenCreated;
+        let childrenCreated;
 
         if (!insideCreation) {
             options.patch.push(new Create(nextNode));
@@ -17,7 +17,7 @@ function createInitialPatchRecursive(nextNode, options, insideCreation, nextSibl
             if (nextNode.dynamic) {
                 options.patch.pushNormalize(new AttachEvents(nextNode));
             } else {
-                for (var name in nextNode.attrs) {
+                for (let name in nextNode.attrs) {
                     if (name.substr(0, 2) === 'on') {
                         options.patch.pushNormalize(new AttachEvents(nextNode));
                         break;
@@ -26,7 +26,7 @@ function createInitialPatchRecursive(nextNode, options, insideCreation, nextSibl
             }
         }
 
-        for (var i = 0, l = nextNode.childNodes.length; i < l; i++) {
+        for (let i = 0, l = nextNode.childNodes.length; i < l; i++) {
             createInitialPatchRecursive(
                 nextNode.childNodes[i],
                 options,
@@ -46,7 +46,7 @@ function createInitialPatchRecursive(nextNode, options, insideCreation, nextSibl
 }
 
 function createInitialPatch(nextNode, options = {}) {
-    var patch = new Patch(options.document);
+    const patch = new Patch(options.document);
 
     createInitialPatchRecursive(nextNode, { patch });
 

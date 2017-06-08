@@ -11,20 +11,20 @@ import { VNODE, VTEXT, VCOMPONENT } from './types';
 import { groupByIdComponents, groupByIdNodes } from './utils';
 import { applicationId as defaultApplicationId } from './defaults';
 
-var RENDER_THROTTLE = 16;
+const RENDER_THROTTLE = 16;
 
 function renderClient(userTemplate, settings = {}) {
-    var {
+    const {
         window = self,
         applicationId = defaultApplicationId
     } = settings;
-    var document = window.document;
-    var {
+    const document = window.document;
+    const {
         storeState,
         settings: serverSettings = {}
     } = window[`__RERENDER__${applicationId}`] || {};
 
-    var {
+    const {
         rootNode = document.getElementById(applicationId),
         store = new Store({ state: storeState }),
         dispatcher = new Dispatcher({ store }),
@@ -32,9 +32,9 @@ function renderClient(userTemplate, settings = {}) {
         fullHash = serverSettings.fullHash
     } = settings;
 
-    var events = new Events();
-    var rootTemplate = new TemplateVSandbox(rootNode, userTemplate);
-    var config = {
+    const events = new Events();
+    const rootTemplate = new TemplateVSandbox(rootNode, userTemplate);
+    const config = {
         store,
         dispatcher,
         // events, rootTemplate, document, rootNode, virtualRoot need only inside renderClient file
@@ -59,12 +59,12 @@ function renderClient(userTemplate, settings = {}) {
         getParent: getParent(config),
         events
     };
-    var nextVirtualRoot = rootTemplate.render(config);
-    var patch = createInitialPatch(nextVirtualRoot.childNodes[0], {
+    const nextVirtualRoot = rootTemplate.render(config);
+    const patch = createInitialPatch(nextVirtualRoot.childNodes[0], {
         nextNodesById: config.nextNodes,
         document
     });
-    var serverHash = serverSettings.hash;
+    const serverHash = serverSettings.hash;
 
     if (!hashEnabled || !serverHash || serverHash !== config.hash) {
         hashEnabled && debug.warn('Server and client html do not match!');
@@ -86,8 +86,8 @@ function renderClient(userTemplate, settings = {}) {
 }
 
 function rerenderClient(config) {
-    var nextVirtualRoot = config.rootTemplate.render(config);
-    var patch = diff(nextVirtualRoot.childNodes[0], config.virtualRoot.childNodes[0], {
+    const nextVirtualRoot = config.rootTemplate.render(config);
+    const patch = diff(nextVirtualRoot.childNodes[0], config.virtualRoot.childNodes[0], {
         nextNodesById: config.nextNodes,
         nodesById: config.nodes,
         document
@@ -103,35 +103,35 @@ function rerenderClient(config) {
 }
 
 function rerenderClientOne(config, id) {
-    var component = config.components[id];
-    var node = getFirstNode(component);
-    var sandbox = new TemplateVSandbox(node.parentNode, component.componentTemplate);
-    var nextSandboxNode = sandbox.render(config, new Context(component.context));
-    var nodesById = groupByIdNodes(node, {});
-    var options = {
+    const component = config.components[id];
+    const node = getFirstNode(component);
+    const sandbox = new TemplateVSandbox(node.parentNode, component.componentTemplate);
+    const nextSandboxNode = sandbox.render(config, new Context(component.context));
+    const nodesById = groupByIdNodes(node, {});
+    const options = {
         nodesById,
         nextNodesById: config.nextNodes,
         document
     };
-    var nextNode = nextSandboxNode.childNodes[0];
-    var patch = diff(nextNode, node, options);
+    const nextNode = nextSandboxNode.childNodes[0];
+    const patch = diff(nextNode, node, options);
 
-    var components = groupByIdComponents(component, {});
-    var unmounted = unmountOne(config.nextComponents, components);
+    const components = groupByIdComponents(component, {});
+    const unmounted = unmountOne(config.nextComponents, components);
 
     patch.apply();
     mount(config.mountComponents);
     update(config.updateComponents);
 
-    var nextComponent = nextSandboxNode.childs[0];
+    const nextComponent = nextSandboxNode.childs[0];
     component.parent.childs[component.context.index] = nextComponent;
     node.parentNode.childNodes[node.context.domIndex] = nextNode;
     nextComponent.set('context', component.context);
     nextComponent.parent = component.parent;
     nextNode.parentNode = node.parentNode;
 
-    var removedNodes = {};
-    for (var id in nodesById) {
+    const removedNodes = {};
+    for (let id in nodesById) {
         if (!config.nextNodes[id]) {
             removedNodes[id] = nodesById[id];
         }
@@ -160,26 +160,26 @@ function prepearConfig(config) {
 }
 
 function prepearConfigOne(config, unmounted, removedNodes) {
-    for (var id in config.nextNodes) {
+    for (let id in config.nextNodes) {
         config.nodes[id] = config.nextNodes[id];
     }
-    for (var id in removedNodes) {
+    for (let id in removedNodes) {
         delete config.nodes[id];
     }
     config.nextNodes = {};
 
-    for (var id in config.nextComponents) {
+    for (let id in config.nextComponents) {
         config.components[id] = config.nextComponents[id];
     }
-    for (var id in unmounted) {
+    for (let id in unmounted) {
         delete config.components[id];
     }
     config.nextComponents = {};
 
-    for (var id in config.nextDynamicNodes) {
+    for (let id in config.nextDynamicNodes) {
         config.dynamicNodes[id] = config.nextDynamicNodes[id];
     }
-    for (var id in removedNodes) {
+    for (let id in removedNodes) {
         delete config.dynamicNodes[id];
     }
     config.nextDynamicNodes = {};
@@ -190,11 +190,11 @@ function prepearConfigOne(config, unmounted, removedNodes) {
 }
 
 function listenEvents(config) {
-    var throttleTimeout;
-    var rerenderOneTimeout;
-    var scheduled;
-    var scheduledOneId;
-    var { events, store } = config;
+    let throttleTimeout;
+    let rerenderOneTimeout;
+    let scheduled;
+    let scheduledOneId;
+    const { events, store } = config;
 
     events.on('rerender', () => {
         if (scheduled) {
@@ -249,17 +249,17 @@ function listenEvents(config) {
 }
 
 function mount(instances) {
-    for (var id in instances) {
+    for (let id in instances) {
         componentMount(instances[id]);
     }
 }
 
 function unmount(nextComponents, components) {
-    for (var id in components) {
+    for (let id in components) {
         if (components[id].type === VCOMPONENT
             && (!nextComponents[id] || nextComponents[id].componentType !== components[id].componentType)
         ) {
-            var instance = components[id].ref;
+            const instance = components[id].ref;
             componentUnmount(instance);
             componentDestroy(instance);
         }
@@ -267,13 +267,13 @@ function unmount(nextComponents, components) {
 }
 
 function unmountOne(nextComponents, components) {
-    var unmounted = {};
+    const unmounted = {};
 
-    for (var id in components) {
+    for (let id in components) {
         if (components[id].type === VCOMPONENT
             && (!nextComponents[id] || nextComponents[id].componentType !== components[id].componentType)
         ) {
-            var instance = components[id].ref;
+            const instance = components[id].ref;
             componentUnmount(instance);
             componentDestroy(instance);
             unmounted[components[id].id] = components[id];
@@ -288,7 +288,7 @@ function getParent(config) {
 }
 
 function update(instances) {
-    for (var id in instances) {
+    for (let id in instances) {
         componentUpdate(instances[id]);
     }
 }

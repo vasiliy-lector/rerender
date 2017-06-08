@@ -1,7 +1,7 @@
 import { deepEqual } from './utils';
 
-var betweenUserCache = {};
-var maxAge = 600000;
+const betweenUserCache = {};
+const maxAge = 600000;
 
 function Dispatcher({ store, server = false, betweenUserCacheEnabled = true }) {
     this.store = store;
@@ -28,8 +28,8 @@ Dispatcher.prototype = {
             return Promise.reject();
         }
 
-        var cache;
-        var hasCache = event.cache && event.name !== undefined;
+        let cache;
+        const hasCache = event.cache && event.name !== undefined;
 
         if (hasCache) {
             if (this.isServer && this.betweenUserCacheEnabled && event.userIndependent) {
@@ -38,25 +38,25 @@ Dispatcher.prototype = {
                 cache = this.cache;
             }
 
-            var cached = this.getCached(cache, event, payload);
+            const cached = this.getCached(cache, event, payload);
 
             if (cached !== undefined) {
                 return cached;
             }
         }
 
-        var result = this._dispatchNoCache(event, payload);
+        const result = this._dispatchNoCache(event, payload);
 
         if (hasCache) {
-            var cacheItem = {
+            const cacheItem = {
                 event,
                 payload,
                 result
             };
 
-            var cacheByName = cache[event.name] || (cache[event.name] = []);
+            const cacheByName = cache[event.name] || (cache[event.name] = []);
             cacheByName.push(cacheItem);
-            var timeout;
+            let timeout;
 
             if (!this.isServer || cache === betweenUserCache) {
                 timeout = setTimeout(() => this.dropCacheItem(cacheByName, cacheItem), event.maxAge || maxAge);
@@ -95,8 +95,8 @@ Dispatcher.prototype = {
             return;
         }
 
-        for (var i = 0, l = cache[event.name].length; i < l; i++) {
-            var cacheItem = cache[event.name][i];
+        for (let i = 0, l = cache[event.name].length; i < l; i++) {
+            const cacheItem = cache[event.name][i];
             if (cacheItem.event === event && deepEqual(cacheItem.payload, payload)) {
                 return cacheItem.result;
             }
@@ -104,7 +104,7 @@ Dispatcher.prototype = {
     },
 
     dropCacheItem(cacheByName, item) {
-        for (var i = 0, l = cacheByName.length; i < l; i++) {
+        for (let i = 0, l = cacheByName.length; i < l; i++) {
             if (cacheByName[i] === item) {
                 cacheByName.splice(i, 1);
 
@@ -114,7 +114,7 @@ Dispatcher.prototype = {
     },
 
     runAction(event, payload) {
-        var actionResult = event.action(this.actionOptions, payload);
+        const actionResult = event.action(this.actionOptions, payload);
 
         if (actionResult && actionResult instanceof Promise) {
             return actionResult;
@@ -128,7 +128,7 @@ Dispatcher.prototype = {
             return;
         }
 
-        for (var i = 0, l = event.reducers.length; i < l; i++) {
+        for (let i = 0, l = event.reducers.length; i < l; i++) {
             event.reducers[i](this.reducerOptions, payload);
         }
     },

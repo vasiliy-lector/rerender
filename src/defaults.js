@@ -1,13 +1,13 @@
 import { escapeAttr, escapeHtml } from './utils';
 
-export var eventDefaults = {
+export const eventDefaults = {
     cache: false,
     userIndependent: false,
     serverDisabled: false,
     clientDisabled: false
 };
 
-export var getWrapHeader = ({
+export const getWrapHeader = ({
     title,
     head,
     applicationId
@@ -19,13 +19,13 @@ export var getWrapHeader = ({
 </head>
 <body id="${escapeAttr(applicationId)}">`;
 
-export var getWrapFooter = ({
+export const getWrapFooter = ({
     bodyEnd
 }) => `${bodyEnd}
 </body>
 </html>`;
 
-export var getApplicationAfter = ({
+export const getApplicationAfter = ({
     store,
     applicationId,
     hashEnabled,

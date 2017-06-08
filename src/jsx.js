@@ -147,7 +147,7 @@ var parser = require('nano-parser'),
             };})
         ))
     ).then(function(result) { return function(values) {
-        var memo = [
+        const memo = [
             typeof result[1] === 'function' ? result[1](values) : result[1],
             result[2](values)
         ];

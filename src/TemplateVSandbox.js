@@ -1,7 +1,7 @@
 import Context from './Context';
 import VSandbox from './VSandbox';
 
-var rootContext = new Context({
+const rootContext = new Context({
     parentId: 'r',
     parentNodeId: 'r',
     index: 0,
@@ -16,7 +16,7 @@ function TemplateVSandbox(domNode, template) {
 
 TemplateVSandbox.prototype = {
     render(config, context) {
-        var sandbox = new VSandbox(this.domNode);
+        const sandbox = new VSandbox(this.domNode);
 
         if (context === undefined) {
             context = rootContext;

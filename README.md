@@ -41,7 +41,7 @@ class TodoList extends Component {
     }
 
     render() {
-        var { removeTodo, todos } = this.props;
+        let { removeTodo, todos } = this.props;
 
         return jsx `<div className="todo-list">
             <${Items}
@@ -76,7 +76,7 @@ TodoList.initActions = [getTodos];
 
 TodoList.autoBind = ['handleSubmit', 'handleInput'];
 
-var
+const
     get = function({
         todos: {
             list: todos
@@ -101,7 +101,7 @@ Create action:
 import { createAction } from 'rerender';
 import addTodoReducer from '../reducers/todos/addTodo';
 
-var
+const
     deps = { addTodoReducer },
     addTodo = createAction(({ payload, actions, resolve }) => {
         // some stuff can be done here with payload
@@ -119,8 +119,8 @@ Create reducer:
 import { createReducer } from 'rerender';
 import { buildStateByList } from './rehydrate';
 
-var addTodo = createReducer(({ payload, state, setState }) => {
-    var {
+const addTodo = createReducer(({ payload, state, setState }) => {
+    let {
             todos: {
                 list: prevList,
                 byId: prevById
@@ -130,7 +130,7 @@ var addTodo = createReducer(({ payload, state, setState }) => {
         newTodo;
 
     if (!payload.id) {
-        var allIds = Object.keys(prevById);
+        let allIds = Object.keys(prevById);
 
         id = allIds.length > 0 ? Math.max.apply(Math, allIds) + 1 : 0,
         newTodo = Object.assign({}, payload, {
@@ -173,7 +173,7 @@ Create store:
 ```javascript
 import { Store } from 'rerender';
 
-var store = new Store({
+let store = new Store({
     state: initialState
 });
 ```
@@ -182,14 +182,14 @@ Render on server:
 ```javascript
 import { serverRender } from 'rerender';
 
-var result = serverRender(jsx `<${Application} />`, { store });
+let result = serverRender(jsx `<${Application} />`, { store });
 ```
 
 Render on client:
 ```javascript
 import { clientRender } from 'rerender';
 
-var result = clientRender(jsx `<${Application} />`, document.getElementById('application'), { store });
+let result = clientRender(jsx `<${Application} />`, document.getElementById('application'), { store });
 ```
 
 Full isomorphic example [see here](https://github.com/rerender/rerender-todos).

@@ -1,9 +1,9 @@
 import { TEMPLATE, VCOMPONENT } from './types';
 import { styleProps } from './constants';
 
-var NEXT_TICK_TIMEOUT = 0;
-var REGEXP_ATTR = /[<>"&]/;
-var REGEXP_HTML = /[<>&]/;
+const NEXT_TICK_TIMEOUT = 0;
+const REGEXP_ATTR = /[<>"&]/;
+const REGEXP_HTML = /[<>&]/;
 
 function escapeHtmlHeavy(value) {
     return value
@@ -12,7 +12,7 @@ function escapeHtmlHeavy(value) {
         .replace(/>/g, '&gt;');
 }
 
-var UPPER_CASE = /[A-Z]/g;
+const UPPER_CASE = /[A-Z]/g;
 
 function convertStyleKey(key) {
     return styleProps[key] || convertStyleKeyHeavy(key);
@@ -27,7 +27,7 @@ function convertUpper(match) {
 }
 
 function escapeStyle(value) {
-    var styleString;
+    let styleString;
 
     if (typeof value === 'object') {
         styleString = '';
@@ -43,7 +43,7 @@ function escapeStyle(value) {
 }
 
 function escapeHtml(value) {
-    var string = String(value);
+    const string = String(value);
 
     if (string.length > 10) {
         return REGEXP_HTML.test(string) ? escapeHtmlHeavy(string) : string;
@@ -68,7 +68,7 @@ function escapeAttrHeavy(value) {
 }
 
 function escapeAttr(value) {
-    var string = String(value);
+    const string = String(value);
 
     if (string.length > 10) {
         return REGEXP_ATTR.test(string) ? escapeAttrHeavy(string) : string;
@@ -84,7 +84,7 @@ function escapeAttr(value) {
     return string;
 }
 
-var directEqual = {
+const directEqual = {
     'number': true,
     'string': true,
     'boolean': true,
@@ -104,8 +104,8 @@ function deepEqual(obj1, obj2) {
             return false;
         }
 
-        for (var i = 0, l = obj1.length; i < l; i++) {
-            var equal = deepEqual(obj1[i], obj2[i]);
+        for (let i = 0, l = obj1.length; i < l; i++) {
+            const equal = deepEqual(obj1[i], obj2[i]);
 
             if (!equal) {
                 return false;
@@ -115,15 +115,15 @@ function deepEqual(obj1, obj2) {
         if (typeof obj2 !== 'object') {
             return false;
         }
-        var keys1 = Object.keys(obj1);
-        var keys2 = Object.keys(obj2);
+        const keys1 = Object.keys(obj1);
+        const keys2 = Object.keys(obj2);
 
         if (keys1.length !== keys2.length) {
             return false;
         }
 
-        for (var i = 0, l = keys1.length; i < l; i++) {
-            var equal = deepEqual(obj1[keys1[i]], obj2[keys1[i]]);
+        for (let i = 0, l = keys1.length; i < l; i++) {
+            const equal = deepEqual(obj1[keys1[i]], obj2[keys1[i]]);
 
             if (!equal) {
                 return false;
@@ -144,7 +144,7 @@ function shallowEqual(obj1, obj2) {
         return false;
     }
 
-    for (var name in obj1) {
+    for (let name in obj1) {
         if (obj1[name] !== obj2[name]) {
             return false;
         }
@@ -162,7 +162,7 @@ function shallowEqualProps(props1, props2) {
         return false;
     }
 
-    for (var name in props1) {
+    for (let name in props1) {
         if (!isEqualValues(props1[name], props2[name])) {
             return false;
         }
@@ -192,7 +192,7 @@ function isEqualFragments(arr1, arr2) {
         return false;
     }
 
-    for (var i = 0, l = arr1.length; i < l; i++) {
+    for (let i = 0, l = arr1.length; i < l; i++) {
         if (!isEqualValues(arr1[i], arr2[i])) {
             return false;
         }
@@ -210,7 +210,7 @@ function shallowEqualArray(array1, array2) {
         return false;
     }
 
-    for (var i = 0, l = array1.length; i < l; i++) {
+    for (let i = 0, l = array1.length; i < l; i++) {
         if (array1[i] !== array2[i]) {
             return false;
         }
@@ -225,11 +225,11 @@ function nextTick(fn) {
 
 // FIXME: optimize
 function calcHash(hash) {
-    for (var j = 1, argsLength = arguments.length; j < argsLength; j++) {
-        var word = arguments[j];
+    for (let j = 1, argsLength = arguments.length; j < argsLength; j++) {
+        const word = arguments[j];
         if (typeof word !== 'string' || word.length === 0) return hash;
 
-        for (var i = 0, l = word.length; i < l; i++) {
+        for (let i = 0, l = word.length; i < l; i++) {
             hash  = (((hash << 5) - hash) + word.charCodeAt(i)) | 0;
         }
     }
@@ -242,7 +242,7 @@ function groupByIdNodes(node, memo) {
     memo[node.context.getId()] = node;
 
     if (node.childNodes) {
-        for (var i = 0, l = node.childNodes.length; i < l; i++) {
+        for (let i = 0, l = node.childNodes.length; i < l; i++) {
             groupByIdNodes(node.childNodes[i], memo);
         }
     }
@@ -256,7 +256,7 @@ function groupByIdComponents(component, memo) {
     }
 
     if (component.childs) {
-        for (var i = 0, l = component.childs.length; i < l; i++) {
+        for (let i = 0, l = component.childs.length; i < l; i++) {
             groupByIdComponents(component.childs[i], memo);
         }
     }
@@ -275,14 +275,14 @@ function shallowClone(obj) {
 }
 
 function memoizeLast(fn, { shallow } = {}) {
-    var lastResult;
-    var lastArgs;
+    let lastResult;
+    let lastArgs;
 
     return function(...args) {
         if (lastArgs) {
-            var same = true;
+            let same = true;
 
-            for (var i = 0, l = args.length; i < l; i++) {
+            for (let i = 0, l = args.length; i < l; i++) {
                 if (args[i] !== lastArgs[i]) {
                     if (!shallow || !shallowEqual(args[i], lastArgs[i])) {
                         same = false;

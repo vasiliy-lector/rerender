@@ -32,7 +32,7 @@ DynamicVNode.prototype = {
     reset(name) {
         if (name === undefined) {
             if (Object.keys(this.attrs).length) {
-                for (var name in this.attrs) {
+                for (let name in this.attrs) {
                     if (name.substr(0, 2) !== 'on') {
                         (this.prevAttrs || (this.prevAttrs = {}))[name] = this.attrs[name];
                         this.attrs[name] = null;
@@ -63,7 +63,7 @@ DynamicVNode.prototype = {
     },
 
     _setListeners() {
-        var nodeAttrs = this.node.attrs;
+        const nodeAttrs = this.node.attrs;
 
         // TODO: textarea, radio, select, contenteditable
         if (this.tag === 'input') {
@@ -95,7 +95,7 @@ DynamicVNode.prototype = {
 
     _handleInput(event) {
         this.attrs.value = event.target.value;
-        var nodeAttrs = this.node.attrs;
+        const nodeAttrs = this.node.attrs;
 
         if (nodeAttrs && typeof nodeAttrs.oninput === 'function') {
             nodeAttrs.oninput.apply(null, arguments);
@@ -104,7 +104,7 @@ DynamicVNode.prototype = {
 
     _handleCheckboxChange(event) {
         this.attrs.checked = event.target.checked;
-        var nodeAttrs = this.node.attrs;
+        const nodeAttrs = this.node.attrs;
 
         if (nodeAttrs && typeof nodeAttrs.onchange === 'function') {
             nodeAttrs.onchange.apply(null, arguments);

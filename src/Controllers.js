@@ -22,9 +22,9 @@ class Controllers extends Component {
     }
 
     getWrapped() {
-        var current = this.props.targetComponentType;
+        let current = this.props.targetComponentType;
 
-        for (var i = this.controllers.length - 1; i >= 0; i--) {
+        for (let i = this.controllers.length - 1; i >= 0; i--) {
             current = createDecorator(this.controllers[i].controller)(
                 this.controllers[i].options,
                 this.controllers[i].settings
@@ -35,8 +35,8 @@ class Controllers extends Component {
     }
 
     getControllers(props) {
-        var controllers = [];
-        var componentType = this.props.targetComponentType;
+        const controllers = [];
+        const componentType = this.props.targetComponentType;
 
         if (props.targetController) {
             if (Array.isArray(props.targetController)) {
@@ -58,7 +58,7 @@ class Controllers extends Component {
     }
 
     render() {
-        var { Root } = this.state;
+        const { Root } = this.state;
 
         return createTemplate(Root, this.props, this.children);
     }
