@@ -23,6 +23,7 @@ function Dispatcher({ store, server = false, betweenUserCacheEnabled = true }) {
 
 Dispatcher.prototype = {
     dehydrate() {},
+
     dispatch(event, payload) {
         if ((this.isServer && event.serverDisabled) || (!this.isServer && event.clientDisabled)) {
             return Promise.reject();

@@ -302,9 +302,9 @@ function memoizeLast(fn, { shallow } = {}) {
     };
 }
 
-function mayAsync(result, callback) {
+function mayAsync(result, callback, config) {
     return result instanceof Promise
-        ? result.then(callback)
+        ? result.then(callback, error => config.stream.emit('error', error))
         : callback(result);
 }
 

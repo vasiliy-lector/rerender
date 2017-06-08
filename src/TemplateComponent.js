@@ -80,7 +80,7 @@ TemplateComponent.prototype = {
             if (template) {
                 return template.renderServer(config);
             }
-        });
+        }, config);
     },
 
     render(config, context) {

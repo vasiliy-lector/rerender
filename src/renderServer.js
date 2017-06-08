@@ -69,7 +69,7 @@ function renderServer(userTemplate, {
         }
 
         stream.emit('end', concat ? html : undefined);
-    });
+    }, config);
 
     return promise;
 }

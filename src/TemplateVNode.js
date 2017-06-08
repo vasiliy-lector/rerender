@@ -73,7 +73,7 @@ TemplateVNode.prototype = {
 
         return mayAsync(this.children && stringifyChildren(this.children, config), () => {
             config.stream.emit('data', '</' + tag + '>');
-        });
+        }, config);
     },
 
     needDynamic() {
