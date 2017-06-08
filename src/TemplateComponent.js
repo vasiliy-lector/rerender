@@ -71,7 +71,13 @@ TemplateComponent.prototype = {
 
     renderServer(config) {
         const componentType = this.componentType;
-        const instance = new componentType(this.props, this.children, config.componentOptions, undefined, config.store.getState());
+        const instance = new componentType(
+            this.props,
+            this.children,
+            config.componentOptions,
+            undefined,
+            componentType.store ? config.store.getState() : undefined
+        );
         this.preprocessInstance(instance);
 
         return mayAsync(componentInit(instance), () => {
