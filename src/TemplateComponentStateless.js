@@ -4,13 +4,13 @@ import { shallowEqualProps } from './utils';
 import VText from './VText';
 import reuseTemplate from './reuseTemplate';
 
-const SPECIAL_PROPS = {
+var SPECIAL_PROPS = {
     key: true,
     uniqid: true
 };
 
 function TemplateComponentStateless(componentType, props, children) {
-    let nextProps = props || {};
+    var nextProps = props || {};
 
     if (nextProps.key || componentType.defaults || nextProps.uniqid) {
         nextProps = Object.keys(nextProps).reduce((memo, key) => {
@@ -24,7 +24,7 @@ function TemplateComponentStateless(componentType, props, children) {
         }, {});
 
         if (componentType.defaults) {
-            for (let name in componentType.defaults) {
+            for (var name in componentType.defaults) {
                 if (nextProps[name] === undefined) {
                     nextProps[name] = componentType.defaults[name];
                 }
@@ -42,20 +42,20 @@ TemplateComponentStateless.prototype = {
     subtype: TEMPLATE_COMPONENT_STATELESS,
 
     renderServer(config) {
-        const template = this.componentType(this.props, this.children);
+        var template = this.componentType(this.props, this.children);
 
         return template ? template.renderServer(config) : '';
     },
 
     render(config, context) {
-        let props = this.props;
-        let children = this.children;
-        let template;
-        let component;
-        const componentType = this.componentType;
-        const { components, nextComponents } = config;
-        const id = context.getId();
-        let prev = components[id];
+        var props = this.props;
+        var children = this.children;
+        var template;
+        var component;
+        var componentType = this.componentType;
+        var { components, nextComponents } = config;
+        var id = context.getId();
+        var prev = components[id];
 
         if (prev === undefined || prev.type !== VCOMPONENT_STATELESS || prev.componentType !== componentType) {
             template = componentType(props, children);
@@ -71,9 +71,9 @@ TemplateComponentStateless.prototype = {
 
             nextComponents[id] = component;
         } else {
-            const sameProps = shallowEqualProps(prev.props, props);
+            var sameProps = shallowEqualProps(prev.props, props);
             // FIXME
-            const sameChildren = false; // children.isEqual(prev.children);
+            var sameChildren = false; // children.isEqual(prev.children);
 
             if (sameProps) {
                 props = prev.props;
@@ -102,7 +102,7 @@ TemplateComponentStateless.prototype = {
         }
 
         // FIXME: createText and move increment inside render
-        let childs;
+        var childs;
 
         if (template) {
             childs = template.render(
@@ -114,8 +114,8 @@ TemplateComponentStateless.prototype = {
                 ](template.key, template.uniqid)
             );
         } else {
-            const nextContext = context.addIdLevel(component).incrementDom();
-            const nextTextNode = new VText('', nextContext);
+            var nextContext = context.addIdLevel(component).incrementDom();
+            var nextTextNode = new VText('', nextContext);
             childs = nextTextNode;
             config.nextNodes[nextContext.getId()] = nextTextNode;
         }

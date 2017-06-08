@@ -4,16 +4,12 @@ class Events {
             return;
         }
 
-        for (let i = 0, l = this.callbacks[eventName].length; i < l; i++) {
+        for (var i = 0, l = this.callbacks[eventName].length; i < l; i++) {
             this.callbacks[eventName][i](payload);
         }
     }
 
-    on(eventNames, callback) {
-        eventNames.split(' ').forEach(eventName => this.onEvent(eventName, callback));
-    }
-
-    onEvent(eventName, callback) {
+    on(eventName, callback) {
         if (!this.callbacks) {
             this.callbacks = {};
         }
@@ -27,16 +23,12 @@ class Events {
         this.callbacks[eventName].push(callback);
     }
 
-    un(eventNames, callback) {
-        eventNames.split(' ').forEach(eventName => this.onEvent(eventName, callback));
-    }
-
-    unEvent(eventName, callback) {
+    un(eventName, callback) {
         if (!this.callbacks || !this.callbacks[eventName]) {
             return;
         }
 
-        const index = this.callbacks[eventName].indexOf(callback);
+        var index = this.callbacks[eventName].indexOf(callback);
 
         if (!callback) {
             delete this.callbacks[eventName];

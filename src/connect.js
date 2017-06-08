@@ -2,7 +2,7 @@ import Component from './Component';
 import createDecorator from './createDecorator';
 import { memoizeLast } from './utils';
 
-const identity = value => value;
+var identity = value => value;
 
 class Connect extends Component {
     constructor(...args) {
@@ -14,7 +14,7 @@ class Connect extends Component {
     }
 
     init() {
-        const {
+        var {
             init,
             select,
             map,
@@ -47,13 +47,13 @@ class Connect extends Component {
     }
 
     merge(map, props) {
-        const childProps = {};
+        var childProps = {};
 
-        for (let name in props) {
+        for (var name in props) {
             childProps[name] = props[name];
         }
 
-        for (let name in map) {
+        for (var name in map) {
             childProps[name] = map[name];
         }
 
@@ -74,7 +74,7 @@ class Connect extends Component {
 Connect.displayName = 'Connect';
 Connect.store = true;
 
-const connect = createDecorator(Connect);
+var connect = createDecorator(Connect);
 
 export default connect;
 export { Connect };

@@ -6,13 +6,13 @@ import Component from './Component';
 import Controllers from './Controllers';
 
 export default function createTemplate(componentType, props) {
-    const length = arguments.length;
-    let children = null;
+    var length = arguments.length;
+    var children = null;
 
     if (length > 2 && (arguments[2] || length !== 3)) {
         children = Array(length - 2);
 
-        for (let i = 2; i < length; i++) {
+        for (var i = 2; i < length; i++) {
             children[i - 2] = arguments[i];
         }
     }

@@ -1,8 +1,8 @@
 import Context from '../src/Context';
 
 describe('Context', () => {
-    let context1;
-    let context2;
+    var context1;
+    var context2;
 
     beforeEach(() => {
         context1 = new Context({
@@ -41,9 +41,9 @@ describe('Context', () => {
 
     describe('method addIdLevel', () => {
         it('should return new context', () => {
-            const newParent = { type: 'c' };
-            const prevParent = context1.parent;
-            const context1a = context1.addIdLevel(newParent);
+            var newParent = { type: 'c' };
+            var prevParent = context1.parent;
+            var context1a = context1.addIdLevel(newParent);
 
             expect(context1.getParent()).toBe(prevParent);
             expect(context1a.getParent()).toBe(newParent);
@@ -52,9 +52,9 @@ describe('Context', () => {
 
     describe('method addDomLevel', () => {
         it('should return new context', () => {
-            const newParentNode = { type: 'n' };
-            const prevParentNode = context1.parentNode;
-            const context1a = context1.addDomLevel(newParentNode);
+            var newParentNode = { type: 'n' };
+            var prevParentNode = context1.parentNode;
+            var context1a = context1.addDomLevel(newParentNode);
 
             expect(context1.getParentNode()).toBe(prevParentNode);
             expect(context1a.getParentNode()).toBe(newParentNode);
@@ -63,20 +63,20 @@ describe('Context', () => {
 
     describe('method incrementComponent', () => {
         it('should return new context', () => {
-            const context1a = context1.incrementComponent();
+            var context1a = context1.incrementComponent();
 
             expect(context1a.id).toBe('r.c0.c0');
             expect(context1.index).toBe(1);
         });
 
         it('should fix uniqid in id', () => {
-            const context1a = context1.incrementComponent(null, 'uniq1');
+            var context1a = context1.incrementComponent(null, 'uniq1');
 
             expect(context1a.id).toBe('uniq1');
         });
 
         it('should fix key in id', () => {
-            const context1a = context1.incrementComponent('key1');
+            var context1a = context1.incrementComponent('key1');
 
             expect(context1a.id).toBe('r.c0.kkey1');
         });
@@ -84,7 +84,7 @@ describe('Context', () => {
 
     describe('method incrementDom', () => {
         it('should return new context', () => {
-            const context1a = context1.incrementDom();
+            var context1a = context1.incrementDom();
 
             expect(context1a.id).toBe('r.c0.0');
             expect(context1a.position).toBe('.childNodes[0]');
@@ -93,7 +93,7 @@ describe('Context', () => {
         });
 
         it('should fix uniqid in id', () => {
-            const context1a = context1.incrementDom(null, 'uniq1');
+            var context1a = context1.incrementDom(null, 'uniq1');
 
             expect(context1a.id).toBe('uniq1');
             expect(context1a.position).toBe('.childNodes[0]');
@@ -101,7 +101,7 @@ describe('Context', () => {
         });
 
         it('should fix key in id', () => {
-            const context1a = context1.incrementDom('key1');
+            var context1a = context1.incrementDom('key1');
 
             expect(context1a.id).toBe('r.c0.kkey1');
             expect(context1a.position).toBe('.childNodes[0]');
@@ -111,8 +111,8 @@ describe('Context', () => {
 
     describe('domId calculation', () => {
         it('should work in dom methods case', () => {
-            let context;
-            let contextLevel;
+            var context;
+            var contextLevel;
             contextLevel = context1.addDomLevel({}, 'r.c0.c0.1');
 
             contextLevel.incrementDom();
@@ -131,8 +131,8 @@ describe('Context', () => {
         });
 
         it('should inherit key and uniqid of parent component', () => {
-            let context;
-            let contextLevel;
+            var context;
+            var contextLevel;
 
             contextLevel = context1.addDomLevel({});
             contextLevel.incrementDom();

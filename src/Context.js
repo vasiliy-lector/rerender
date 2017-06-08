@@ -25,7 +25,7 @@ function Context({
     this.parentNode = parentNode;
     this.domLevel = domLevel;
     this.rootNode = rootNode;
-    const id = uniqid || `${this.parentId}.${key
+    var id = uniqid || `${this.parentId}.${key
         ? `k${key}`
         : (isDomNode
             ? index

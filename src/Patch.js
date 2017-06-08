@@ -1,17 +1,17 @@
 import { VNODE } from './types';
 import { specialAttrs } from './constants';
 
-const CREATE = 'CREATE';
-const MOVE = 'MOVE';
-const REMOVE = 'REMOVE';
-const REPLACE = 'REPLACE';
-const UPDATE = 'UPDATE';
-const UPDATE_DYNAMIC = 'UPDATE_DYNAMIC';
-const SPLIT_TEXT = 'SPLIT_TEXT';
-const SET_REF = 'SET_REF';
-const REMOVE_REF = 'REMOVE_REF';
-const ATTACH_EVENTS = 'ATTACH_EVENTS';
-const catchEvent = function(event) {
+var CREATE = 'CREATE';
+var MOVE = 'MOVE';
+var REMOVE = 'REMOVE';
+var REPLACE = 'REPLACE';
+var UPDATE = 'UPDATE';
+var UPDATE_DYNAMIC = 'UPDATE_DYNAMIC';
+var SPLIT_TEXT = 'SPLIT_TEXT';
+var SET_REF = 'SET_REF';
+var REMOVE_REF = 'REMOVE_REF';
+var ATTACH_EVENTS = 'ATTACH_EVENTS';
+var catchEvent = function(event) {
     event.stopPropagation();
 };
 
@@ -25,15 +25,15 @@ function Patch (document = self.document) {
 
 Patch.prototype = {
     apply() {
-        const domNodes = [];
-        const document = this.document;
-        const options = {
+        var domNodes = [];
+        var document = this.document;
+        var options = {
             document,
             skipCreation: {}
         };
 
-        for (let i = 0, l = this.commands.length; i < l; i++) {
-            const command = this.commands[i];
+        for (var i = 0, l = this.commands.length; i < l; i++) {
+            var command = this.commands[i];
 
             if (command.type !== CREATE && command.type !== REMOVE_REF) {
                 domNodes[i] = command.refNode.getDomNode();
@@ -43,27 +43,27 @@ Patch.prototype = {
             }
         }
 
-        const prevActiveElement = document.activeElement;
-        const body = document.body;
-        let prevOnblur;
+        var prevActiveElement = document.activeElement;
+        var body = document.body;
+        var prevOnblur;
 
         if (prevActiveElement && prevActiveElement !== body) {
             prevOnblur = prevActiveElement.onblur;
             prevActiveElement.onblur = catchEvent;
         }
 
-        for (let i = 0, l = this.commands.length; i < l; i++) {
+        for (var i = 0, l = this.commands.length; i < l; i++) {
             this.commands[i].apply(options, domNodes[i]);
         }
 
-        const activeElement = document.activeElement;
+        var activeElement = document.activeElement;
 
         if (prevActiveElement && prevActiveElement !== body) {
             if (prevActiveElement.onblur === catchEvent) {
                 prevActiveElement.onblur = prevOnblur;
             }
             if ((!activeElement || activeElement === document.body) && prevActiveElement.parentNode) {
-                const prevOnfocus = prevActiveElement.onfocus;
+                var prevOnfocus = prevActiveElement.onfocus;
                 prevActiveElement.onfocus = catchEvent;
                 prevActiveElement.focus();
                 prevActiveElement.onfocus = prevOnfocus;
@@ -72,15 +72,15 @@ Patch.prototype = {
     },
 
     applyNormalize() {
-        for (let i = 0, l = this.splitTextCommands.length; i < l; i++) {
+        for (var i = 0, l = this.splitTextCommands.length; i < l; i++) {
             this.splitTextCommands[i].apply();
         }
 
-        for (let i = 0, l = this.setRefCommands.length; i < l; i++) {
+        for (var i = 0, l = this.setRefCommands.length; i < l; i++) {
             this.setRefCommands[i].apply();
         }
 
-        for (let i = 0, l = this.eventsCommands.length; i < l; i++) {
+        for (var i = 0, l = this.eventsCommands.length; i < l; i++) {
             this.eventsCommands[i].apply();
         }
     },
@@ -111,9 +111,9 @@ Create.prototype = {
     type: CREATE,
 
     apply(options) {
-        const parentDomNode = this.nextNode.parentNode.getDomNode();
-        const domNode = parentDomNode.childNodes[this.nextNode.context.domIndex];
-        const nextDomNode = createElement(this.nextNode, options.document, options.skipCreation);
+        var parentDomNode = this.nextNode.parentNode.getDomNode();
+        var domNode = parentDomNode.childNodes[this.nextNode.context.domIndex];
+        var nextDomNode = createElement(this.nextNode, options.document, options.skipCreation);
 
         if (domNode) {
             parentDomNode.replaceChild(nextDomNode, domNode);
@@ -132,8 +132,8 @@ Move.prototype = {
     type: MOVE,
 
     apply(options, prevDomNode) {
-        const parentDomNode = this.nextNode.parentNode.getDomNode();
-        const domNode = parentDomNode.childNodes[this.nextNode.context.domIndex];
+        var parentDomNode = this.nextNode.parentNode.getDomNode();
+        var domNode = parentDomNode.childNodes[this.nextNode.context.domIndex];
 
         if (!this.nextNode.context.hasKey && prevDomNode.parentNode) {
             prevDomNode.parentNode.replaceChild(document.createTextNode(''), prevDomNode);
@@ -184,7 +184,7 @@ Replace.prototype = {
     type: REPLACE,
 
     apply(options, domNode) {
-        const nextDomNode = createElement(this.nextNode, options.document, options.skipCreation);
+        var nextDomNode = createElement(this.nextNode, options.document, options.skipCreation);
 
         domNode.parentNode.replaceChild(
             nextDomNode,
@@ -227,18 +227,18 @@ Update.prototype = {
         if (this.nextNode.dynamic && this.nextNode.dynamic.prevAttrs) {
             this.applyDynamic(options, domNode);
         } else {
-            const nextAttrs = this.nextNode.attrs;
-            const attrs = this.node.attrs;
+            var nextAttrs = this.nextNode.attrs;
+            var attrs = this.node.attrs;
 
             if (nextAttrs) {
-                for (let name in nextAttrs) {
+                for (var name in nextAttrs) {
                     if ((!attrs || nextAttrs[name] !== attrs[name]) && !specialAttrs[name]) {
                         domNode[name] = nextAttrs[name];
                     }
                 }
             }
             if (attrs) {
-                for (let name in attrs) {
+                for (var name in attrs) {
                     if (!nextAttrs || nextAttrs[name] === undefined) {
                         domNode[name] = null;
                     }
@@ -248,32 +248,32 @@ Update.prototype = {
     },
 
     applyDynamic(options, domNode) {
-        const nextAttrsDynamic = this.nextNode.dynamic.attrs;
-        const attrsDynamic = this.nextNode.dynamic.prevAttrs;
-        const nextAttrs = this.nextNode.attrs;
-        const attrs = this.node.attrs;
+        var nextAttrsDynamic = this.nextNode.dynamic.attrs;
+        var attrsDynamic = this.nextNode.dynamic.prevAttrs;
+        var nextAttrs = this.nextNode.attrs;
+        var attrs = this.node.attrs;
 
-        for (let name in nextAttrsDynamic) {
+        for (var name in nextAttrsDynamic) {
             if (nextAttrsDynamic[name] !== attrsDynamic[name]) {
                 domNode[name] = nextAttrsDynamic[name];
             }
         }
 
-        for (let name in attrsDynamic) {
+        for (var name in attrsDynamic) {
             if (!nextAttrsDynamic[name]) {
                 domNode[name] = nextAttrs && nextAttrs[name] || null;
             }
         }
 
         if (nextAttrs) {
-            for (let name in nextAttrs) {
+            for (var name in nextAttrs) {
                 if (nextAttrsDynamic[name] === undefined && (!attrs || nextAttrs[name] !== attrs[name]) && !specialAttrs[name]) {
                     domNode[name] = nextAttrs[name];
                 }
             }
         }
         if (attrs) {
-            for (let name in attrs) {
+            for (var name in attrs) {
                 if (!nextAttrsDynamic[name] && !attrsDynamic[name] && (!nextAttrs || nextAttrs[name] === undefined)) {
                     domNode[name] = null;
                 }
@@ -291,18 +291,18 @@ UpdateDynamic.prototype = {
     type: UPDATE_DYNAMIC,
 
     apply() {
-        const prevAttrs = this.node.dynamic.prevAttrs;
-        const attrs = this.node.dynamic.attrs;
-        const domNode = this.node.getDomNode();
+        var prevAttrs = this.node.dynamic.prevAttrs;
+        var attrs = this.node.dynamic.attrs;
+        var domNode = this.node.getDomNode();
 
         if (prevAttrs) {
-            for (let name in attrs) {
+            for (var name in attrs) {
                 if (attrs[name] !== prevAttrs[name]) {
                     domNode[name] = attrs[name];
                 }
             }
 
-            for (let name in prevAttrs) {
+            for (var name in prevAttrs) {
                 if (attrs[name] === undefined) {
                     domNode[name] = this.node.attrs && this.node.attrs[name] || null;
                 }
@@ -320,13 +320,13 @@ AttachEvents.prototype = {
     type: ATTACH_EVENTS,
 
     apply() {
-        const domNode = this.nextNode.getDomNode();
-        const nextAttrs = this.nextNode.attrs;
+        var domNode = this.nextNode.getDomNode();
+        var nextAttrs = this.nextNode.attrs;
 
         if (this.nextNode.dynamic) {
             this.applyDynamic();
         } else {
-            for (let name in nextAttrs) {
+            for (var name in nextAttrs) {
                 if (name.substr(0,2) === 'on') {
                     domNode[name] = nextAttrs[name];
                 }
@@ -335,15 +335,15 @@ AttachEvents.prototype = {
     },
 
     applyDynamic() {
-        const domNode = this.nextNode.getDomNode();
-        const nextAttrs = this.nextNode.attrs;
-        const dynamicAttrs = this.nextNode.dynamic.attrs;
+        var domNode = this.nextNode.getDomNode();
+        var nextAttrs = this.nextNode.attrs;
+        var dynamicAttrs = this.nextNode.dynamic.attrs;
 
-        for (let name in dynamicAttrs) {
+        for (var name in dynamicAttrs) {
             domNode[name] = dynamicAttrs[name];
         }
 
-        for (let name in nextAttrs) {
+        for (var name in nextAttrs) {
             if (name.substr(0,2) === 'on' && dynamicAttrs[name] === undefined) {
                 domNode[name] = nextAttrs[name];
             }
@@ -352,19 +352,19 @@ AttachEvents.prototype = {
 };
 
 function createElement(nextNode, document, skipCreation) {
-    let nextDomNode;
+    var nextDomNode;
 
     if (nextNode.type === VNODE) {
         if (!skipCreation[nextNode.context.id]) {
             nextDomNode = document.createElement(nextNode.tag);
 
             if (nextNode.dynamic) {
-                for (let name in nextNode.dynamic.attrs) {
+                for (var name in nextNode.dynamic.attrs) {
                     nextDomNode[name] = nextNode.dynamic.attrs[name];
                 }
 
                 if (nextNode.attrs) {
-                    for (let name in nextNode.attrs) {
+                    for (var name in nextNode.attrs) {
                         if (!specialAttrs[name] && nextNode.dynamic.attrs[name] === undefined) {
                             nextDomNode[name] = nextNode.attrs[name];
                         }
@@ -375,7 +375,7 @@ function createElement(nextNode, document, skipCreation) {
                     }
                 }
             } else if (nextNode.attrs) {
-                for (let name in nextNode.attrs) {
+                for (var name in nextNode.attrs) {
                     if (!specialAttrs[name]) {
                         nextDomNode[name] = nextNode.attrs[name];
                     }
@@ -386,7 +386,7 @@ function createElement(nextNode, document, skipCreation) {
                 }
             }
 
-            for (let i = 0, l = nextNode.childNodes.length; i < l; i++) {
+            for (var i = 0, l = nextNode.childNodes.length; i < l; i++) {
                 nextDomNode.appendChild(createElement(nextNode.childNodes[i], document, skipCreation));
             }
         } else {

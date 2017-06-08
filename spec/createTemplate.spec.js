@@ -7,8 +7,8 @@ import Component from '../src/Component';
 
 describe('createTemplate', () => {
     it('should return instance of TemplateVNode', () => {
-        const props = { id: 'id1' };
-        const template = createTemplate('p', props, 'text', 'another text');
+        var props = { id: 'id1' };
+        var template = createTemplate('p', props, 'text', 'another text');
 
         expect(template instanceof TemplateVNode).toBe(true);
         expect(template.tag).toBe('p');
@@ -17,23 +17,23 @@ describe('createTemplate', () => {
     });
 
     it('should work with null attrs and children', () => {
-        const template = createTemplate('p', null, null);
+        var template = createTemplate('p', null, null);
 
         expect(template.attrs).toBe(null);
         expect(template.children).toBe(null);
     });
 
     it('should work with undefined attrs', () => {
-        const template = createTemplate('p');
+        var template = createTemplate('p');
 
         expect(template.attrs).toBe(null);
         expect(template.children).toBe(null);
     });
 
     it('should return instance of TemplateComponent', () => {
-        const props = { id: 'id1' };
+        var props = { id: 'id1' };
         class Block extends Component {}
-        const template = createTemplate(Block, props, 'text', 'another text');
+        var template = createTemplate(Block, props, 'text', 'another text');
 
         expect(template instanceof TemplateComponent).toBe(true);
         expect(template.props).toEqual(props);
@@ -43,7 +43,7 @@ describe('createTemplate', () => {
 
     it('should work with null props and children for components', () => {
         class Block extends Component {}
-        const template = createTemplate(Block, null, null);
+        var template = createTemplate(Block, null, null);
 
         expect(template instanceof TemplateComponent).toBe(true);
         expect(template.props).toEqual({});
@@ -52,7 +52,7 @@ describe('createTemplate', () => {
 
     it('should work with undefined props and children for components', () => {
         class Block extends Component {}
-        const template = createTemplate(Block);
+        var template = createTemplate(Block);
 
         expect(template instanceof TemplateComponent).toBe(true);
         expect(template.props).toEqual({});
@@ -60,8 +60,8 @@ describe('createTemplate', () => {
     });
 
     it('should return instance of TemplateComponentStateless', () => {
-        const props = { id: 'id1' };
-        const template = createTemplate(function() {}, props, 'text', 'another text');
+        var props = { id: 'id1' };
+        var template = createTemplate(function() {}, props, 'text', 'another text');
 
         expect(template instanceof TemplateComponentStateless).toBe(true);
         expect(template.props).toEqual(props);

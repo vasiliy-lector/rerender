@@ -16,7 +16,7 @@ function renderServer(userTemplate, {
     hashEnabled = true,
     fullHash = false
 } = {}) {
-    let html;
+    var html;
 
     if (stream === undefined) {
         stream = new Stream();
@@ -38,7 +38,7 @@ function renderServer(userTemplate, {
         }));
     }
 
-    const config = {
+    var config = {
         store,
         dispatcher,
         hashEnabled,

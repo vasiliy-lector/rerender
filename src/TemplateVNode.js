@@ -7,7 +7,7 @@ import VText from './VText';
 import DynamicVNode from './DynamicVNode';
 
 // TODO: full list
-const interactiveTags = {
+var interactiveTags = {
     input: true,
     textarea: true,
     select: true
@@ -38,12 +38,12 @@ TemplateVNode.prototype = {
     subtype: TEMPLATE_VNODE,
 
     calcHash(config) {
-        let hash = config.hash;
+        var hash = config.hash;
 
         hash = calcHash(hash, '<', this.tag);
 
         if (config.fullHash && this.attrs) {
-            for (let name in this.attrs) {
+            for (var name in this.attrs) {
                 if (typeof this.attrs[name] !== 'function') {
                     hash = calcHash(hash, name, this.attrs[name]);
                 }
@@ -56,15 +56,15 @@ TemplateVNode.prototype = {
     },
 
     renderServer(config) {
-        const tag = this.tag;
-        let attrs = '';
+        var tag = this.tag;
+        var attrs = '';
 
         if (config.hashEnabled) {
             this.calcHash(config);
         }
 
         if (this.attrs) {
-            for (let name in this.attrs) {
+            for (var name in this.attrs) {
                 attrs += stringifyAttr(name, this.attrs[name]);
             }
         }
@@ -72,7 +72,7 @@ TemplateVNode.prototype = {
         config.stream.emit('data', '<' + tag + attrs + '>');
 
         if (this.children) {
-            for (let i = 0, l = this.children.length; i < l; i++) {
+            for (var i = 0, l = this.children.length; i < l; i++) {
                 stringifyChildrenItem(this.children[i], config);
             }
         }
@@ -89,11 +89,11 @@ TemplateVNode.prototype = {
             this.calcHash(config);
         }
 
-        const nextNode = new VNode(this.tag, this.attrs, context);
-        const id = context.getId();
+        var nextNode = new VNode(this.tag, this.attrs, context);
+        var id = context.getId();
 
         if (this.needDynamic()) {
-            let dynamic;
+            var dynamic;
             if (config.dynamicNodes[id]) {
                 dynamic = config.dynamicNodes[id];
                 dynamic._replaceNode(nextNode);
@@ -118,14 +118,14 @@ TemplateVNode.prototype = {
 };
 
 function renderChildren(items, config, context, needKeys) {
-    let childs;
+    var childs;
 
     if (items) {
         childs = [];
 
-        for (let i = 0, l = items.length; i < l; i++) {
-            const item = items[i];
-            const isObject = typeof item === 'object' && item !== null;
+        for (var i = 0, l = items.length; i < l; i++) {
+            var item = items[i];
+            var isObject = typeof item === 'object' && item !== null;
 
             if (isObject && item.type === TEMPLATE) {
                 if (needKeys && item.key === undefined) {
@@ -147,8 +147,8 @@ function renderChildren(items, config, context, needKeys) {
                 if (config.hashEnabled && item) {
                     config.hash = calcHash(config.hash, String(item));
                 }
-                const nextContext = context.incrementDom(needKeys ? '$' + i : undefined);
-                const nextTextNode = new VText(item ? String(item) : '', nextContext);
+                var nextContext = context.incrementDom(needKeys ? '$' + i : undefined);
+                var nextTextNode = new VText(item ? String(item) : '', nextContext);
                 childs.push(nextTextNode);
                 config.nextNodes[nextContext.getId()] = nextTextNode;
             }
@@ -159,18 +159,18 @@ function renderChildren(items, config, context, needKeys) {
 }
 
 function stringifyChildrenItem(item, config) {
-    const type = typeof item;
+    var type = typeof item;
 
     if (item) {
         if (type === 'object') {
             if (item.type === TEMPLATE) {
                 item.renderServer(config);
             } else if (item.type === TEMPLATE_FRAGMENT) {
-                for (let j = 0, l1 = item.fragment.length; j < l1; j++) {
+                for (var j = 0, l1 = item.fragment.length; j < l1; j++) {
                     stringifyChildrenItem(item.fragment[j], config);
                 }
             } else if (Array.isArray(item)) {
-                for (let j = 0, l1 = item.length; j < l1; j++) {
+                for (var j = 0, l1 = item.length; j < l1; j++) {
                     stringifyChildrenItem(item[j], config);
                 }
             } else if (item) {
@@ -193,10 +193,10 @@ function stringifyAttr(name, value) {
     if (name.substr(0, 2) === 'on' || specialAttrs[name]) {
         return '';
     } else if (name === 'dataset') {
-        const datasetKeys = Object.keys(value);
-        let attrs = '';
+        var datasetKeys = Object.keys(value);
+        var attrs = '';
 
-        for (let j = 0, n = datasetKeys.length; j < n; j++) {
+        for (var j = 0, n = datasetKeys.length; j < n; j++) {
             attrs += ` data-${datasetKeys[j]}="${escapeAttr(value[datasetKeys[j]])}"`;
         }
 

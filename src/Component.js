@@ -20,9 +20,9 @@ class Component extends Events {
         }
 
         if (path && Array.isArray(path)) {
-            let result = this.state;
+            var result = this.state;
 
-            for (let i = 0, l = path.length; result !== undefined && i < l; i++) {
+            for (var i = 0, l = path.length; result !== undefined && i < l; i++) {
                 result = result[path[i]];
             }
 
@@ -40,11 +40,11 @@ class Component extends Events {
                     this.state = shallowClone(this._prevState);
                 }
 
-                let stateParent = this.state;
-                let prevStateParent = this._prevState;
-                let last = path.length - 1;
+                var stateParent = this.state;
+                var prevStateParent = this._prevState;
+                var last = path.length - 1;
 
-                for (let i = 0, l = last; i < l; i++) {
+                for (var i = 0, l = last; i < l; i++) {
                     if (prevStateParent && typeof prevStateParent[path[i]] === 'object') {
                         if (stateParent[path[i]] === prevStateParent[path[i]]) {
                             stateParent[path[i]] = shallowClone(prevStateParent[path[i]]);
@@ -74,8 +74,8 @@ class Component extends Events {
 
     trigger(eventName, payload) {
         if (this._componentMounted) {
-            const event = new VEvent(eventName, payload);
-            let parent = this.getParent();
+            var event = new VEvent(eventName, payload);
+            var parent = this.getParent();
             while (parent && !event.isStopped()) {
                 if (parent instanceof VComponent && parent.ref) {
                     parent.ref.emit(eventName, event);

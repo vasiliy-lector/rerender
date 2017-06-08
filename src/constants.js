@@ -1,4 +1,4 @@
-export const specialAttrs = {
+export var specialAttrs = {
     controller: true,
     ref: true,
     uniqid: true,
@@ -6,14 +6,14 @@ export const specialAttrs = {
     wrapperRef: true
 };
 
-export const specialAttrsWrapper = {
+export var specialAttrsWrapper = {
     controller: true,
     uniqid: true,
     key: true,
     wrapperRef: true
 };
 
-export const styleProps = {
+export var styleProps = {
     animation: 'animation',
     background: 'background',
     backgroundAttachment: 'background-attachment',

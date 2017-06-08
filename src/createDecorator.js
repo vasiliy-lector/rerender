@@ -21,8 +21,8 @@ function createDecorator (Wrapper) {
             };
         }
 
-        const wrapperStaticKeys = Object.keys(Wrapper);
-        for (let i = 0, l = wrapperStaticKeys.length; i < l; i++) {
+        var wrapperStaticKeys = Object.keys(Wrapper);
+        for (var i = 0, l = wrapperStaticKeys.length; i < l; i++) {
             Decorator[wrapperStaticKeys[i]] = Wrapper[wrapperStaticKeys[i]];
         }
 

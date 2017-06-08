@@ -25,43 +25,43 @@
 //
 //     describe('method renderServer', () => {
 //         it('should render p to string', () => {
-//             const template = new TemplateVNode('p', { className: 'block' }, []);
+//             var template = new TemplateVNode('p', { className: 'block' }, []);
 //
 //             expect(template.renderServer({})).toBe('<p class="block"></p>');
 //         });
 //
 //         it('should render text items', () => {
-//             const template = new TemplateVNode('p', null, ['text 1;', 'another text']);
+//             var template = new TemplateVNode('p', null, ['text 1;', 'another text']);
 //
 //             expect(template.renderServer({})).toBe('<p>text 1;another text</p>');
 //         });
 //
 //         it('should render components items', () => {
-//             const children1 = new TemplateVNode('span', null, 'text 1');
-//             const children2 = new TemplateVNode('span', null, 'text 2');
-//             const template = new TemplateVNode('p', null, [children1, children2]);
+//             var children1 = new TemplateVNode('span', null, 'text 1');
+//             var children2 = new TemplateVNode('span', null, 'text 2');
+//             var template = new TemplateVNode('p', null, [children1, children2]);
 //
 //             expect(template.renderServer({})).toBe('<p><span>text 1</span><span>text 2</span></p>');
 //         });
 //
 //         it('should render components in one array', () => {
-//             const children1 = new TemplateVNode('span', null, 'text 1');
-//             const children2 = new TemplateVNode('span', null, 'text 2');
-//             const template = new TemplateVNode('p', null, [[children1, children2], 'text']);
+//             var children1 = new TemplateVNode('span', null, 'text 1');
+//             var children2 = new TemplateVNode('span', null, 'text 2');
+//             var template = new TemplateVNode('p', null, [[children1, children2], 'text']);
 //
 //             expect(template.renderServer({})).toBe('<p><span>text 1</span><span>text 2</span>text</p>');
 //         });
 //
 //         it('should escape special symbols', () => {
-//             const children1 = new TemplateVNode('span', null, 'text < 1');
-//             const children2 = new TemplateVNode('span', null, 'text > 2');
-//             const template = new TemplateVNode('p', null, [children1, children2, 'text > me;', '&', ['array >', 'array <', 'array value with &amp;']]);
+//             var children1 = new TemplateVNode('span', null, 'text < 1');
+//             var children2 = new TemplateVNode('span', null, 'text > 2');
+//             var template = new TemplateVNode('p', null, [children1, children2, 'text > me;', '&', ['array >', 'array <', 'array value with &amp;']]);
 //
 //             expect(template.renderServer({})).toBe('<p><span>text &lt; 1</span><span>text &gt; 2</span>text &gt; me;&amp;array &gt;array &lt;array value with &amp;amp;</p>');
 //         });
 //
 //         it('should render void tag to string', () => {
-//             const template = new TemplateVNode('input', {
+//             var template = new TemplateVNode('input', {
 //                 name: 'name1',
 //                 id: 'id1'
 //             }, []);
@@ -70,7 +70,7 @@
 //         });
 //
 //         it('should render p with childrens', () => {
-//             const template = new TemplateVNode('p', { className: 'block' }, [
+//             var template = new TemplateVNode('p', { className: 'block' }, [
 //                 'text 1',
 //                 'text 2'
 //             ]);

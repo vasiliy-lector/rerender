@@ -4,10 +4,10 @@ import { shallowEqual, groupByIdNodes } from './utils';
 
 function diffNext(nextNode, options, insideCreation) {
     if (nextNode.type === VNODE) {
-        const context = nextNode.context;
-        const node = options.nodesById[context.id];
-        let childrenCreated;
-        let childrenNeedCreation;
+        var context = nextNode.context;
+        var node = options.nodesById[context.id];
+        var childrenCreated;
+        var childrenNeedCreation;
 
         if (!node) {
             if (!insideCreation) {
@@ -31,7 +31,7 @@ function diffNext(nextNode, options, insideCreation) {
             }
         }
 
-        for (let i = 0, l = nextNode.childNodes.length; i < l; i++) {
+        for (var i = 0, l = nextNode.childNodes.length; i < l; i++) {
             diffNext(
                 nextNode.childNodes[i],
                 options,
@@ -41,8 +41,8 @@ function diffNext(nextNode, options, insideCreation) {
             );
         }
     } else if (nextNode.type === VTEXT) {
-        const context = nextNode.context;
-        const node = options.nodesById[context.id];
+        var context = nextNode.context;
+        var node = options.nodesById[context.id];
         if (!node) {
             if (!insideCreation) {
                 options.patch.push(new Create(nextNode));
@@ -54,8 +54,8 @@ function diffNext(nextNode, options, insideCreation) {
 }
 
 function diffPrev(node, options, insideRemove) {
-    let childrenRemoved;
-    let childrenNeedRemove;
+    var childrenRemoved;
+    var childrenNeedRemove;
 
     if (!options.nextNodesById[node.context.id]) {
         if (!insideRemove) {
@@ -69,7 +69,7 @@ function diffPrev(node, options, insideRemove) {
     }
 
     if (node.type === VNODE) {
-        for (let i = 0, l = node.childNodes.length; i < l; i++) {
+        for (var i = 0, l = node.childNodes.length; i < l; i++) {
             diffPrev(
                 node.childNodes[i],
                 options,
@@ -82,9 +82,9 @@ function diffPrev(node, options, insideRemove) {
 }
 
 function diff(nextNode, node, options = {}) {
-    const patch = new Patch(options.document);
-    const nodesById = options.nodesById || groupByIdNodes(node, {});
-    const nextNodesById = options.nextNodesById || groupByIdNodes(nextNode, {});
+    var patch = new Patch(options.document);
+    var nodesById = options.nodesById || groupByIdNodes(node, {});
+    var nextNodesById = options.nextNodesById || groupByIdNodes(nextNode, {});
 
     diffNext(nextNode, {
         nodesById,

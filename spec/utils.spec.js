@@ -3,24 +3,24 @@ import { deepEqual, shallowClone } from '../src/utils';
 describe('utils', () => {
     describe('shallowClone', () => {
         it('should create shallow clone of object', () => {
-            const object = {
+            var object = {
                 id: 1,
                 z: {
                     x: 'y'
                 }
             };
-            const clone = shallowClone(object);
+            var clone = shallowClone(object);
             expect(clone).not.toBe(object);
             expect(clone.id).toBe(object.id);
             expect(clone.z).toBe(object.z);
         });
 
         it('should create shallow clone of array', () => {
-            const array = [
+            var array = [
                 1,
                 { x: 'y' }
             ];
-            const clone = shallowClone(array);
+            var clone = shallowClone(array);
             expect(clone).not.toBe(array);
             expect(Array.isArray(clone)).toBe(true);
             expect(clone[0]).toBe(array[0]);
@@ -29,7 +29,7 @@ describe('utils', () => {
     });
 
     describe('deepEqual', () => {
-        const tests = [
+        var tests = [
             [0, 0, true],
             [0, 1, false],
             [1, 0, false],
@@ -93,7 +93,7 @@ describe('utils', () => {
             }, false]
         ];
 
-        const runTests = (tests) => {
+        var runTests = (tests) => {
             tests.forEach(([one, two, same]) => {
                 it (`in case deepEqual(${JSON.stringify(one)}, ${JSON.stringify(two)}) must return ${same}.`, () => {
                     expect(deepEqual(one, two) === same).toBe(true);

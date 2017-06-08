@@ -2,8 +2,8 @@ import Store from '../src/Store.js';
 
 describe('Store', () => {
     describe('method setState', () => {
-        let store;
-        const state = {
+        var store;
+        var state = {
             todos: {
                 list: [
                     { id: 1, text: 'todo1' },
@@ -64,8 +64,8 @@ describe('Store', () => {
     });
 
     describe('method getState', () => {
-        let store;
-        const state = {
+        var store;
+        var state = {
             todos: {
                 list: [
                     { id: 1, text: 'todo1' },
@@ -99,8 +99,8 @@ describe('Store', () => {
     });
 
     describe('immutability', () => {
-        let store;
-        const state = {
+        var store;
+        var state = {
             todos: {
                 list: [
                     { id: 1, text: 'todo1' },
@@ -116,7 +116,7 @@ describe('Store', () => {
         });
 
         it('should replace state if no path parameter', () => {
-            const newState = {
+            var newState = {
                 todos: {}
             };
             store.setState(newState);
@@ -125,20 +125,20 @@ describe('Store', () => {
         });
 
         it('should change state object by ref if no snapshot created', () => {
-            const newState = {
+            var newState = {
                 todos: {}
             };
             store.setState(newState);
             expect(store.getState()).not.toBe(state);
             expect(store.getState()).toBe(newState);
-            const newList = [];
+            var newList = [];
             store.setState(newList, ['todos', 'list']);
             expect(store.getState(['todos', 'list'])).toBe(newList);
-            const muttable = store.getState();
+            var muttable = store.getState();
             expect(muttable).not.toBe(newState);
             store.setState({}, ['todos']);
             expect(store.getState()).toBe(muttable);
-            const snapshot = store.getState(undefined, true);
+            var snapshot = store.getState(undefined, true);
             expect(snapshot).toBe(muttable);
             store.setState([1], ['todos', 'list']);
             expect(store.getState()).toEqual({

@@ -30,9 +30,9 @@ class Store extends Events {
         }
 
         if (path && Array.isArray(path)) {
-            let result = this.state;
+            var result = this.state;
 
-            for (let i = 0, l = path.length; result !== undefined && i < l; i++) {
+            for (var i = 0, l = path.length; result !== undefined && i < l; i++) {
                 result = typeof result === 'object' ? result[path[i]] : undefined;
             }
 
@@ -50,11 +50,11 @@ class Store extends Events {
                     this.state = shallowClone(this.prevState);
                 }
 
-                let stateParent = this.getState();
-                let prevStateParent = this.prevState;
-                let last = path.length - 1;
+                var stateParent = this.getState();
+                var prevStateParent = this.prevState;
+                var last = path.length - 1;
 
-                for (let i = 0, l = last; i < l; i++) {
+                for (var i = 0, l = last; i < l; i++) {
                     if (prevStateParent && typeof prevStateParent[path[i]] === 'object') {
                         if (stateParent[path[i]] === prevStateParent[path[i]]) {
                             stateParent[path[i]] = shallowClone(prevStateParent[path[i]]);
