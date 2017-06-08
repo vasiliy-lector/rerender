@@ -9,11 +9,7 @@ class Events {
         }
     }
 
-    on(eventNames, callback) {
-        eventNames.split(' ').forEach(eventName => this.onEvent(eventName, callback));
-    }
-
-    onEvent(eventName, callback) {
+    on(eventName, callback) {
         if (!this.callbacks) {
             this.callbacks = {};
         }
@@ -27,11 +23,7 @@ class Events {
         this.callbacks[eventName].push(callback);
     }
 
-    un(eventNames, callback) {
-        eventNames.split(' ').forEach(eventName => this.onEvent(eventName, callback));
-    }
-
-    unEvent(eventName, callback) {
+    un(eventName, callback) {
         if (!this.callbacks || !this.callbacks[eventName]) {
             return;
         }

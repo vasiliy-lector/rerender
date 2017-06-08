@@ -64,7 +64,11 @@ class Component extends Events {
                 }
             }
         } else if (value && typeof value === 'object'){
-            Object.keys(value).forEach(path => this.setState(value[path], [path]));
+            const keys = Object.keys(value);
+
+            for (let i = 0, l = keys.length; i < l; i++) {
+                this.setState(value[keys[i]], [keys[i]]);
+            }
         }
     }
 
