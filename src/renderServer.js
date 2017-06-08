@@ -55,6 +55,7 @@ function renderServer(userTemplate, {
         },
         hash: 0
     };
+
     var promise = new Promise(resolve => {
         stream.on('end', html => resolve(html));
     });

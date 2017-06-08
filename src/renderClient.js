@@ -20,17 +20,21 @@ function renderClient(userTemplate, settings = {}) {
     } = settings;
     const document = window.document;
     const {
-        storeState,
+        dispatcherState,
         settings: serverSettings = {}
     } = window[`__RERENDER__${applicationId}`] || {};
 
     const {
         rootNode = document.getElementById(applicationId),
-        store = new Store({ state: storeState }),
-        dispatcher = new Dispatcher({ store }),
         hashEnabled = serverSettings.hashEnabled,
         fullHash = serverSettings.fullHash
     } = settings;
+    const store = new Store();
+    const dispatcher = new Dispatcher({
+        store,
+        stack: dispatcherState,
+        firstRender: true
+    });
 
     const events = new Events();
     const rootTemplate = new TemplateVSandbox(rootNode, userTemplate);
@@ -83,6 +87,7 @@ function renderClient(userTemplate, settings = {}) {
     prepearConfig(config);
 
     listenEvents(config);
+    dispatcher.endFirstRender();
 }
 
 function rerenderClient(config) {

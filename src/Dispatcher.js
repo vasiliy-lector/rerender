@@ -1,20 +1,30 @@
 import { deepEqual } from './utils';
+import { debug } from './debug';
 import NeverResolvePromise from './NeverResolvePromise';
 
 const betweenUserCache = {};
 const maxAge = 600000;
 
-function Dispatcher({ store, isServer = false, betweenUserCacheEnabled = true }) {
+function Dispatcher({ store, stack = [], firstRender, isServer = false, betweenUserCacheEnabled = true }) {
     this.warmUp = true;
     this.store = store;
     this.isServer = isServer;
     this.betweenUserCacheEnabled = betweenUserCacheEnabled;
     this.dispatch = isServer
         ? this.dispatchServer.bind(this)
-        : this.dispatchFirstRender.bind(this);
+        : firstRender
+            ? this.dispatchFirstRender.bind(this)
+            : this._dispatchWithCache.bind(this);
+
     // user cache
     this.cache = {};
-    this.stack = [];
+
+    this.stack = stack;
+
+    if (firstRender) {
+        this.stackIndex = 0;
+        this.afterFirstRenderCallbacks = [];
+    }
 
     this.actionOptions = Object.freeze({
         dispatch: this.dispatch,
@@ -52,10 +62,6 @@ Dispatcher.prototype = {
                 error: item.error
             };
         });
-    },
-
-    rehydrate(stack) {
-        this.stack = stack;
     },
 
     stopWarmUp() {
@@ -119,7 +125,7 @@ Dispatcher.prototype = {
 
         promise.then(payload => {
             this.stack[index].status = 'resolved';
-            this.stack[index].payload = payload;
+            this.stack[index].payload = event.dehydrate ? event.dehydrate(payload) : payload;
         }, error => {
             this.stack[index].status = 'rejected';
             this.stack[index].error = error;
@@ -128,7 +134,57 @@ Dispatcher.prototype = {
         return promise;
     },
 
+    endFirstRender() {
+        this.dispatch = this._dispatchWithCache.bind(this);
+        this.actionOptions = Object.freeze({
+            dispatch: this.dispatch,
+            getState: this.actionOptions.getState
+        });
+
+        if (this.afterFirstRenderCallbacks.length) {
+            for (let i = 0, l = this.afterFirstRenderCallbacks.length; i < l; i++) {
+                this.afterFirstRenderCallbacks[i]();
+            }
+        }
+    },
+
     dispatchFirstRender(event, payload) {
+        const fromStack = this.stack[this.stackIndex++];
+
+        if (event.name === fromStack.name) {
+            const cacheByName = this.cache[event.name] || (this.cache[event.name] = []);
+            let result;
+            let needReexecute;
+
+            if (fromStack.status === 'fulfilled') {
+                result = Promise.resolve(event.rehydrate ? event.rehydrate(fromStack.payload) : fromStack.payload);
+            } else if (fromStack.status === 'rejected') {
+                result = Promise.reject(fromStack.error);
+                needReexecute = true;
+            } else {
+                result = new NeverResolvePromise();
+                needReexecute = true;
+            }
+
+            const cacheItem = {
+                event,
+                payload,
+                result
+            };
+
+            cacheByName.push(cacheItem);
+
+            if (needReexecute) {
+                this.afterFirstRenderCallbacks.push(() => {
+                    this.dropCacheItem(cacheByName, cacheItem);
+                    this._dispatchWithCache(event, payload);
+                });
+            }
+        } else {
+            this.stack = [];
+            debug.warn('Server and client stacks of dispatcher do not match! Server stack dropped');
+        }
+
         return this._dispatchWithCache(event, payload);
     },
 
