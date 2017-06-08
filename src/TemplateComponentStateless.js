@@ -44,7 +44,9 @@ TemplateComponentStateless.prototype = {
     renderServer(config) {
         const template = this.componentType(this.props, this.children);
 
-        return template ? template.renderServer(config) : '';
+        if (template) {
+            return template.renderServer(config);
+        }
     },
 
     render(config, context) {

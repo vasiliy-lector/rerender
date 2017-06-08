@@ -2,6 +2,7 @@ import { getWrapHeader, getWrapFooter, getApplicationAfter, applicationId as def
 import Stream from './Stream';
 import Store from './Store';
 import Dispatcher from './Dispatcher';
+import { mayAsync } from './utils';
 
 function renderServer(userTemplate, {
     store = new Store(),
@@ -49,25 +50,28 @@ function renderServer(userTemplate, {
         },
         hash: 0
     };
+    var promise = new Promise(resolve => {
+        stream.on('end', html => resolve(html));
+    });
 
-    userTemplate.renderServer(config);
+    mayAsync(userTemplate.renderServer(config), () => {
+        if (wrap) {
+            stream.emit('data', getApplicationAfter({
+                dispatcherState: dispatcher.dehydrate(),
+                hashEnabled,
+                fullHash,
+                hash: config.hash
+            }));
 
-    if (wrap) {
-        stream.emit('data', getApplicationAfter({
-            dispatcherState: dispatcher.dehydrate(),
-            hashEnabled,
-            fullHash,
-            hash: config.hash
-        }));
+            stream.emit('data', getWrapFooter({
+                bodyEnd
+            }));
+        }
 
-        stream.emit('data', getWrapFooter({
-            bodyEnd
-        }));
-    }
+        stream.emit('end', concat ? html : undefined);
+    });
 
-    stream.emit('end', concat ? html : undefined);
-
-    return Promise.resolve(concat ? html : undefined);
+    return promise;
 }
 
 export default renderServer;

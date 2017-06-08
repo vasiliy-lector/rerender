@@ -302,7 +302,14 @@ function memoizeLast(fn, { shallow } = {}) {
     };
 }
 
+function mayAsync(result, callback) {
+    return result instanceof Promise
+        ? result.then(callback)
+        : callback(result);
+}
+
 export {
+    mayAsync,
     calcHash,
     escapeAttr,
     escapeHtml,

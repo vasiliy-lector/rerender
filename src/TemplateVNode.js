@@ -1,6 +1,6 @@
 import { TEMPLATE, TEMPLATE_VNODE, TEMPLATE_FRAGMENT } from './types';
 import { debug } from './debug';
-import { escapeHtml, escapeAttr, escapeStyle, calcHash } from './utils';
+import { escapeHtml, escapeAttr, escapeStyle, calcHash, mayAsync } from './utils';
 import { specialAttrs } from './constants';
 import VNode from './VNode';
 import VText from './VText';
@@ -71,13 +71,9 @@ TemplateVNode.prototype = {
 
         config.stream.emit('data', '<' + tag + attrs + '>');
 
-        if (this.children) {
-            for (let i = 0, l = this.children.length; i < l; i++) {
-                stringifyChildrenItem(this.children[i], config);
-            }
-        }
-
-        config.stream.emit('data', '</' + tag + '>');
+        return mayAsync(this.children && stringifyChildren(this.children, config), () => {
+            config.stream.emit('data', '</' + tag + '>');
+        });
     },
 
     needDynamic() {
@@ -158,21 +154,30 @@ function renderChildren(items, config, context, needKeys) {
     return childs || null;
 }
 
+function stringifyChildren(children, config, begin = 0, l = children.length) {
+    for (let i = begin; i < l; i++) {
+        const result = stringifyChildrenItem(children[i], config);
+
+        if (result instanceof Promise) {
+            return result
+                .then(() => {
+                    return stringifyChildren(children, config, i + 1, l);
+                });
+        }
+    }
+}
+
 function stringifyChildrenItem(item, config) {
     const type = typeof item;
 
     if (item) {
         if (type === 'object') {
             if (item.type === TEMPLATE) {
-                item.renderServer(config);
+                return item.renderServer(config);
             } else if (item.type === TEMPLATE_FRAGMENT) {
-                for (let j = 0, l1 = item.fragment.length; j < l1; j++) {
-                    stringifyChildrenItem(item.fragment[j], config);
-                }
+                return stringifyChildren(item.fragment, config);
             } else if (Array.isArray(item)) {
-                for (let j = 0, l1 = item.length; j < l1; j++) {
-                    stringifyChildrenItem(item[j], config);
-                }
+                return stringifyChildren(item, config);
             } else if (item) {
                 if (config.hashEnabled) {
                     config.hash = calcHash(config.hash, String(item));

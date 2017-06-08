@@ -1,6 +1,6 @@
 import { TEMPLATE, TEMPLATE_COMPONENT, TEMPLATE_VNODE, VCOMPONENT } from './types';
 import VComponent from './VComponent';
-import { shallowEqualProps } from './utils';
+import { shallowEqualProps, mayAsync } from './utils';
 import VText from './VText';
 import { componentInit, componentRender, componentBeforeRender, componentSetProps } from './componentLifeCycle';
 import reuseTemplate from './reuseTemplate';
@@ -73,10 +73,14 @@ TemplateComponent.prototype = {
         const componentType = this.componentType;
         const instance = new componentType(this.props, this.children, config.componentOptions, undefined, config.store.getState());
         this.preprocessInstance(instance);
-        componentInit(instance);
-        const template = componentRender(instance);
 
-        return template ? template.renderServer(config) : '';
+        return mayAsync(componentInit(instance), () => {
+            const template = componentRender(instance);
+
+            if (template) {
+                return template.renderServer(config);
+            }
+        });
     },
 
     render(config, context) {
