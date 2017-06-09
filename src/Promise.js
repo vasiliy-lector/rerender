@@ -8,6 +8,10 @@ const REJECT = '[[PromiseReject]]';
 
 function Promise(fn) {
     try {
+        if (typeof fn !== 'function') {
+            throw new Error('Promise resolver ' + typeof fn + ' is not a function');
+        }
+
         fn(this[RESOLVE].bind(this), this[REJECT].bind(this));
     } catch (error) {
         this[REJECT](error);
