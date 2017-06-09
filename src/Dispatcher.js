@@ -27,7 +27,7 @@ function Dispatcher({ store, stack = [], firstRender, isServer = false, betweenU
     }
 
     this.actionOptions = Object.freeze({
-        dispatch: this.dispatch,
+        dispatch: this._dispatchWithCache.bind(this),
         getState: store.getState
     });
     this.reducerOptions = Object.freeze({
@@ -68,13 +68,21 @@ Dispatcher.prototype = {
         this.warmUp = false;
     },
 
-    beginCatch() {
+    enable() {
         this.executionEnabled = true;
+    },
+
+    disable() {
+        this.executionEnabled = false;
+    },
+
+    beginCatch() {
+        this.enable();
         this.beginCatchCount = this.stack.length;
     },
 
     endCatch() {
-        this.executionEnabled = false;
+        this.disable();
         this.endCatchCount = this.stack.length;
     },
 
@@ -109,7 +117,7 @@ Dispatcher.prototype = {
     },
 
     dispatchServer(event, payload) {
-        if (this.warmUp) {
+        if (this.warmUp || event.action === undefined) {
             return event.serverDisabled ? Promise.reject() : this._dispatchWithCache(event, payload);
         }
 
@@ -117,29 +125,27 @@ Dispatcher.prototype = {
             ? this._dispatchWithCache(event, payload)
             : new NeverResolvePromise();
 
-        const index = this.stack.push({
-            name: event.name,
-            promise,
-            status: 'pending'
-        }) - 1;
+        if (this.executionEnabled) {
+            const index = this.stack.push({
+                name: event.name,
+                promise,
+                status: 'pending'
+            }) - 1;
 
-        promise.then(payload => {
-            this.stack[index].status = 'resolved';
-            this.stack[index].payload = event.dehydrate ? event.dehydrate(payload) : payload;
-        }, error => {
-            this.stack[index].status = 'rejected';
-            this.stack[index].error = error;
-        });
+            promise.then(payload => {
+                this.stack[index].status = 'resolved';
+                this.stack[index].payload = event.dehydrate ? event.dehydrate(payload) : payload;
+            }, error => {
+                this.stack[index].status = 'rejected';
+                this.stack[index].error = error;
+            });
+        }
 
         return promise;
     },
 
     endFirstRender() {
         this.dispatch = this._dispatchWithCache.bind(this);
-        this.actionOptions = Object.freeze({
-            dispatch: this.dispatch,
-            getState: this.actionOptions.getState
-        });
 
         if (this.afterFirstRenderCallbacks.length) {
             for (let i = 0, l = this.afterFirstRenderCallbacks.length; i < l; i++) {
@@ -149,40 +155,59 @@ Dispatcher.prototype = {
     },
 
     dispatchFirstRender(event, payload) {
-        const fromStack = this.stack[this.stackIndex++];
+        if (event.action === undefined) {
+            return this._dispatchWithCache(event, payload);
+        }
 
-        if (event.name === fromStack.name) {
-            const cacheByName = this.cache[event.name] || (this.cache[event.name] = []);
-            let result;
-            let needReexecute;
+        let needReexecute;
+        let result;
+        let promiseResolve;
+        let promiseReject;
 
-            if (fromStack.status === 'fulfilled') {
-                result = Promise.resolve(event.rehydrate ? event.rehydrate(fromStack.payload) : fromStack.payload);
-            } else if (fromStack.status === 'rejected') {
-                result = Promise.reject(fromStack.error);
-                needReexecute = true;
+        if (this.executionEnabled) {
+            const fromStack = this.stack[this.stackIndex++];
+
+            if (event.name === fromStack.name) {
+
+                if (fromStack.status === 'fulfilled') {
+                    result = Promise.resolve(event.rehydrate ? event.rehydrate(fromStack.payload) : fromStack.payload);
+                } else if (fromStack.status === 'rejected') {
+                    result = Promise.reject(fromStack.error);
+                } else {
+                    result = new Promise((resolve, reject) => {
+                        promiseResolve = resolve;
+                        promiseReject = reject;
+                    });
+                    needReexecute = true;
+                }
+
             } else {
-                result = new NeverResolvePromise();
-                needReexecute = true;
-            }
-
-            const cacheItem = {
-                event,
-                payload,
-                result
-            };
-
-            cacheByName.push(cacheItem);
-
-            if (needReexecute) {
-                this.afterFirstRenderCallbacks.push(() => {
-                    this.dropCacheItem(cacheByName, cacheItem);
-                    this._dispatchWithCache(event, payload);
-                });
+                this.stack = [];
+                debug.warn('Server and client stacks of dispatcher do not match! Server stack dropped');
             }
         } else {
-            this.stack = [];
-            debug.warn('Server and client stacks of dispatcher do not match! Server stack dropped');
+            result = new Promise((resolve, reject) => {
+                promiseResolve = resolve;
+                promiseReject = reject;
+            });
+            needReexecute = true;
+        }
+
+        const cacheByName = this.cache[event.name] || (this.cache[event.name] = []);
+        const cacheItem = {
+            event,
+            payload,
+            result
+        };
+
+        cacheByName.push(cacheItem);
+
+        if (needReexecute) {
+            this.afterFirstRenderCallbacks.push(() => {
+                this.dropCacheItem(cacheByName, cacheItem);
+                this._dispatchWithCache(event, payload)
+                    .then(promiseResolve, promiseReject);
+            });
         }
 
         return this._dispatchWithCache(event, payload);
@@ -223,14 +248,12 @@ Dispatcher.prototype = {
                 timeout = setTimeout(() => this.dropCacheItem(cacheByName, cacheItem), event.maxAge || maxAge);
             }
 
-            result.catch(error => {
+            result.catch(() => {
                 this.dropCacheItem(cacheByName, cacheItem);
 
                 if (timeout !== undefined) {
                     clearTimeout(timeout);
                 }
-
-                return Promise.reject(error);
             });
         }
 

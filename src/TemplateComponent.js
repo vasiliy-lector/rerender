@@ -130,7 +130,11 @@ TemplateComponent.prototype = {
                 needStore ? storeState : undefined
             );
             this.preprocessInstance(instance);
+
+            config.firstRender && config.dispatcher.enable();
             componentInit(instance);
+            config.firstRender && config.dispatcher.disable();
+
             if (this.ref && typeof this.ref === 'function') {
                 this.ref(instance);
             }

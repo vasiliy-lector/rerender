@@ -39,6 +39,7 @@ function renderClient(userTemplate, settings = {}) {
     const events = new Events();
     const rootTemplate = new TemplateVSandbox(rootNode, userTemplate);
     const config = {
+        firstRender: true,
         store,
         dispatcher,
         // events, rootTemplate, document, rootNode, virtualRoot need only inside renderClient file
@@ -84,6 +85,7 @@ function renderClient(userTemplate, settings = {}) {
     config.hash = undefined;
     config.fullHash = undefined;
     config.virtualRoot = nextVirtualRoot;
+    config.firstRender = false;
     prepearConfig(config);
 
     listenEvents(config);
