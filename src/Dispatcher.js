@@ -86,14 +86,14 @@ Dispatcher.prototype = {
         this.endCatchCount = this.stack.length;
     },
 
+    isCatched() {
+        return this.endCatchCount - this.beginCatchCount > 0;
+    },
+
     waitCatched() {
         const beginCatchCount = this.beginCatchCount;
         const endCatchCount = this.endCatchCount;
         const catchCount = endCatchCount - beginCatchCount;
-
-        if (catchCount === 0) {
-            return;
-        }
 
         const catched = this.stack.slice(-catchCount);
 
@@ -160,6 +160,7 @@ Dispatcher.prototype = {
         }
 
         let needReexecute;
+        let needDropCache;
         let result;
         let promiseResolve;
         let promiseReject;
@@ -173,6 +174,7 @@ Dispatcher.prototype = {
                     result = Promise.resolve(event.rehydrate ? event.rehydrate(fromStack.payload) : fromStack.payload);
                 } else if (fromStack.status === 'rejected') {
                     result = Promise.reject(fromStack.error);
+                    needDropCache = true;
                 } else {
                     result = new Promise((resolve, reject) => {
                         promiseResolve = resolve;
@@ -207,6 +209,12 @@ Dispatcher.prototype = {
                 this.dropCacheItem(cacheByName, cacheItem);
                 this._dispatchWithCache(event, payload)
                     .then(promiseResolve, promiseReject);
+            });
+        }
+
+        if (needDropCache) {
+            this.afterFirstRenderCallbacks.push(() => {
+                this.dropCacheItem(cacheByName, cacheItem);
             });
         }
 

@@ -70,13 +70,25 @@ TemplateComponent.prototype = {
     },
 
     serverInit(instance, config) {
+        if (typeof instance.init === 'undefined') {
+            return;
+        }
+
         const { dispatcher } = config;
 
         dispatcher.beginCatch();
         componentInit(instance);
         dispatcher.endCatch();
 
-        return dispatcher.waitCatched();
+        if (dispatcher.isCatched()) {
+            return dispatcher.waitCatched().then(() => {
+                if (this.componentType.store) {
+                    componentSetProps(instance, this.props, this.children, config.store.getState());
+                }
+            });
+        } else if (this.componentType.store) {
+            componentSetProps(instance, this.props, this.children, config.store.getState());
+        }
     },
 
     renderServer(config) {
