@@ -6,7 +6,9 @@ const betweenUserCache = {};
 const maxAge = 600000;
 
 function Dispatcher({ store, stack = [], firstRender, isServer = false, betweenUserCacheEnabled = true }) {
-    this.warmUp = true;
+    if (isServer) {
+        this.warmUp = true;
+    }
     this.store = store;
     this.isServer = isServer;
     this.betweenUserCacheEnabled = betweenUserCacheEnabled;

@@ -147,6 +147,15 @@ TemplateComponent.prototype = {
             componentInit(instance);
             config.firstRender && config.dispatcher.disable();
 
+            if (componentType.store && typeof instance.init === 'function') {
+                const storeStateAfterInit = store.getState(undefined, true);
+
+                if (storeStateAfterInit !== storeState) {
+                    storeState = storeStateAfterInit;
+                    componentSetProps(instance, this.props, this.children, storeState);
+                }
+            }
+
             if (this.ref && typeof this.ref === 'function') {
                 this.ref(instance);
             }
