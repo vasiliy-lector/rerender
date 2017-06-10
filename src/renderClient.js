@@ -1,5 +1,6 @@
 import Events from './Events';
 import Store from './Store';
+import DispatcherFirstRender from './DispatcherFirstRender';
 import Dispatcher from './Dispatcher';
 import { componentMount, componentUnmount, componentDestroy, componentUpdate } from './componentLifeCycle';
 import createInitialPatch from './createInitialPatch';
@@ -20,7 +21,7 @@ function renderClient(userTemplate, settings = {}) {
     } = settings;
     const document = window.document;
     const {
-        dispatcherState,
+        dispatcherCache,
         settings: serverSettings = {}
     } = window[`__RERENDER__${applicationId}`] || {};
 
@@ -29,12 +30,11 @@ function renderClient(userTemplate, settings = {}) {
         hashEnabled = serverSettings.hashEnabled,
         fullHash = serverSettings.fullHash
     } = settings;
-    const store = new Store();
-    const dispatcher = new Dispatcher({
-        store,
-        stack: dispatcherState,
-        firstRender: true
+    const dispatcher = new DispatcherFirstRender({
+        cacheFromServer: dispatcherCache,
+        eventDefaults: serverSettings.eventDefaults
     });
+    const store = dispatcher.store;
 
     const events = new Events();
     const rootTemplate = new TemplateVSandbox(rootNode, userTemplate);

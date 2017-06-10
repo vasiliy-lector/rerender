@@ -61,12 +61,12 @@ class DispatcherFirstRender extends Dispatcher {
                 settledCount++;
                 const newCatchedCount = catched.length;
 
-                if (item && !this.getCachedOriginal(item.event, item.payload)) {
+                if (item && this.getEventSetting(item.event, 'cache') && !this.getCachedOriginal(item.event, item.payload)) {
                     this.setCacheOriginal(item.event, item.payload, item.result);
                 }
 
                 if (catchCount < newCatchedCount) {
-                    const newCatched = catched.slice(newCatchedCount - catchCount);
+                    const newCatched = catched.slice(catchCount - newCatchedCount);
                     catchCount = newCatchedCount;
 
                     for (let i = 0, l = newCatched.length; i < l; i++) {

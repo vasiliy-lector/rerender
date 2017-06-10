@@ -1,33 +1,28 @@
 import { getWrapHeader, getWrapFooter, getApplicationAfter, applicationId as defaultApplicationId } from './defaults';
 import Stream from './Stream';
-import Store from './Store';
-import Dispatcher from './Dispatcher';
+import DispatcherFirstRender from './DispatcherFirstRender';
 import { mayAsync } from './utils';
 
 function renderServer(userTemplate, {
-    dispatcher,
     applicationId = defaultApplicationId,
     stream,
-    concat,
     wrap = false,
     title = '',
     head = '',
     bodyEnd = '',
     hashEnabled = true,
+    eventDefaults,
     fullHash = false
 } = {}) {
     let html;
-    const store = new Store();
+    let concat;
 
     if (stream === undefined) {
         stream = new Stream();
         concat = true;
     }
 
-    if (dispatcher === undefined) {
-        dispatcher = new Dispatcher({ store, isServer: true });
-    }
-    dispatcher.stopWarmup();
+    const dispatcher = new DispatcherFirstRender({ eventDefaults, isServer: true });
 
     if (concat) {
         html = '';
@@ -45,7 +40,7 @@ function renderServer(userTemplate, {
     }
 
     const config = {
-        store,
+        store: dispatcher.store,
         dispatcher,
         hashEnabled,
         fullHash,
@@ -63,9 +58,10 @@ function renderServer(userTemplate, {
     mayAsync(userTemplate.renderServer(config), () => {
         if (wrap) {
             stream.emit('data', getApplicationAfter({
-                dispatcherState: dispatcher.dehydrate(),
+                dispatcherCache: dispatcher.dehydrate(),
                 hashEnabled,
                 fullHash,
+                eventDefaults,
                 hash: config.hash
             }));
 

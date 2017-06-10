@@ -3,16 +3,20 @@ import Store from './Store';
 import { eventDefaults } from './defaults';
 import debug from './debug';
 
-function Dispatcher(options) {
+function Dispatcher(options = {}) {
     this.store = new Store();
     this.cache = options.cache || {};
     this.brokenCacheKeys = {};
 
-    this.eventDefaults = {};
-    for (let name in eventDefaults) {
-        this.eventDefaults[name] = options.eventDefaults[name] !== undefined
-            ? options.eventDefaults[name]
-            : eventDefaults[name];
+    if (options.eventDefaults) {
+        this.eventDefaults = {};
+        for (let name in eventDefaults) {
+            this.eventDefaults[name] = options.eventDefaults[name] !== undefined
+                ? options.eventDefaults[name]
+                : eventDefaults[name];
+        }
+    } else {
+        this.eventDefaults = eventDefaults;
     }
 
     this.reducerOptions = Object.freeze({

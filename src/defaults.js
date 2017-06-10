@@ -27,14 +27,16 @@ export const getWrapFooter = ({
 </html>`;
 
 export const getApplicationAfter = ({
-    dispatcherState,
+    dispatcherCache,
     applicationId,
     hashEnabled,
+    eventDefaults = {},
     hash,
     fullHash
 }) => `<script>
     window.__RERENDER__${applicationId} = {};
-    window.__RERENDER__${applicationId}.dispatcherState = ${JSON.stringify(dispatcherState)};
+    window.__RERENDER__${applicationId}.dispatcherCache = ${JSON.stringify(dispatcherCache)};
+    window.__RERENDER__${applicationId}.eventDefaults = ${JSON.stringify(eventDefaults)};
     window.__RERENDER__${applicationId}.settings = ${JSON.stringify({
         hashEnabled,
         fullHash,

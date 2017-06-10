@@ -69,7 +69,7 @@ TemplateComponent.prototype = {
         }
     },
 
-    serverInit(instance, config) {
+    firstRenderInit(instance, config) {
         if (typeof instance.init === 'undefined') {
             return;
         }
@@ -78,7 +78,6 @@ TemplateComponent.prototype = {
 
         dispatcher.beginCatch();
         componentInit(instance);
-        dispatcher.endCatch();
 
         if (dispatcher.isCatched()) {
             return dispatcher.waitCatched().then(() => {
@@ -86,6 +85,7 @@ TemplateComponent.prototype = {
                     componentSetProps(instance, this.props, this.children, config.store.getState());
                 }
             });
+        // FIXME: for what setProps inside else?
         } else if (this.componentType.store) {
             componentSetProps(instance, this.props, this.children, config.store.getState());
         }
@@ -102,7 +102,7 @@ TemplateComponent.prototype = {
         );
         this.preprocessInstance(instance);
 
-        return mayAsync(this.serverInit(instance, config), () => {
+        return mayAsync(this.firstRenderInit(instance, config), () => {
             const template = componentRender(instance);
 
             if (template) {
