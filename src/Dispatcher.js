@@ -172,7 +172,7 @@ Dispatcher.prototype = {
 
             if (event.name === fromStack.name) {
 
-                if (fromStack.status === 'fulfilled') {
+                if (fromStack.status === 'resolved') {
                     result = Promise.resolve(event.rehydrate ? event.rehydrate(fromStack.payload) : fromStack.payload);
                 } else if (fromStack.status === 'rejected') {
                     result = Promise.reject(fromStack.error);
@@ -310,7 +310,7 @@ Dispatcher.prototype = {
     runAction(event, payload) {
         const actionResult = event.action(this.actionOptions, payload);
 
-        if (actionResult && actionResult instanceof Promise) {
+        if (actionResult instanceof Promise) {
             return actionResult;
         } else {
             return Promise.resolve(actionResult);
@@ -325,10 +325,6 @@ Dispatcher.prototype = {
         for (let i = 0, l = event.reducers.length; i < l; i++) {
             event.reducers[i](this.reducerOptions, payload);
         }
-    },
-
-    setIsServer() {
-        this.isServer = true;
     }
 };
 
