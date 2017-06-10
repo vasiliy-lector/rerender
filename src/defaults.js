@@ -2,9 +2,10 @@ import { escapeAttr, escapeHtml } from './utils';
 
 export const eventDefaults = {
     cache: false,
-    userIndependent: false,
+    single: false,
+    crossUser: false,
     serverDisabled: false,
-    clientDisabled: false
+    serverCacheAge: 600000
 };
 
 export const getWrapHeader = ({

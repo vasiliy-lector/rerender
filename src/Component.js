@@ -72,8 +72,8 @@ class Component extends Events {
         }
     }
 
-    dispatch() {
-        this._options.dispatch.apply(null, arguments);
+    dispatch(event, payload) {
+        return this._options.dispatch.call(null, event, payload);
     }
 
     trigger(eventName, payload) {

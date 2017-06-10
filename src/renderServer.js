@@ -27,7 +27,7 @@ function renderServer(userTemplate, {
     if (dispatcher === undefined) {
         dispatcher = new Dispatcher({ store, isServer: true });
     }
-    dispatcher.stopWarmUp();
+    dispatcher.stopWarmup();
 
     if (concat) {
         html = '';
