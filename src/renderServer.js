@@ -71,7 +71,7 @@ function renderServer(userTemplate, {
         }
 
         stream.emit('end', concat ? html : undefined);
-    }, config);
+    }, error => config.stream.emit('error', error));
 
     return promise;
 }

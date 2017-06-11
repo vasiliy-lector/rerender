@@ -61,7 +61,8 @@ class DispatcherFirstRender extends Dispatcher {
                 settledCount++;
                 const newCatchedCount = catched.length;
 
-                if (item && this.getEventSetting(item.event, 'cache') && !this.getCachedOriginal(item.event, item.payload)) {
+                if (item && typeof item.event.action === 'function'
+                    && this.getEventSetting(item.event, 'cache') && !this.getCachedOriginal(item.event, item.payload)) {
                     this.setCacheOriginal(item.event, item.payload, item.result);
                 }
 
@@ -187,7 +188,7 @@ class DispatcherFirstRender extends Dispatcher {
             dehydrated[name] = [];
 
             for (let i = 0, l = this.cache[name].length; i < l; i++) {
-                const item = this.cache[name];
+                const item = this.cache[name][i];
                 const value = item.result['[[PromiseValue]]'];
 
                 dehydrated[name].push({

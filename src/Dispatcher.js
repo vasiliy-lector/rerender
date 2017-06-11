@@ -102,7 +102,7 @@ Dispatcher.prototype = {
     },
 
     runReducers(event, payload) {
-        if (this.warmUp || !event.reducers || !event.reducers.length) {
+        if (!event.reducers || !event.reducers.length) {
             return;
         }
 
@@ -112,13 +112,15 @@ Dispatcher.prototype = {
     },
 
     getCached(event, payload) {
-        for (let i = 0, l = this.cache[event.name].length; i < l; i++) {
-            const cacheItem = this.cache[event.name][i];
-            if (cacheItem.event !== event) {
-                this.brokenCacheKeys[event.name] = true;
-                debug.warn('There are many events with same name ' + event.name + '. Cache for this key will not work!');
-            } else if (deepEqual(cacheItem.payload, payload)) {
-                return cacheItem.result;
+        if (this.cache[event.name]) {
+            for (let i = 0, l = this.cache[event.name].length; i < l; i++) {
+                const cacheItem = this.cache[event.name][i];
+                if (cacheItem.event !== event) {
+                    this.brokenCacheKeys[event.name] = true;
+                    debug.warn('There are many events with same name ' + event.name + '. Cache for this key will not work!');
+                } else if (deepEqual(cacheItem.payload, payload)) {
+                    return cacheItem.result;
+                }
             }
         }
     },
@@ -134,7 +136,7 @@ Dispatcher.prototype = {
             result
         };
 
-        cacheByName[event.name].push(item);
+        cacheByName.push(item);
 
         result.catch(() => this.dropCacheItem(cacheByName, item));
     },
