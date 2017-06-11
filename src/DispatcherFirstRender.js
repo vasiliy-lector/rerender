@@ -28,7 +28,7 @@ class DispatcherFirstRender extends Dispatcher {
             this.setCache = this.setCacheServer;
             this.getCached = this.getCachedServer;
         } else {
-            this.cacheFromServer = cacheFromServer;
+            this.cacheFromServer = cacheFromServer || {};
             this.setCache = this.setCacheOriginal;
             this.getCached = this.getCachedClient;
         }
@@ -95,8 +95,8 @@ class DispatcherFirstRender extends Dispatcher {
 
         const cacheFromServer = this.cacheFromServer;
 
-        if (cacheFromServer && cacheFromServer[event.name]
-            && cacheFromServer[event.name].length) {
+        if (cacheFromServer[event.name]
+            && cacheFromServer[event.name].length > 0) {
 
             for (let i = 0, l = cacheFromServer[event.name].length; i < l; i++) {
                 const cacheItem = cacheFromServer[event.name][i];
@@ -139,7 +139,7 @@ class DispatcherFirstRender extends Dispatcher {
     setCacheServer(event, payload, result) {
         this.setCacheOriginal(event, payload, result);
 
-        if (this.crossUserCacheEnabled && this.getEventSetting(event, 'crossUser')) {
+        if (this.crossUserCacheEnabled && this.getEventSetting(event, 'crossUser') && !this.brokenCacheKeys[event.name]) {
             const cacheByName = crossUserCache[event.name] || (crossUserCache[event.name] = []);
             const item = {
                 event,

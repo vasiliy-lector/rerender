@@ -63,6 +63,10 @@ Dispatcher.prototype = {
     },
 
     runAction(event, payload) {
+        if (typeof event.action !== 'function') {
+            return Promise.resolve(payload);
+        }
+
         const cacheEnabled = this.getEventSetting(event, 'cache');
 
         if (cacheEnabled) {
@@ -120,6 +124,9 @@ Dispatcher.prototype = {
     },
 
     setCache(event, payload, result) {
+        if (this.brokenCacheKeys[event.name]) {
+            return;
+        }
         const cacheByName = this.cache[event.name] || (this.cache[event.name] = []);
         const item = {
             event,
