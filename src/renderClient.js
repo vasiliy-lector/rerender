@@ -1,7 +1,5 @@
 import Events from './Events';
-import Store from './Store';
 import DispatcherFirstRender from './DispatcherFirstRender';
-import Dispatcher from './Dispatcher';
 import { componentMount, componentUnmount, componentDestroy, componentUpdate } from './componentLifeCycle';
 import createInitialPatch from './createInitialPatch';
 import diff from './diff';
@@ -9,7 +7,7 @@ import { debug } from './debug';
 import TemplateVSandbox from './TemplateVSandbox';
 import Context from './Context';
 import { VNODE, VTEXT, VCOMPONENT } from './types';
-import { groupByIdComponents, groupByIdNodes } from './utils';
+import { groupByIdComponents, groupByIdNodes, mayAsync } from './utils';
 import { applicationId as defaultApplicationId } from './defaults';
 
 const RENDER_THROTTLE = 16;
@@ -64,32 +62,34 @@ function renderClient(userTemplate, settings = {}) {
         getParent: getParent(config),
         events
     };
-    const nextVirtualRoot = rootTemplate.render(config);
-    const patch = createInitialPatch(nextVirtualRoot.childNodes[0], {
-        nextNodesById: config.nextNodes,
-        document
-    });
-    const serverHash = serverSettings.hash;
 
-    if (!hashEnabled || !serverHash || serverHash !== config.hash) {
-        hashEnabled && debug.warn('Server and client html do not match!');
-        rootNode.innerHTML = '';
-        patch.apply();
-    } else {
-        patch.applyNormalize();
-    }
+    mayAsync(rootTemplate.render(config), nextVirtualRoot => {
+        const patch = createInitialPatch(nextVirtualRoot.childNodes[0], {
+            nextNodesById: config.nextNodes,
+            document
+        });
+        const serverHash = serverSettings.hash;
 
-    mount(config.mountComponents);
+        if (!hashEnabled || !serverHash || serverHash !== config.hash) {
+            hashEnabled && debug.warn('Server and client html do not match!');
+            rootNode.innerHTML = '';
+            patch.apply();
+        } else {
+            patch.applyNormalize();
+        }
 
-    config.hashEnabled = false;
-    config.hash = undefined;
-    config.fullHash = undefined;
-    config.virtualRoot = nextVirtualRoot;
-    config.firstRender = false;
-    prepearConfig(config);
+        mount(config.mountComponents);
 
-    listenEvents(config);
-    dispatcher.endFirstRender();
+        config.hashEnabled = false;
+        config.hash = undefined;
+        config.fullHash = undefined;
+        config.virtualRoot = nextVirtualRoot;
+        config.firstRender = false;
+        prepearConfig(config);
+
+        listenEvents(config);
+        dispatcher.endFirstRender();
+    }, error => debug.error(error));
 }
 
 function rerenderClient(config) {

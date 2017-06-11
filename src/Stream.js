@@ -1,3 +1,3 @@
 import Events from './Events';
 
-export default class Stream extends Events {}
+export default Events;

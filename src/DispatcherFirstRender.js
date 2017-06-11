@@ -43,6 +43,14 @@ class DispatcherFirstRender extends Dispatcher {
         return this.catched.length > 0;
     }
 
+    endFirstRender() {
+        delete this.cacheFromServer;
+        this.setCache = this.setCacheOriginal;
+        this.getCached = this.getCachedOriginal;
+        this.dispatch = this.dispatchOriginal.bind(this);
+        this.setActionOptions();
+    }
+
     waitCatched() {
         return new Promise(resolve => {
             let settledCount = 0;
