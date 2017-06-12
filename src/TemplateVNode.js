@@ -2,6 +2,7 @@ import { TEMPLATE, TEMPLATE_VNODE, TEMPLATE_FRAGMENT } from './types';
 import { debug } from './debug';
 import { escapeHtml, escapeAttr, escapeStyle, calcHash, mayAsync } from './utils';
 import { specialAttrs } from './constants';
+import { isPromise } from './Promise';
 import VNode from './VNode';
 import VText from './VText';
 import DynamicVNode from './DynamicVNode';
@@ -158,11 +159,12 @@ function stringifyChildren(children, config, begin = 0, l = children.length) {
     for (let i = begin; i < l; i++) {
         const result = stringifyChildrenItem(children[i], config);
 
-        if (result instanceof Promise) {
-            return result
-                .then(() => {
-                    return stringifyChildren(children, config, i + 1, l);
-                });
+        if (isPromise(result)) {
+            return result.then(() => {
+                return stringifyChildren(children, config, i + 1, l);
+            }, error => {
+                config.stream('error', error);
+            });
         }
     }
 }

@@ -409,5 +409,6 @@ export {
     RemoveRef,
     SplitText,
     Update,
+    UpdateDynamic,
     AttachEvents
 };

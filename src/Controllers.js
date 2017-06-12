@@ -40,7 +40,7 @@ class Controllers extends Component {
 
         if (props.targetController) {
             if (Array.isArray(props.targetController)) {
-                controllers.concat(props.targetController);
+                controllers.push.apply(controllers, props.targetController);
             } else {
                 controllers.push(props.targetController);
             }

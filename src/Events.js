@@ -1,3 +1,5 @@
+const noop = () => {};
+
 class Events {
     emit(eventName, payload) {
         if (!this.callbacks || !this.callbacks[eventName]) {
@@ -5,7 +7,7 @@ class Events {
         }
 
         for (let i = 0, l = this.callbacks[eventName].length; i < l; i++) {
-            this.callbacks[eventName][i](payload);
+            ((this.callbacks[eventName] || {})[i] || noop)(payload);
         }
     }
 

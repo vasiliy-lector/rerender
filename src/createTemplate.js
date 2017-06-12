@@ -32,5 +32,5 @@ export default function createTemplate(componentType, props) {
 
 function createTemplateController(componentType, props, children) {
     // FIXME: TemplateFragment?
-    return new TemplateComponent(Controllers, nextProps, children && new TemplateFragment(children), componentType);
+    return new TemplateComponent(Controllers, props, children && new TemplateFragment(children), componentType);
 }

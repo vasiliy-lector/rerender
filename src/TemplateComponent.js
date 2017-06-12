@@ -143,9 +143,7 @@ TemplateComponent.prototype = {
             );
             this.preprocessInstance(instance);
 
-            config.firstRender && config.dispatcher.enable();
             componentInit(instance);
-            config.firstRender && config.dispatcher.disable();
 
             if (componentType.store && typeof instance.init === 'function') {
                 const storeStateAfterInit = store.getState(undefined, true);

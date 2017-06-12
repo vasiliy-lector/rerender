@@ -12,7 +12,10 @@ function Promise(fn) {
             throw new Error('Promise resolver ' + typeof fn + ' is not a function');
         }
 
-        fn(this[RESOLVE].bind(this), this[REJECT].bind(this));
+        this[RESOLVE] = this[RESOLVE].bind(this);
+        this[REJECT] = this[REJECT].bind(this);
+
+        fn(this[RESOLVE], this[REJECT]);
     } catch (error) {
         this[REJECT](error);
     }
@@ -21,28 +24,13 @@ function Promise(fn) {
 Promise.prototype = {
     then(onFulfilled = identity, onRejected = identity) {
         if (this[STATUS] === RESOLVED) {
-            const result = onFulfilled(this[VALUE]);
-
-            if (isPromise(result)) {
-                return result;
-            } else {
-                return Promise.resolve(result);
-            }
+            return Promise.resolve(onFulfilled(this[VALUE]));
         } else if (this[STATUS] === REJECTED) {
             return Promise.reject(onRejected(this[VALUE]));
         } else {
             return new Promise((resolve, reject) => {
-                (this._fulfilledCalbacks || (this._fulfilledCalbacks = [])).push(payload => {
-                    const result = onFulfilled(payload);
-
-                    if (isPromise(result)) {
-                        result.then(resolve, reject);
-                    } else {
-                        resolve(result);
-                    }
-                });
-
-                (this._rejectedCalbacks || (this._rejectedCalbacks = [])).push(error => reject(onRejected(error)));
+                (this._fulfilledCallbacks || (this._fulfilledCallbacks = [])).push(payload => resolve(onFulfilled(payload)));
+                (this._rejectedCallbacks || (this._rejectedCallbacks = [])).push(error => reject(onRejected(error)));
             });
         }
     },
@@ -52,7 +40,8 @@ Promise.prototype = {
             return Promise.reject(onRejected(this[VALUE]));
         } else if (this[STATUS] === PENDING) {
             return new Promise((resolve, reject) => {
-                (this._rejectedCalbacks || (this._rejectedCalbacks = [])).push(error => reject(onRejected(error)));
+                (this._fulfilledCallbacks || (this._fulfilledCallbacks = [])).push(payload => resolve(payload));
+                (this._rejectedCallbacks || (this._rejectedCallbacks = [])).push(error => reject(onRejected(error)));
             });
         } else {
             return this;
@@ -63,12 +52,16 @@ Promise.prototype = {
 
     [RESOLVE]: function(payload) {
         if (this[STATUS] === PENDING) {
-            this[STATUS] = RESOLVED;
-            this[VALUE] = payload;
+            if (isPromise(payload)) {
+                payload.then(this[RESOLVE], this[REJECT]);
+            } else {
+                this[STATUS] = RESOLVED;
+                this[VALUE] = payload;
 
-            if (this._fulfilledCalbacks) {
-                for (let i = 0, l = this._fulfilledCalbacks.length; i < l; i++) {
-                    this._fulfilledCalbacks[i](payload);
+                if (this._fulfilledCallbacks) {
+                    for (let i = 0, l = this._fulfilledCallbacks.length; i < l; i++) {
+                        this._fulfilledCallbacks[i](payload);
+                    }
                 }
             }
         }
@@ -79,9 +72,9 @@ Promise.prototype = {
             this[STATUS] = REJECTED;
             this[VALUE] = error;
 
-            if (this._rejectedCalbacks) {
-                for (let i = 0, l = this._rejectedCalbacks.length; i < l; i++) {
-                    this._rejectedCalbacks[i](error);
+            if (this._rejectedCallbacks) {
+                for (let i = 0, l = this._rejectedCallbacks.length; i < l; i++) {
+                    this._rejectedCallbacks[i](error);
                 }
             }
         }
@@ -107,3 +100,4 @@ function identity(payload) {
 }
 
 export default Promise;
+export { isPromise };

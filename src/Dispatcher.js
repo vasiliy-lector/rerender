@@ -2,6 +2,7 @@ import { deepEqual } from './utils';
 import Store from './Store';
 import { eventDefaults } from './defaults';
 import debug from './debug';
+import Promise, { isPromise } from './Promise';
 
 function Dispatcher(options = {}) {
     this.store = new Store();
@@ -24,7 +25,10 @@ function Dispatcher(options = {}) {
         setState: this.store.setState
     });
 
-    options.hasInheritance || this.setActionOptions();
+    if (!options.hasInheritance) {
+        this.dispatch = this.dispatch.bind(this);
+        this.setActionOptions();
+    }
 }
 
 Dispatcher.prototype = {
@@ -94,7 +98,7 @@ Dispatcher.prototype = {
             payload
         );
 
-        if (actionResult instanceof Promise) {
+        if (isPromise(actionResult)) {
             return actionResult;
         } else {
             return Promise.resolve(actionResult);

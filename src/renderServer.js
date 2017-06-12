@@ -1,6 +1,7 @@
 import { getWrapHeader, getWrapFooter, getApplicationAfter, applicationId as defaultApplicationId } from './defaults';
 import Stream from './Stream';
 import DispatcherFirstRender from './DispatcherFirstRender';
+import Promise from './Promise';
 import { mayAsync } from './utils';
 
 function renderServer(userTemplate, {

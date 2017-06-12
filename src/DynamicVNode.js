@@ -26,7 +26,9 @@ DynamicVNode.prototype = {
     },
 
     get(name) {
-        return this.attrs[name] || (this.node.attrs && this.node.attrs[name]);
+        return this.attrs[name] !== undefined
+            ? this.attrs[name]
+            : this.node.attrs && this.node.attrs[name];
     },
 
     reset(name) {
@@ -77,11 +79,11 @@ DynamicVNode.prototype = {
 
     _scheduleUpdate() {
         if (!this._timeout) {
-            this._timeout = setTimeout(this._update, 0);
+            this._timeout = setTimeout(() => this._update(), 0);
         }
     },
 
-    _udpate() {
+    _update() {
         delete this._timeout;
 
         if (this.prevAttrs) {

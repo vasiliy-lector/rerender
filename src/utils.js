@@ -1,5 +1,6 @@
 import { TEMPLATE, VCOMPONENT } from './types';
 import { styleProps } from './constants';
+import { isPromise } from './Promise';
 
 const NEXT_TICK_TIMEOUT = 0;
 const REGEXP_ATTR = /[<>"&]/;
@@ -303,7 +304,7 @@ function memoizeLast(fn, { shallow } = {}) {
 }
 
 function mayAsync(result, callback, errorCallback) {
-    return result instanceof Promise
+    return isPromise(result)
         ? result.then(callback).catch(errorCallback)
         : callback(result);
 }

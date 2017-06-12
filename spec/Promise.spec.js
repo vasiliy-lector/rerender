@@ -25,6 +25,57 @@ describe('Promise', () => {
         expect(score).toBe(4);
     });
 
+    it('should call callbacks after resolving', () => {
+        let callback1;
+        let callback2;
+        let callback3;
+
+        (new Promise(resolve => {
+            setTimeout(() => resolve(1), 0);
+        }))
+            .then(value => {
+                callback1 = value;
+                return 2;
+            })
+            .then(value => {
+                callback2 = value;
+                return 3;
+            })
+            .then(value => {
+                callback3 = value;
+                check();
+            });
+
+        function check() {
+            expect(callback1).toBe(1);
+            expect(callback2).toBe(2);
+            expect(callback3).toBe(3);
+        }
+    });
+
+    it('should call callbacks for already resolved promise', () => {
+        let callback1;
+        let callback2;
+        let callback3;
+
+        Promise.resolve(1)
+            .then(value => {
+                callback1 = value;
+                return 2;
+            })
+            .then(value => {
+                callback2 = value;
+                return 3;
+            })
+            .then(value => {
+                callback3 = value;
+            });
+
+        expect(callback1).toBe(1);
+        expect(callback2).toBe(2);
+        expect(callback3).toBe(3);
+    });
+
     it('should work sync', () => {
         Promise.resolve('hello').then(payload => {
             string += payload + ' ';

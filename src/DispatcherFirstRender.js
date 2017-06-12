@@ -1,5 +1,6 @@
 import Dispatcher from './Dispatcher';
 import NeverResolvePromise from './NeverResolvePromise';
+import Promise from './Promise';
 import { deepEqual } from './utils';
 
 const crossUserCache = {};

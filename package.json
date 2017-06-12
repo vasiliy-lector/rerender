@@ -8,7 +8,7 @@
     "url": "git+https://github.com/rerender/rerender.git"
   },
   "scripts": {
-    "compile": "babel --presets es2015 -d lib/ src/",
+    "compile": "babel --presets node6 -d lib/ src/",
     "prepublish": "npm run compile",
     "test": "node --max_old_space_size=3000 ./node_modules/.bin/istanbul cover ./node_modules/.bin/jasmine --include-all-sources --root=./src -x index.js -x debug.js"
   },
