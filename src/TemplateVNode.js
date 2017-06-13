@@ -199,15 +199,6 @@ function stringifyChildrenItem(item, config) {
 function stringifyAttr(name, value) {
     if (name.substr(0, 2) === 'on' || noRenderAttrs[name]) {
         return '';
-    } else if (name === 'dataset') {
-        const datasetKeys = Object.keys(value);
-        let attrs = '';
-
-        for (let j = 0, n = datasetKeys.length; j < n; j++) {
-            attrs += ` data-${datasetKeys[j]}="${escapeAttr(value[datasetKeys[j]])}"`;
-        }
-
-        return attrs;
     } else if (name === 'style') {
         return ` style="${escapeStyle(value)}"`;
     } else {

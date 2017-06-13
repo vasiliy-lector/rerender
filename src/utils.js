@@ -30,7 +30,7 @@ function convertUpper(match) {
 function escapeStyle(value) {
     let styleString;
 
-    if (typeof value === 'object') {
+    if (typeof value === 'object' && value !== null) {
         styleString = '';
 
         for (var prop in value) {
