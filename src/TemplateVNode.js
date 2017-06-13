@@ -1,7 +1,7 @@
 import { TEMPLATE, TEMPLATE_VNODE, TEMPLATE_FRAGMENT } from './types';
 import { debug } from './debug';
 import { escapeHtml, escapeAttr, escapeStyle, calcHash, mayAsync } from './utils';
-import { specialAttrs } from './constants';
+import { noRenderAttrs } from './constants';
 import { isPromise } from './Promise';
 import VNode from './VNode';
 import VText from './VText';
@@ -197,7 +197,7 @@ function stringifyChildrenItem(item, config) {
 }
 
 function stringifyAttr(name, value) {
-    if (name.substr(0, 2) === 'on' || specialAttrs[name]) {
+    if (name.substr(0, 2) === 'on' || noRenderAttrs[name]) {
         return '';
     } else if (name === 'dataset') {
         const datasetKeys = Object.keys(value);
@@ -218,8 +218,13 @@ function stringifyAttr(name, value) {
     }
 }
 
+const convertAttr = {
+    className: 'class',
+    maxLength: 'maxlength'
+};
+
 function convertAttrName(name) {
-    return name === 'className' ? 'class' : name;
+    return convertAttr[name] || name;
 }
 
 export default TemplateVNode;

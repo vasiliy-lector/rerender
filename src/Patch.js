@@ -1,5 +1,5 @@
 import { VNODE } from './types';
-import { specialAttrs } from './constants';
+import { noRenderAttrs } from './constants';
 
 const CREATE = 'CREATE';
 const MOVE = 'MOVE';
@@ -232,7 +232,7 @@ Update.prototype = {
 
             if (nextAttrs) {
                 for (let name in nextAttrs) {
-                    if ((!attrs || nextAttrs[name] !== attrs[name]) && !specialAttrs[name]) {
+                    if ((!attrs || nextAttrs[name] !== attrs[name]) && !noRenderAttrs[name]) {
                         domNode[name] = nextAttrs[name];
                     }
                 }
@@ -267,7 +267,7 @@ Update.prototype = {
 
         if (nextAttrs) {
             for (let name in nextAttrs) {
-                if (nextAttrsDynamic[name] === undefined && (!attrs || nextAttrs[name] !== attrs[name]) && !specialAttrs[name]) {
+                if (nextAttrsDynamic[name] === undefined && (!attrs || nextAttrs[name] !== attrs[name]) && !noRenderAttrs[name]) {
                     domNode[name] = nextAttrs[name];
                 }
             }
@@ -365,7 +365,7 @@ function createElement(nextNode, document, skipCreation) {
 
                 if (nextNode.attrs) {
                     for (let name in nextNode.attrs) {
-                        if (!specialAttrs[name] && nextNode.dynamic.attrs[name] === undefined) {
+                        if (!noRenderAttrs[name] && nextNode.dynamic.attrs[name] === undefined) {
                             nextDomNode[name] = nextNode.attrs[name];
                         }
                     }
@@ -376,7 +376,7 @@ function createElement(nextNode, document, skipCreation) {
                 }
             } else if (nextNode.attrs) {
                 for (let name in nextNode.attrs) {
-                    if (!specialAttrs[name]) {
+                    if (!noRenderAttrs[name]) {
                         nextDomNode[name] = nextNode.attrs[name];
                     }
                 }

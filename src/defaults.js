@@ -26,9 +26,11 @@ export const getWrapFooter = ({
 </body>
 </html>`;
 
+export const defaultApplicationId = 'rerenderApplication';
+
 export const getApplicationAfter = ({
     dispatcherCache,
-    applicationId,
+    applicationId = defaultApplicationId,
     hashEnabled,
     eventDefaults = {},
     hash,

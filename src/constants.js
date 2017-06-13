@@ -1,15 +1,25 @@
 export const specialAttrs = {
     controller: true,
+    key: true,
     ref: true,
     uniqid: true,
-    key: true,
     wrapperRef: true
 };
 
 export const specialAttrsWrapper = {
     controller: true,
-    uniqid: true,
     key: true,
+    uniqid: true,
+    wrapperRef: true
+};
+
+export const noRenderAttrs = {
+    controller: true,
+    key: true,
+    ref: true,
+    targetComponentType: true,
+    targetController: true,
+    uniqid: true,
     wrapperRef: true
 };
 

@@ -59,6 +59,7 @@ function renderServer(userTemplate, {
     mayAsync(userTemplate.renderServer(config), () => {
         if (wrap) {
             stream.emit('data', getApplicationAfter({
+                applicationId,
                 dispatcherCache: dispatcher.dehydrate(),
                 hashEnabled,
                 fullHash,
