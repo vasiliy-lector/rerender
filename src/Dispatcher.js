@@ -1,7 +1,7 @@
 import { deepEqual } from './utils';
 import Store from './Store';
 import { eventDefaults } from './defaults';
-import debug from './debug';
+import { debug } from './debug';
 import Promise, { isPromise } from './Promise';
 
 function Dispatcher(options = {}) {
