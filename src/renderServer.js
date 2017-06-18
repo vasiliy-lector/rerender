@@ -1,36 +1,56 @@
 import { getWrapHeader, getWrapFooter, getApplicationAfter, applicationId as defaultApplicationId } from './defaults';
-import Stream from './Stream';
+import Events from './Events';
 import DispatcherFirstRender from './DispatcherFirstRender';
 import Promise from './Promise';
 import { mayAsync } from './utils';
 
 function renderServer(userTemplate, {
     applicationId = defaultApplicationId,
-    stream,
     wrap = false,
     title = '',
     head = '',
     bodyEnd = '',
     hashEnabled = true,
     eventDefaults,
-    fullHash = false
+    fullHash = false,
+    onData,
+    onError,
+    onEnd
 } = {}) {
-    let html;
-    let concat;
+    const stream = new Events();
+    let needConcat = true;
+    let promiseResolve;
+    const promise = new Promise(resolve => {
+        promiseResolve = resolve;
+    });
 
-    if (stream === undefined) {
-        stream = new Stream();
-        concat = true;
+    if (typeof onData === 'function') {
+        stream.on('data', onData);
+        needConcat = false;
+    }
+    if (typeof onError === 'function') {
+        stream.on('error', onError);
+        needConcat = false;
+    }
+    if (typeof onEnd === 'function') {
+        stream.on('end', onEnd);
+        stream.on('end', () => {
+            stream.un('data');
+            stream.un('error');
+            promiseResolve();
+        });
+        needConcat = false;
     }
 
-    const dispatcher = new DispatcherFirstRender({ eventDefaults, isServer: true });
-
-    if (concat) {
-        html = '';
+    if (needConcat) {
+        let html = '';
         stream.on('data', data => {
             html += data;
         });
+        stream.on('end', () => promiseResolve(html));
     }
+
+    const dispatcher = new DispatcherFirstRender({ eventDefaults, isServer: true });
 
     if (wrap) {
         stream.emit('data', getWrapHeader({
@@ -52,10 +72,6 @@ function renderServer(userTemplate, {
         hash: 0
     };
 
-    var promise = new Promise(resolve => {
-        stream.on('end', html => resolve(html));
-    });
-
     mayAsync(userTemplate.renderServer(config), () => {
         if (wrap) {
             stream.emit('data', getApplicationAfter({
@@ -72,7 +88,7 @@ function renderServer(userTemplate, {
             }));
         }
 
-        stream.emit('end', concat ? html : undefined);
+        stream.emit('end');
     }, error => config.stream.emit('error', error));
 
     return promise;
