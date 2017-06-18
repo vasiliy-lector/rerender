@@ -1,4 +1,5 @@
 import { TEMPLATE, TEMPLATE_COMPONENT_STATELESS, TEMPLATE_VNODE, VCOMPONENT_STATELESS } from './types';
+import { stringifyChildrenItem } from './TemplateVNode';
 import VComponentStateless from './VComponentStateless';
 import { shallowEqualProps } from './utils';
 import VText from './VText';
@@ -42,11 +43,7 @@ TemplateComponentStateless.prototype = {
     subtype: TEMPLATE_COMPONENT_STATELESS,
 
     renderServer(config) {
-        const template = this.componentType(this.props, this.children);
-
-        if (template) {
-            return template.renderServer(config);
-        }
+        return stringifyChildrenItem(this.componentType(this.props, this.children), config);
     },
 
     render(config, context) {

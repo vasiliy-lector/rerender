@@ -64,6 +64,23 @@ describe('render', () => {
             }}>Text of block</div>`, renderOptions)
                 .then(html => expect(html).toBe('<div class="block" id="id1">Text of block</div>'));
         });
+
+        it('should render string, number and array as component result', () => {
+            function Block({ value }) {
+                return value;
+            }
+            renderServer(jsx `<div><${Block} value='string' /></div>`, renderOptions)
+                .then(html => expect(html).toBe('<div>string</div>'));
+
+            renderServer(jsx `<div><${Block} value=${0} /></div>`, renderOptions)
+                .then(html => expect(html).toBe('<div>0</div>'));
+
+            renderServer(jsx `<div><${Block} value=${['string', 0]} /></div>`, renderOptions)
+                .then(html => expect(html).toBe('<div>string0</div>'));
+
+            renderServer(jsx `<div><${Block} value=${[jsx `<div>Text</div>`, 'string', 0]} /></div>`, renderOptions)
+                .then(html => expect(html).toBe('<div><div>Text</div>string0</div>'));
+        });
     });
 
 });

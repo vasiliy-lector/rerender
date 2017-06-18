@@ -1,4 +1,5 @@
 import { TEMPLATE, TEMPLATE_COMPONENT, TEMPLATE_VNODE, VCOMPONENT } from './types';
+import { stringifyChildrenItem } from './TemplateVNode';
 import VComponent from './VComponent';
 import { shallowEqualProps, mayAsync } from './utils';
 import VText from './VText';
@@ -102,13 +103,11 @@ TemplateComponent.prototype = {
         );
         this.preprocessInstance(instance);
 
-        return mayAsync(this.firstRenderInit(instance, config), () => {
-            const template = componentRender(instance);
-
-            if (template) {
-                return template.renderServer(config);
-            }
-        }, error => config.stream.emit('error', error));
+        return mayAsync(
+            this.firstRenderInit(instance, config),
+            () => stringifyChildrenItem(componentRender(instance), config),
+            error => config.stream.emit('error', error)
+        );
     },
 
     render(config, context) {

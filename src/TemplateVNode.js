@@ -169,25 +169,27 @@ function stringifyChildren(children, config, begin = 0, l = children.length) {
     }
 }
 
+const enabledPrimitives = {
+    string: true,
+    number: true
+};
+
 function stringifyChildrenItem(item, config) {
     const type = typeof item;
 
-    if (item) {
-        if (type === 'object') {
-            if (item.type === TEMPLATE) {
-                return item.renderServer(config);
-            } else if (item.type === TEMPLATE_FRAGMENT) {
-                return stringifyChildren(item.fragment, config);
-            } else if (Array.isArray(item)) {
-                return stringifyChildren(item, config);
-            } else if (item) {
-                if (config.hashEnabled) {
-                    config.hash = calcHash(config.hash, String(item));
-                }
-                config.stream.emit('data', escapeHtml(item));
-            }
-        } else {
-            // TODO: null
+    if (enabledPrimitives[type]) {
+        if (config.hashEnabled) {
+            config.hash = calcHash(config.hash, String(item));
+        }
+        config.stream.emit('data', escapeHtml(item));
+    } else if (type === 'object' && item !== null) {
+        if (item.type === TEMPLATE) {
+            return item.renderServer(config);
+        } else if (item.type === TEMPLATE_FRAGMENT) {
+            return stringifyChildren(item.fragment, config);
+        } else if (Array.isArray(item)) {
+            return stringifyChildren(item, config);
+        } else if (item) {
             if (config.hashEnabled) {
                 config.hash = calcHash(config.hash, String(item));
             }
@@ -227,4 +229,4 @@ function convertAttrName(name) {
 }
 
 export default TemplateVNode;
-export { stringifyAttr };
+export { stringifyAttr, stringifyChildrenItem };
