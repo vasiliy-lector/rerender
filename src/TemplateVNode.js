@@ -46,7 +46,7 @@ TemplateVNode.prototype = {
         if (config.fullHash && this.attrs) {
             for (let name in this.attrs) {
                 if (typeof this.attrs[name] !== 'function') {
-                    hash = calcHash(hash, name, this.attrs[name]);
+                    hash = calcHash(hash, name, String(this.attrs[name]));
                 }
             }
         }
@@ -197,8 +197,16 @@ function stringifyChildrenItem(item, config) {
 }
 
 function stringifyAttr(name, value) {
-    if (name.substr(0, 2) === 'on' || noRenderAttrs[name]) {
+    if (noRenderAttrs[name] || name.substr(0, 2) === 'on') {
         return '';
+    } else if (name === 'attributes') {
+        let result = '';
+
+        for (let name in value) {
+            result += ` ${name}="${escapeAttr(value[name])}"`;
+        }
+
+        return result;
     } else if (name === 'style') {
         return ` style="${escapeStyle(value)}"`;
     } else {
