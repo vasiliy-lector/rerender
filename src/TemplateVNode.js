@@ -197,8 +197,8 @@ function stringifyChildrenItem(item, config) {
 }
 
 function stringifyAttr(name, value) {
-    if (noRenderAttrs[name] || name.substr(0, 2) === 'on') {
-        return '';
+    if (name === 'style') {
+        return ` style="${escapeStyle(value)}"`;
     } else if (name === 'attributes') {
         let result = '';
 
@@ -207,8 +207,8 @@ function stringifyAttr(name, value) {
         }
 
         return result;
-    } else if (name === 'style') {
-        return ` style="${escapeStyle(value)}"`;
+    } else if (noRenderAttrs[name] || name.substr(0, 2) === 'on') {
+        return '';
     } else {
         // TODO: validate name
         return ' ' + convertAttrName(name) + (value ===  true
