@@ -1,5 +1,5 @@
 import Dispatcher from './Dispatcher';
-import NeverResolvePromise from './NeverResolvePromise';
+import { NeverResolvePromise } from './Promise';
 import Promise from './Promise';
 import { deepEqual } from './utils';
 

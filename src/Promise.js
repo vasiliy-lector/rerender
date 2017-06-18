@@ -99,5 +99,19 @@ function identity(payload) {
     return payload;
 }
 
+class NeverResolvePromise extends Promise {
+    constructor() {
+        super(() => {});
+    }
+
+    then() {
+        return this;
+    }
+
+    catch() {
+        return this;
+    }
+}
+
 export default Promise;
-export { isPromise };
+export { isPromise, NeverResolvePromise };
