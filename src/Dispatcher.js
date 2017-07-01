@@ -4,34 +4,34 @@ import { eventDefaults } from './defaults';
 import { debug } from './debug';
 import Promise, { isPromise } from './Promise';
 
-function Dispatcher(options = {}) {
-    this.store = new Store();
-    this.cache = options.cache || {};
-    this.brokenCacheKeys = {};
+class Dispatcher {
+    constructor(options = {}) {
+        this.store = new Store();
+        this.cache = options.cache || {};
+        this.brokenCacheKeys = {};
 
-    if (options.eventDefaults) {
-        this.eventDefaults = {};
-        for (let name in eventDefaults) {
-            this.eventDefaults[name] = options.eventDefaults[name] !== undefined
-                ? options.eventDefaults[name]
-                : eventDefaults[name];
+        if (options.eventDefaults) {
+            this.eventDefaults = {};
+            for (let name in eventDefaults) {
+                this.eventDefaults[name] = options.eventDefaults[name] !== undefined
+                    ? options.eventDefaults[name]
+                    : eventDefaults[name];
+            }
+        } else {
+            this.eventDefaults = eventDefaults;
         }
-    } else {
-        this.eventDefaults = eventDefaults;
+
+        this.reducerOptions = Object.freeze({
+            getState: this.store.getState,
+            setState: this.store.setState
+        });
+
+        if (!options.hasInheritance) {
+            this.dispatch = this.dispatch.bind(this);
+            this.setActionOptions();
+        }
     }
 
-    this.reducerOptions = Object.freeze({
-        getState: this.store.getState,
-        setState: this.store.setState
-    });
-
-    if (!options.hasInheritance) {
-        this.dispatch = this.dispatch.bind(this);
-        this.setActionOptions();
-    }
-}
-
-Dispatcher.prototype = {
     setActionOptions() {
         this.actionOptions = Object.freeze({
             dispatch: this.dispatch,
@@ -42,20 +42,20 @@ Dispatcher.prototype = {
             dispatch: this.dispatchInsideCache.bind(this),
             getState: this.store.getState
         });
-    },
+    }
 
     getEventSetting(event, name) {
         return event[name] !== undefined
             ? event[name]
             : this.eventDefaults[name];
-    },
+    }
 
     dispatchInsideCache(event, payload) {
         if (event.reducers !== undefined) {
             debug.warn('Do not use dispatch (event with reducers) inside event with cache enabled! Event ' + event.name + ' may not work correctly');
         }
         this.dispatch(event, payload);
-    },
+    }
 
     dispatch(event, payload) {
         return this.runAction(event, payload)
@@ -64,7 +64,7 @@ Dispatcher.prototype = {
 
                 return actionResult;
             });
-    },
+    }
 
     runAction(event, payload) {
         if (typeof event.action !== 'function') {
@@ -88,7 +88,7 @@ Dispatcher.prototype = {
         }
 
         return this.runActionPure(event, payload);
-    },
+    }
 
     runActionPure(event, payload) {
         const actionResult = event.action(
@@ -103,7 +103,7 @@ Dispatcher.prototype = {
         } else {
             return Promise.resolve(actionResult);
         }
-    },
+    }
 
     runReducers(event, payload) {
         if (!event.reducers || !event.reducers.length) {
@@ -113,7 +113,7 @@ Dispatcher.prototype = {
         for (let i = 0, l = event.reducers.length; i < l; i++) {
             event.reducers[i](this.reducerOptions, payload);
         }
-    },
+    }
 
     getCached(event, payload) {
         if (this.cache[event.name]) {
@@ -127,7 +127,7 @@ Dispatcher.prototype = {
                 }
             }
         }
-    },
+    }
 
     setCache(event, payload, result) {
         if (this.brokenCacheKeys[event.name]) {
@@ -143,7 +143,7 @@ Dispatcher.prototype = {
         cacheByName.push(item);
 
         result.catch(() => this.dropCacheItem(cacheByName, item));
-    },
+    }
 
     dropCacheItem(cacheByName, item) {
         for (let i = 0, l = cacheByName.length; i < l; i++) {
@@ -154,6 +154,6 @@ Dispatcher.prototype = {
             }
         }
     }
-};
+}
 
 export default Dispatcher;

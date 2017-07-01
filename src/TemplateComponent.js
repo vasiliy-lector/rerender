@@ -85,7 +85,7 @@ TemplateComponent.prototype = {
                 if (this.componentType.store) {
                     componentSetProps(instance, this.props, this.children, config.store.getState());
                 }
-            }, error => config.strem.emit('error', error));
+            }, error => config.stream.emit('error', error));
         // FIXME: for what setProps inside else?
         } else if (this.componentType.store) {
             componentSetProps(instance, this.props, this.children, config.store.getState());
