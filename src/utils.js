@@ -2,7 +2,6 @@ import { TEMPLATE, VCOMPONENT } from './types';
 import { styleProps } from './constants';
 import { isPromise } from './Promise';
 
-const NEXT_TICK_TIMEOUT = 0;
 const REGEXP_ATTR = /[<>"&]/;
 const REGEXP_HTML = /[<>&]/;
 
@@ -220,10 +219,6 @@ function shallowEqualArray(array1, array2) {
     return true;
 }
 
-function nextTick(fn) {
-    return setTimeout(fn, NEXT_TICK_TIMEOUT);
-}
-
 // FIXME: optimize
 function calcHash(hash) {
     for (let j = 1, argsLength = arguments.length; j < argsLength; j++) {
@@ -275,7 +270,7 @@ function shallowClone(obj) {
         }, {});
 }
 
-function memoizeLast(fn, { shallow } = {}) {
+function memoizeLast(fn, shallow) {
     let lastResult;
     let lastArgs;
 
@@ -318,7 +313,6 @@ export {
     groupByIdNodes,
     groupByIdComponents,
     memoizeLast,
-    nextTick,
     shallowClone,
     deepEqual,
     shallowEqual,
