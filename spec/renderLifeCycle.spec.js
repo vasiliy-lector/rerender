@@ -6,188 +6,168 @@ import Component from '../src/Component';
 import connect from '../src/connect';
 import { debug } from '../src/debug';
 
-class Block extends Component {
+let lifeCycleCalls;
+let refCalls;
+
+class StatefullPure extends Component {
+    init() {
+        lifeCycleCalls.push('init');
+        this.setState({
+            href: 'initHref',
+            target: this.props.target
+        });
+    }
+    componentWillMount() {
+        lifeCycleCalls.push('componentWillMount');
+    }
+    componentDidMount() {
+        lifeCycleCalls.push('componentDidMount');
+    }
+    componentWillUnmount() {
+        lifeCycleCalls.push('componentWillUnmount');
+    }
+    componentWillReceiveProps(nextProps) {
+        lifeCycleCalls.push('componentWillReceiveProps');
+        this.setState({
+            target: nextProps.target
+        });
+    }
+    componentWillDestroy() {
+        lifeCycleCalls.push('componentWillDestroy');
+    }
+    handleSetRef() {
+        lifeCycleCalls.push('handleSetRef');
+    }
+    handleClick() {
+        this.setState({
+            href: 'newHref'
+        });
+        lifeCycleCalls.push('handleClick');
+    }
     render() {
-        return jsx `<div className="${this.props.className}"><p>${this.props.text}</p>${this.children}</div>`;
+        lifeCycleCalls.push('render');
+        const { href, target } = this.state;
+
+        return jsx `<a onclick=${this.handleClick} target=${target} ref=${this.handleSetRef} href=${href}>link</a>`;
     }
 }
 
-Block.defaults = {
-    className: 'block'
-};
+StatefullPure.antibind = ['handleClick', 'handleSetRef'];
 
-function Stateless(props, children) {
-    return jsx `<div className="${props.className}"><p>${props.text}</p>${children}</div>`;
+const Statefull = connect({
+    map: ({ links: { target = 'initTarget' } = {} } = {}) => ({ target })
+})(StatefullPure);
+
+class PagePure extends Component {
+    handleRef() {
+        refCalls.push('handleRef');
+    }
+    render() {
+        return this.props.noLink ? null : jsx `<${Statefull} ref=${this.handleRef} />`;
+    }
 }
 
-Stateless.defaults = {
-    className: 'block'
+PagePure.antibind = ['handleRef'];
+
+const Page = connect({
+    map: ({ config: { noLink = false } = {} } = {}) => ({ noLink })
+})(PagePure);
+
+const REMOVE_LINK = {
+    name: 'REMOVE_LINK',
+    reducers: [
+        ({ setState }) => setState(true, ['config', 'noLink'])
+    ]
+};
+const SET_NEW_TARGET = {
+    name: 'SET_NEW_TARGET',
+    reducers: [
+        ({ setState }) => setState('newTarget', ['links', 'target'])
+    ]
 };
 
-describe('render', () => {
-    let lifeCycleCalls,
-        refCalls;
+beforeEach(() => {
+    spyOn(debug, 'log');
+    spyOn(debug, 'warn');
+    spyOn(debug, 'error');
+});
 
-    class StatefullPure extends Component {
-        init() {
-            lifeCycleCalls.push('init');
-            this.setState({
-                href: 'initHref',
-                target: this.props.target
-            });
-        }
-        componentWillMount() {
-            lifeCycleCalls.push('componentWillMount');
-        }
-        componentDidMount() {
-            lifeCycleCalls.push('componentDidMount');
-        }
-        componentWillUnmount() {
-            lifeCycleCalls.push('componentWillUnmount');
-        }
-        componentWillReceiveProps(nextProps) {
-            lifeCycleCalls.push('componentWillReceiveProps');
-            this.setState({
-                target: nextProps.target
-            });
-        }
-        componentWillDestroy() {
-            lifeCycleCalls.push('componentWillDestroy');
-        }
-        handleSetRef() {
-            lifeCycleCalls.push('handleSetRef');
-        }
-        handleClick() {
-            this.setState({
-                href: 'newHref'
-            });
-            lifeCycleCalls.push('handleClick');
-        }
-        render() {
-            lifeCycleCalls.push('render');
-            const { href, target } = this.state;
+describe('renderServer life cycle', () => {
+    it('renderServer should call init, render only', () => {
+        const renderOptions = {
+            hashEnabled: false,
+            wrap: false
+        };
+        lifeCycleCalls = [];
 
-            return jsx `<a onclick=${this.handleClick} target=${target} ref=${this.handleSetRef} href=${href}>link</a>`;
-        }
+        return renderServer(jsx `<${Page} />`, renderOptions)
+            .then(html => {
+                expect(html).toBe('<a target="initTarget" href="initHref">link</a>');
+                expect(lifeCycleCalls).toEqual(['init', 'render']);
+            });
+    });
+});
+
+describe('renderClient life cycle', () => {
+    const window = jsdom('<div id="application"></div>').defaultView.window;
+    const domNode = window.document.getElementById('application');
+    let expectedLifeCycle = [];
+    let refPage;
+    function setRef(page) {
+        refPage = page;
     }
 
-    StatefullPure.antibind = ['handleClick', 'handleSetRef'];
+    it('renderClient should call init, componentWillMount, componentDidMount', () => {
+        lifeCycleCalls = [];
+        refCalls = [];
+        renderClient(jsx `<${Page} ref=${setRef}/>`, {
+            window,
+            applicationId: 'application'
+        });
 
-    const Statefull = connect({
-        map: ({ links: { target = 'initTarget' } = {} } = {}) => ({ target })
-    })(StatefullPure);
-
-    class PagePure extends Component {
-        handleRef() {
-            refCalls.push('handleRef');
-        }
-        render() {
-            return this.props.noLink ? null : jsx `<${Statefull} ref=${this.handleRef} />`;
-        }
-    }
-
-    PagePure.antibind = ['handleRef'];
-
-    const Page = connect({
-        map: ({ config: { noLink = false } = {} } = {}) => ({ noLink })
-    })(PagePure);
-
-    const REMOVE_LINK = {
-        name: 'REMOVE_LINK',
-        reducers: [
-            ({ setState }) => setState(true, ['config', 'noLink'])
-        ]
-    };
-    const SET_NEW_TARGET = {
-        name: 'SET_NEW_TARGET',
-        reducers: [
-            ({ setState }) => setState('newTarget', ['links', 'target'])
-        ]
-    };
-
-    beforeEach(() => {
-        spyOn(debug, 'log');
-        spyOn(debug, 'warn');
-        spyOn(debug, 'error');
+        expectedLifeCycle.push('init', 'componentWillMount', 'render', 'handleSetRef', 'componentDidMount');
+        expect(refCalls.length).toBe(1);
+        expect(domNode.innerHTML).toBe('<a target="initTarget" href="initHref">link</a>');
+        expect(lifeCycleCalls).toEqual(expectedLifeCycle);
     });
 
-    describe('renderServer life cycle', () => {
-        it('renderServer should call init, render only', () => {
-            const renderOptions = {
-                hashEnabled: false,
-                wrap: false
-            };
-            lifeCycleCalls = [];
+    it('renderClient should call componentWillReceiveProps', () => {
+        jasmine.clock().install();
+        refPage.dispatch(SET_NEW_TARGET);
 
-            return renderServer(jsx `<${Page} />`, renderOptions)
-                .then(html => {
-                    expect(html).toBe('<a target="initTarget" href="initHref">link</a>');
-                    expect(lifeCycleCalls).toEqual(['init', 'render']);
-                });
-        });
+        expect(domNode.querySelector('a').getAttribute('target')).toBe('initTarget');
+        expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+
+        jasmine.clock().tick(1);
+        expectedLifeCycle.push('componentWillReceiveProps', 'render');
+        expect(domNode.innerHTML).toBe('<a target="newTarget" href="initHref">link</a>');
+        expect(lifeCycleCalls).toEqual(expectedLifeCycle);
     });
 
-    describe('renderClient life cycle', () => {
-        const window = jsdom('<div id="application"></div>').defaultView.window;
-        const domNode = window.document.getElementById('application');
-        let expectedLifeCycle = [];
-        let refPage;
-        function setRef(page) {
-            refPage = page;
-        }
+    it('renderClient should work with events', () => {
+        expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
 
-        it('renderClient should call init, componentWillMount, componentDidMount', () => {
-            lifeCycleCalls = [];
-            refCalls = [];
-            renderClient(jsx `<${Page} ref=${setRef}/>`, {
-                window,
-                applicationId: 'application'
-            });
+        domNode.querySelector('a').dispatchEvent(new window.Event('click'));
+        expectedLifeCycle.push('handleClick');
+        expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+        expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
 
-            expectedLifeCycle.push('init', 'componentWillMount', 'render', 'handleSetRef', 'componentDidMount');
-            expect(refCalls.length).toBe(1);
-            expect(domNode.innerHTML).toBe('<a target="initTarget" href="initHref">link</a>');
-            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-        });
+        jasmine.clock().tick(RENDER_THROTTLE + 1);
 
-        it('renderClient should call componentWillReceiveProps', () => {
-            jasmine.clock().install();
-            refPage.dispatch(SET_NEW_TARGET);
+        expectedLifeCycle.push('componentWillReceiveProps', 'render');
+        expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+        expect(domNode.querySelector('a').getAttribute('href')).toBe('newHref');
+    });
 
-            expect(domNode.querySelector('a').getAttribute('target')).toBe('initTarget');
-            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+    it('renderClient should call componentWillUnmount, componentWillDestroy', () => {
+        refPage.dispatch(REMOVE_LINK);
 
-            jasmine.clock().tick(1);
-            expectedLifeCycle.push('componentWillReceiveProps', 'render');
-            expect(domNode.innerHTML).toBe('<a target="newTarget" href="initHref">link</a>');
-            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-        });
+        expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+        jasmine.clock().tick(RENDER_THROTTLE + 1);
 
-        it('renderClient should work with events', () => {
-            expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
-
-            domNode.querySelector('a').dispatchEvent(new window.Event('click'));
-            expectedLifeCycle.push('handleClick');
-            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-            expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
-
-            jasmine.clock().tick(RENDER_THROTTLE + 1);
-
-            expectedLifeCycle.push('componentWillReceiveProps', 'render');
-            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-            expect(domNode.querySelector('a').getAttribute('href')).toBe('newHref');
-        });
-
-        it('renderClient should call componentWillUnmount, componentWillDestroy', () => {
-            refPage.dispatch(REMOVE_LINK);
-
-            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-            jasmine.clock().tick(RENDER_THROTTLE + 1);
-
-            expectedLifeCycle.push('componentWillUnmount', 'componentWillDestroy', 'handleSetRef');
-            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-            expect(domNode.innerHTML).toBe('');
-            jasmine.clock().uninstall();
-        });
+        expectedLifeCycle.push('componentWillUnmount', 'componentWillDestroy', 'handleSetRef');
+        expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+        expect(domNode.innerHTML).toBe('');
+        jasmine.clock().uninstall();
     });
 });
