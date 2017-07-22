@@ -92,7 +92,7 @@ function rerenderClient(config) {
     const patch = diff(nextVirtualRoot.childNodes[0], config.virtualRoot.childNodes[0], {
         nextNodesById: config.nextNodes,
         nodesById: config.nodes,
-        document
+        document: config.document
     });
 
     unmount(config.nextComponents, config.components);
@@ -113,7 +113,7 @@ function rerenderClientOne(config, id) {
     const options = {
         nodesById,
         nextNodesById: config.nextNodes,
-        document
+        document: config.document
     };
     const nextNode = nextSandboxNode.childNodes[0];
     const patch = diff(nextNode, node, options);

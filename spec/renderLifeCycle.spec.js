@@ -1,7 +1,7 @@
-// import { jsdom } from 'jsdom';
+import { jsdom } from 'jsdom';
 import jsx from '../src/jsx';
 import renderServer from '../src/renderServer';
-// import renderClient from '../src/renderClient';
+import renderClient, { RENDER_THROTTLE } from '../src/renderClient';
 import Component from '../src/Component';
 import connect from '../src/connect';
 import { debug } from '../src/debug';
@@ -67,7 +67,7 @@ describe('render', () => {
             lifeCycleCalls.push('render');
             const { href, target } = this.state;
 
-            return jsx `<a onClick=${this.handleClick} target=${target} ref=${this.handleSetRef} href=${href}>link</a>`;
+            return jsx `<a onclick=${this.handleClick} target=${target} ref=${this.handleSetRef} href=${href}>link</a>`;
         }
     }
 
@@ -92,6 +92,19 @@ describe('render', () => {
         map: ({ config: { noLink } = {} } = {}) => ({ noLink })
     })(PagePure);
 
+    const REMOVE_LINK = {
+        name: 'REMOVE_LINK',
+        reducers: [
+            ({ setState }) => setState(true, ['config', 'noLink'])
+        ]
+    };
+    const SET_NEW_TARGET = {
+        name: 'SET_NEW_TARGET',
+        reducers: [
+            ({ setState }) => setState('newTarget', ['links', 'target'])
+        ]
+    };
+
     beforeEach(() => {
         spyOn(debug, 'log');
         spyOn(debug, 'warn');
@@ -114,88 +127,74 @@ describe('render', () => {
         });
     });
 
-    // describe('renderClient life cycle', () => {
-    //     const
-    //         window = jsdom('<div id="application"></div>').defaultView.window,
-    //         document = window.document,
-    //         domNode = document.getElementById('application'),
-    //         expectedLifeCycle = [];
-    //
-    //     it('renderClient should call init, componentWillMount, componentDidMount', () => {
-    //         lifeCycleCalls = [];
-    //         store = new Store({
-    //             state: {
-    //                 links: {
-    //                     target: 'initTarget'
-    //                 },
-    //                 config: {
-    //                     noLink: false
-    //                 }
-    //             }
-    //         });
-    //
-    //         refCalls = [];
-    //         renderClient(
-    //             ({ jsx }) => jsx `<${Page} />`,
-    //             store,
-    //             domNode,
-    //             { document }
-    //         );
-    //
-    //         expectedLifeCycle.push('init', 'componentWillMount', 'render', 'handleSetRef', 'componentDidMount');
-    //         expect(refCalls.length).toBe(1);
-    //         expect(domNode.innerHTML).toBe('<a target="initTarget" href="initHref">link</a>');
-    //         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-    //     });
-    //
-    //     it('renderClient should call componentWillReceiveProps', () => {
-    //         jasmine.clock().install();
-    //
-    //         store.setState({
-    //             links: {
-    //                 target: 'newTarget'
-    //             }
-    //         });
-    //
-    //         expect(domNode.querySelector('a').getAttribute('target')).toBe('initTarget');
-    //         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-    //
-    //         jasmine.clock().tick(1);
-    //         expectedLifeCycle.push('componentWillReceiveProps', 'render');
-    //         expect(domNode.innerHTML).toBe('<a target="newTarget" href="initHref">link</a>');
-    //         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-    //     });
-    //
-    //     it('renderClient should work with events', () => {
-    //         expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
-    //
-    //         domNode.querySelector('a').dispatchEvent(new window.Event('click'));
-    //         expectedLifeCycle.push('handleClick');
-    //         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-    //         expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
-    //
-    //         jasmine.clock().tick(RENDER_THROTTLE + 1);
-    //
-    //         expectedLifeCycle.push('componentWillReceiveProps', 'render');
-    //         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-    //         expect(domNode.querySelector('a').getAttribute('href')).toBe('newHref');
-    //     });
-    //
-    //     it('renderClient should call componentWillUnmount, componentWillDestroy', () => {
-    //         store.setState({
-    //             config: {
-    //                 noLink: true
-    //             }
-    //         });
-    //
-    //         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-    //         jasmine.clock().tick(RENDER_THROTTLE + 1);
-    //
-    //         expectedLifeCycle.push('componentWillUnmount', 'componentWillDestroy', 'handleSetRef');
-    //         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-    //         jasmine.clock().uninstall();
-    //         expect(domNode.innerHTML).toBe('');
-    //     });
-    //
-    // });
+    describe('renderClient life cycle', () => {
+        const window = jsdom('<div id="application"></div>').defaultView.window;
+        const domNode = window.document.getElementById('application');
+        let expectedLifeCycle = [];
+        let refPage;
+        function setRef(page) {
+            refPage = page;
+        }
+
+        it('renderClient should call init, componentWillMount, componentDidMount', () => {
+            lifeCycleCalls = [];
+            refCalls = [];
+            renderClient(jsx `<${Page} ref=${setRef}/>`, {
+                window,
+                applicationId: 'application'
+            });
+
+            expectedLifeCycle.push('init', 'componentWillMount', 'render', 'handleSetRef', 'componentDidMount');
+            expect(refCalls.length).toBe(1);
+            expect(domNode.innerHTML).toBe('<a target="initTarget" href="initHref">link</a>');
+            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+        });
+
+        it('renderClient should call componentWillReceiveProps', () => {
+            jasmine.clock().install();
+            refPage.dispatch(SET_NEW_TARGET);
+
+            expect(domNode.querySelector('a').getAttribute('target')).toBe('initTarget');
+            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+
+            jasmine.clock().tick(1);
+            expectedLifeCycle.push('componentWillReceiveProps', 'render');
+            expect(domNode.innerHTML).toBe('<a target="newTarget" href="initHref">link</a>');
+            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+            jasmine.clock().uninstall();
+        });
+
+        it('renderClient should work with events', () => {
+            jasmine.clock().install();
+            expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
+
+            domNode.querySelector('a').dispatchEvent(new window.Event('click'));
+            expectedLifeCycle.push('handleClick');
+            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+            expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
+
+            jasmine.clock().tick(RENDER_THROTTLE + 1);
+
+            expectedLifeCycle.push('componentWillReceiveProps', 'render');
+            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+            expect(domNode.querySelector('a').getAttribute('href')).toBe('newHref');
+            jasmine.clock().uninstall();
+        });
+
+        // it('renderClient should call componentWillUnmount, componentWillDestroy', () => {
+        //     store.setState({
+        //         config: {
+        //             noLink: true
+        //         }
+        //     });
+        //
+        //     expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+        //     jasmine.clock().tick(RENDER_THROTTLE + 1);
+        //
+        //     expectedLifeCycle.push('componentWillUnmount', 'componentWillDestroy', 'handleSetRef');
+        //     expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+        //     jasmine.clock().uninstall();
+        //     expect(domNode.innerHTML).toBe('');
+        // });
+    });
 });
