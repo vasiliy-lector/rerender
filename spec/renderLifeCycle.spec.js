@@ -89,7 +89,7 @@ describe('render', () => {
     PagePure.antibind = ['handleRef'];
 
     const Page = connect({
-        map: ({ config: { noLink } = {} } = {}) => ({ noLink })
+        map: ({ config: { noLink = false } = {} } = {}) => ({ noLink })
     })(PagePure);
 
     const REMOVE_LINK = {
@@ -161,11 +161,9 @@ describe('render', () => {
             expectedLifeCycle.push('componentWillReceiveProps', 'render');
             expect(domNode.innerHTML).toBe('<a target="newTarget" href="initHref">link</a>');
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-            jasmine.clock().uninstall();
         });
 
         it('renderClient should work with events', () => {
-            jasmine.clock().install();
             expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
 
             domNode.querySelector('a').dispatchEvent(new window.Event('click'));
@@ -178,23 +176,18 @@ describe('render', () => {
             expectedLifeCycle.push('componentWillReceiveProps', 'render');
             expect(lifeCycleCalls).toEqual(expectedLifeCycle);
             expect(domNode.querySelector('a').getAttribute('href')).toBe('newHref');
-            jasmine.clock().uninstall();
         });
 
-        // it('renderClient should call componentWillUnmount, componentWillDestroy', () => {
-        //     store.setState({
-        //         config: {
-        //             noLink: true
-        //         }
-        //     });
-        //
-        //     expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-        //     jasmine.clock().tick(RENDER_THROTTLE + 1);
-        //
-        //     expectedLifeCycle.push('componentWillUnmount', 'componentWillDestroy', 'handleSetRef');
-        //     expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-        //     jasmine.clock().uninstall();
-        //     expect(domNode.innerHTML).toBe('');
-        // });
+        it('renderClient should call componentWillUnmount, componentWillDestroy', () => {
+            refPage.dispatch(REMOVE_LINK);
+
+            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+            jasmine.clock().tick(RENDER_THROTTLE + 1);
+
+            expectedLifeCycle.push('componentWillUnmount', 'componentWillDestroy', 'handleSetRef');
+            expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+            expect(domNode.innerHTML).toBe('');
+            jasmine.clock().uninstall();
+        });
     });
 });
