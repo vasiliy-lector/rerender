@@ -72,6 +72,10 @@ class Component extends Events {
         }
     }
 
+    forceRender() {
+        this._options.events.emit('force-render', this._id);
+    }
+
     dispatch(event, payload) {
         return this._options.dispatch.call(null, event, payload);
     }

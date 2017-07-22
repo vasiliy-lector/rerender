@@ -1,5 +1,6 @@
 import { jsdom } from 'jsdom';
 import jsx from '../src/jsx';
+import Events from '../src/Events';
 import renderServer from '../src/renderServer';
 import renderClient, { RENDER_THROTTLE } from '../src/renderClient';
 import Component from '../src/Component';
@@ -8,6 +9,7 @@ import { debug } from '../src/debug';
 
 let lifeCycleCalls;
 let refCalls;
+const externalEvents = new Events();
 
 class StatefullPure extends Component {
     init() {
@@ -122,6 +124,7 @@ describe('renderClient life cycle', () => {
         refCalls = [];
         renderClient(jsx `<${Page} ref=${setRef}/>`, {
             window,
+            externalEvents,
             applicationId: 'application'
         });
 
@@ -132,13 +135,12 @@ describe('renderClient life cycle', () => {
     });
 
     it('renderClient should call componentWillReceiveProps', () => {
-        jasmine.clock().install();
         refPage.dispatch(SET_NEW_TARGET);
 
         expect(domNode.querySelector('a').getAttribute('target')).toBe('initTarget');
         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
 
-        jasmine.clock().tick(1);
+        refPage.forceRender();
         expectedLifeCycle.push('componentWillReceiveProps', 'render');
         expect(domNode.innerHTML).toBe('<a target="newTarget" href="initHref">link</a>');
         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
@@ -152,7 +154,7 @@ describe('renderClient life cycle', () => {
         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
         expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
 
-        jasmine.clock().tick(RENDER_THROTTLE + 1);
+        refPage.forceRender();
 
         expectedLifeCycle.push('componentWillReceiveProps', 'render');
         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
@@ -163,11 +165,10 @@ describe('renderClient life cycle', () => {
         refPage.dispatch(REMOVE_LINK);
 
         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-        jasmine.clock().tick(RENDER_THROTTLE + 1);
+        refPage.forceRender();
 
         expectedLifeCycle.push('componentWillUnmount', 'componentWillDestroy', 'handleSetRef');
         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
         expect(domNode.innerHTML).toBe('');
-        jasmine.clock().uninstall();
     });
 });

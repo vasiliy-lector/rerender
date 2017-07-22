@@ -248,6 +248,16 @@ function listenEvents(config) {
             events.emit('rerender');
         }
     });
+
+    events.on('force-render', () => {
+        if ((rerenderOneTimeout || throttleTimeout) && (scheduledOneId || scheduled)) {
+            rerenderClient(config);
+            clearTimeout(rerenderOneTimeout);
+            clearTimeout(throttleTimeout);
+            scheduledOneId = undefined;
+            scheduled = false;
+        }
+    });
 }
 
 function mount(instances) {
