@@ -28,7 +28,7 @@ describe('render', () => {
     let lifeCycleCalls,
         refCalls;
 
-    class Statefull extends Component {
+    class StatefullPure extends Component {
         init() {
             lifeCycleCalls.push('init');
             this.setState({
@@ -71,18 +71,26 @@ describe('render', () => {
         }
     }
 
-    Statefull.antibind = ['handleClick', 'handleSetRef'];
+    StatefullPure.antibind = ['handleClick', 'handleSetRef'];
 
-    class Page extends Component {
+    const Statefull = connect({
+        map: ({ links: { target = 'initTarget' } = {} } = {}) => ({ target })
+    })(StatefullPure);
+
+    class PagePure extends Component {
         handleRef() {
             refCalls.push('handleRef');
         }
         render() {
-            return this.props.noLink ? null : jsx `<${Statefull} ref=${this.handleRef} target='initTarget' />`;
+            return this.props.noLink ? null : jsx `<${Statefull} ref=${this.handleRef} />`;
         }
     }
 
-    Page.antibind = ['handleRef'];
+    PagePure.antibind = ['handleRef'];
+
+    const Page = connect({
+        map: ({ config: { noLink } = {} } = {}) => ({ noLink })
+    })(PagePure);
 
     beforeEach(() => {
         spyOn(debug, 'log');
