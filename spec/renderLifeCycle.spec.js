@@ -13,6 +13,8 @@ const externalEvents = new Events();
 
 class StatefullPure extends Component {
     init() {
+        this.handleSetRef = this.handleSetRef.bind(this);
+        this.handleClick = this.handleClick.bind(this);
         lifeCycleCalls.push('init');
         this.setState({
             href: 'initHref',
@@ -54,13 +56,14 @@ class StatefullPure extends Component {
     }
 }
 
-StatefullPure.antibind = ['handleClick', 'handleSetRef'];
-
 const Statefull = connect({
     map: ({ links: { target = 'initTarget' } = {} } = {}) => ({ target })
 })(StatefullPure);
 
 class PagePure extends Component {
+    init() {
+        this.handleRef = this.handleRef.bind(this);
+    }
     handleRef() {
         refCalls.push('handleRef');
     }
@@ -68,8 +71,6 @@ class PagePure extends Component {
         return this.props.noLink ? null : jsx `<${Statefull} ref=${this.handleRef} />`;
     }
 }
-
-PagePure.antibind = ['handleRef'];
 
 const Page = connect({
     map: ({ config: { noLink = false } = {} } = {}) => ({ noLink })

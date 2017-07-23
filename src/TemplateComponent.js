@@ -56,20 +56,6 @@ TemplateComponent.prototype = {
     type: TEMPLATE,
     subtype: TEMPLATE_COMPONENT,
 
-    preprocessInstance(instance) {
-        const antibind = this.componentType.antibind;
-
-        if (antibind && Array.isArray(antibind)) {
-            for (let i = 0, l = antibind.length; i < l; i++) {
-                let name = antibind[i];
-
-                if (typeof instance[name] === 'function') {
-                    instance[name] = instance[name].bind(instance);
-                }
-            }
-        }
-    },
-
     firstRenderInit(instance, config) {
         if (typeof instance.init === 'undefined') {
             return;
@@ -101,7 +87,6 @@ TemplateComponent.prototype = {
             undefined,
             componentType.store ? config.store.getState() : undefined
         );
-        this.preprocessInstance(instance);
 
         return mayAsync(
             this.firstRenderInit(instance, config),
@@ -140,7 +125,6 @@ TemplateComponent.prototype = {
                 id,
                 needStore ? storeState : undefined
             );
-            this.preprocessInstance(instance);
 
             componentInit(instance);
 
