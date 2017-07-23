@@ -116,7 +116,7 @@ TemplateComponent.prototype = {
         if (prev === undefined || prev.type !== VCOMPONENT || prev.componentType !== componentType) {
             let storeState;
             if (needStore) {
-                storeState = store.getState(undefined, true);
+                storeState = store.getSnapshot();
             }
             const instance = new componentType(
                 props,
@@ -129,7 +129,7 @@ TemplateComponent.prototype = {
             componentInit(instance);
 
             if (componentType.store && typeof instance.init === 'function') {
-                const storeStateAfterInit = store.getState(undefined, true);
+                const storeStateAfterInit = store.getSnapshot();
 
                 if (storeStateAfterInit !== storeState) {
                     storeState = storeStateAfterInit;
@@ -155,7 +155,7 @@ TemplateComponent.prototype = {
                 this,
                 context,
                 instance,
-                instance.getState(undefined, true)
+                instance.getStateSnapshot()
             );
 
             if (needStore) {
@@ -173,7 +173,7 @@ TemplateComponent.prototype = {
             const sameProps = shallowEqualProps(prev.props, props);
             // FIXME
             const sameChildren = false; // children.isEqual(prev.children);
-            const sameState = instance.getState(undefined, true) !== prev.state;
+            const sameState = instance.getStateSnapshot() !== prev.state;
             const sameStoreState = !needStore || prev.storeState === storeState;
 
             if (sameProps) {
@@ -208,7 +208,7 @@ TemplateComponent.prototype = {
                 this,
                 context,
                 instance,
-                instance.getState(undefined, true)
+                instance.getStateSnapshot()
             );
 
             if (needStore) {
