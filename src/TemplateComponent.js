@@ -166,7 +166,7 @@ TemplateComponent.prototype = {
             mountComponents[id] = component.ref;
         } else {
             const instance = prev.ref;
-            const storeState = store.getState(undefined, true);
+            const storeState = store.getSnapshot();
 
             componentBeforeRender(instance);
 
