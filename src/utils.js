@@ -270,9 +270,9 @@ function shallowClone(obj) {
         }, {});
 }
 
-function memoizeLast(fn, shallowConfig = []) {
+function memoizeLast(fn, shallowConfig = [], initialValues) {
     let lastResult;
-    let lastArgs;
+    let lastArgs = initialValues;
 
     return function(...args) {
         if (lastArgs) {
