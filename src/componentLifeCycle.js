@@ -30,10 +30,6 @@ function componentMount(instance) {
     }
 }
 
-function componentRender(instance) {
-    return instance.render();
-}
-
 function componentSetProps(instance, props, children, additional) {
     if (typeof instance.componentWillReceiveProps !== 'undefined') {
         instance._settingProps = true;
@@ -59,7 +55,6 @@ export {
     componentDestroy,
     componentUpdate,
     componentMount,
-    componentRender,
     componentSetProps,
     componentUnmount
 };

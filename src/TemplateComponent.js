@@ -3,7 +3,7 @@ import { stringifyChildrenItem } from './TemplateVNode';
 import VComponent from './VComponent';
 import { shallowEqualProps, mayAsync } from './utils';
 import VText from './VText';
-import { componentInit, componentRender, componentBeforeRender, componentSetProps } from './componentLifeCycle';
+import { componentInit, componentBeforeRender, componentSetProps } from './componentLifeCycle';
 import reuseTemplate from './reuseTemplate';
 import { specialAttrs, specialAttrsWrapper } from './constants';
 
@@ -90,7 +90,7 @@ TemplateComponent.prototype = {
 
         return mayAsync(
             this.firstRenderInit(instance, config),
-            () => stringifyChildrenItem(componentRender(instance), config),
+            () => stringifyChildrenItem(instance.render(), config),
             error => config.stream.emit('error', error)
         );
     },
@@ -144,7 +144,7 @@ TemplateComponent.prototype = {
                 this.wrapperRef(instance);
             }
             componentBeforeRender(instance);
-            template = componentRender(instance);
+            template = instance.render();
 
             component = new VComponent({
                 componentType,
@@ -196,7 +196,7 @@ TemplateComponent.prototype = {
 
                     componentSetProps(instance, props, children, additional);
                 }
-                template = reuseTemplate(componentRender(instance), prev.template);
+                template = reuseTemplate(instance.render(), prev.template);
             }
 
             component = new VComponent({
