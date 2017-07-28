@@ -137,20 +137,18 @@ describe('utils', () => {
             expect(result1).toBe(result2);
         });
 
-        // it('should use initialValues', () => {
-        //     const fn = (value1, value2, obj) => ({ value1, value2, obj });
-        //     const memoized = memoizeLast(fn, [false, false, true]);
-        //     const result1 = memoized('a', 'b', { c: 'd' });
-        //     const result2 = memoized('a', 'b', { c: 'd' });
-        //
-        //     expect(result1).toEqual({
-        //         value1: 'a',
-        //         value2: 'b',
-        //         obj: {
-        //             c: 'd'
-        //         }
-        //     });
-        //     expect(result1).toBe(result2);
-        // });
+        it('should not execute function if initialValues parameter equals firstValues', () => {
+            let callsCount = 0;
+            const fn = (value1, value2, obj) => {
+                callsCount++;
+                return { value1, value2, obj };
+            };
+            const memoized = memoizeLast(fn, [false, false, true], [ 'a', 'b', { c: 'd' } ]);
+
+            memoized('a', 'b', { c: 'd' });
+            expect(callsCount).toBe(0);
+            memoized('a', 'b', { c: 'e' });
+            expect(callsCount).toBe(1);
+        });
     });
 });
