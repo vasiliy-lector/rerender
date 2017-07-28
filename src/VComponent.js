@@ -1,6 +1,6 @@
 import { VCOMPONENT } from './types';
 
-function VComponent(
+function VComponent({
     componentType,
     props,
     children,
@@ -10,7 +10,7 @@ function VComponent(
     context,
     ref,
     state
-) {
+}) {
     this.componentType = componentType;
     this.props = props;
     this.children = children;

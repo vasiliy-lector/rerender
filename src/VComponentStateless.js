@@ -1,6 +1,6 @@
 import { VCOMPONENT_STATELESS } from './types';
 
-function VComponentStateless(
+function VComponentStateless({
     componentType,
     props,
     children,
@@ -8,7 +8,7 @@ function VComponentStateless(
     template,
     componentTemplate,
     context
-) {
+}) {
     this.componentType = componentType;
     this.props = props;
     this.children = children;

@@ -146,17 +146,17 @@ TemplateComponent.prototype = {
             componentBeforeRender(instance);
             template = componentRender(instance);
 
-            component = new VComponent(
+            component = new VComponent({
                 componentType,
                 props,
                 children,
                 id,
                 template,
-                this,
+                componentTemplate: this,
                 context,
-                instance,
-                instance.getStateSnapshot()
-            );
+                ref: instance,
+                state: instance.getStateSnapshot()
+            });
 
             if (needStore) {
                 component.set('storeState', storeState);
@@ -199,17 +199,17 @@ TemplateComponent.prototype = {
                 template = reuseTemplate(componentRender(instance), prev.template);
             }
 
-            component = new VComponent(
+            component = new VComponent({
                 componentType,
                 props,
                 children,
                 id,
                 template,
-                this,
+                componentTemplate: this,
                 context,
-                instance,
-                instance.getStateSnapshot()
-            );
+                ref: instance,
+                state: instance.getStateSnapshot()
+            });
 
             if (needStore) {
                 component.set('storeState', storeState);

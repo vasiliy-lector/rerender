@@ -58,15 +58,15 @@ TemplateComponentStateless.prototype = {
 
         if (prev === undefined || prev.type !== VCOMPONENT_STATELESS || prev.componentType !== componentType) {
             template = componentType(props, children);
-            component = new VComponentStateless(
+            component = new VComponentStateless({
                 componentType,
                 props,
                 children,
                 id,
                 template,
-                this,
+                templateComponent: this,
                 context
-            );
+            });
 
             nextComponents[id] = component;
         } else {
@@ -88,15 +88,15 @@ TemplateComponentStateless.prototype = {
                 template = reuseTemplate(componentType(props, children), prev.template);
             }
 
-            component = new VComponentStateless(
+            component = new VComponentStateless({
                 componentType,
                 props,
                 children,
                 id,
                 template,
-                this,
+                templateComponent: this,
                 context
-            );
+            });
             nextComponents[id] = component;
         }
 
