@@ -24,12 +24,16 @@ class Store extends Events {
             : this.getState();
     }
 
-    getState(path, snapshot) {
-        if (this.prevState && snapshot === true) {
+    getStateSnapshot(path) {
+        if (this.prevState) {
             delete this.prevState;
         }
 
-        if (path && Array.isArray(path)) {
+        return this.getState(path);
+    }
+
+    getState(path) {
+        if (path) {
             let result = this.state;
 
             for (let i = 0, l = path.length; result !== undefined && i < l; i++) {

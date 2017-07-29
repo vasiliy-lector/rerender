@@ -1,11 +1,11 @@
 import { TEMPLATE, TEMPLATE_COMPONENT, TEMPLATE_VNODE, VCOMPONENT } from './types';
 import { stringifyChildrenItem } from './TemplateVNode';
 import VComponent from './VComponent';
-import { shallowEqualProps, mayAsync } from './utils';
+import { mayAsync } from './utils';
 import VText from './VText';
-import { componentInit, componentRender, componentBeforeRender, componentSetProps } from './componentLifeCycle';
-import reuseTemplate from './reuseTemplate';
+import { componentInit, componentBeforeRender, componentSetProps } from './componentLifeCycle';
 import { specialAttrs, specialAttrsWrapper } from './constants';
+import { memoizeLast } from './utils';
 
 function TemplateComponent(componentType, props, children, targetComponentType) {
     let nextProps = props || {};
@@ -56,20 +56,6 @@ TemplateComponent.prototype = {
     type: TEMPLATE,
     subtype: TEMPLATE_COMPONENT,
 
-    preprocessInstance(instance) {
-        const antibind = this.componentType.antibind;
-
-        if (antibind && Array.isArray(antibind)) {
-            for (let i = 0, l = antibind.length; i < l; i++) {
-                let name = antibind[i];
-
-                if (typeof instance[name] === 'function') {
-                    instance[name] = instance[name].bind(instance);
-                }
-            }
-        }
-    },
-
     firstRenderInit(instance, config) {
         if (typeof instance.init === 'undefined') {
             return;
@@ -101,11 +87,10 @@ TemplateComponent.prototype = {
             undefined,
             componentType.store ? config.store.getState() : undefined
         );
-        this.preprocessInstance(instance);
 
         return mayAsync(
             this.firstRenderInit(instance, config),
-            () => stringifyChildrenItem(componentRender(instance), config),
+            () => stringifyChildrenItem(instance.render(), config),
             error => config.stream.emit('error', error)
         );
     },
@@ -129,28 +114,28 @@ TemplateComponent.prototype = {
         const needStore = componentType.store;
 
         if (prev === undefined || prev.type !== VCOMPONENT || prev.componentType !== componentType) {
-            let storeState;
-            if (needStore) {
-                storeState = store.getState(undefined, true);
-            }
+            const storeState = needStore ? store.getStateSnapshot() : undefined;
             const instance = new componentType(
                 props,
                 children,
                 componentOptions,
                 id,
-                needStore ? storeState : undefined
+                storeState
             );
-            this.preprocessInstance(instance);
+            const componentWillReceiveProps = memoizeLast(
+                (props, children, additional) => componentSetProps(instance, props, children, additional),
+                [ true, false, false ],
+                [ props, children, storeState ]
+            );
+            const render = memoizeLast(
+                () => instance.render(),
+                [ true, false, false ]
+            );
 
             componentInit(instance);
 
-            if (componentType.store && typeof instance.init === 'function') {
-                const storeStateAfterInit = store.getState(undefined, true);
-
-                if (storeStateAfterInit !== storeState) {
-                    storeState = storeStateAfterInit;
-                    componentSetProps(instance, this.props, this.children, storeState);
-                }
+            if (needStore && typeof instance.init === 'function' && typeof componentWillReceiveProps === 'function') {
+                componentWillReceiveProps(props, children, store.getStateSnapshot());
             }
 
             if (this.ref && typeof this.ref === 'function') {
@@ -159,77 +144,38 @@ TemplateComponent.prototype = {
             if (this.wrapperRef && typeof this.wrapperRef === 'function') {
                 this.wrapperRef(instance);
             }
+
             componentBeforeRender(instance);
-            template = componentRender(instance);
 
-            component = new VComponent(
+            template = render(props, children, instance.getStateSnapshot());
+
+            component = new VComponent({
+                render,
+                componentWillReceiveProps,
                 componentType,
-                props,
-                children,
                 id,
-                template,
-                this,
+                componentTemplate: this,
                 context,
-                instance,
-                instance.getState(undefined, true)
-            );
-
-            if (needStore) {
-                component.set('storeState', storeState);
-            }
+                ref: instance
+            });
 
             nextComponents[id] = component;
             mountComponents[id] = component.ref;
         } else {
             const instance = prev.ref;
-            const storeState = store.getState(undefined, true);
-
             componentBeforeRender(instance);
+            prev.componentWillReceiveProps(props, children, needStore && store.getStateSnapshot());
+            template = prev.render(props, children, instance.getStateSnapshot());
 
-            const sameProps = shallowEqualProps(prev.props, props);
-            // FIXME
-            const sameChildren = false; // children.isEqual(prev.children);
-            const sameState = instance.getState(undefined, true) !== prev.state;
-            const sameStoreState = !needStore || prev.storeState === storeState;
-
-            if (sameProps) {
-                props = prev.props;
-            }
-
-            if (sameChildren) {
-                children = prev.children;
-            }
-
-            if (sameProps && sameChildren && sameState && sameStoreState) {
-                template = prev.template;
-            } else {
-                if (!sameProps || !sameChildren || !sameStoreState) {
-                    let additional;
-
-                    if (needStore) {
-                        additional = storeState;
-                    }
-
-                    componentSetProps(instance, props, children, additional);
-                }
-                template = reuseTemplate(componentRender(instance), prev.template);
-            }
-
-            component = new VComponent(
+            component = new VComponent({
                 componentType,
-                props,
-                children,
+                render: prev.render,
+                componentWillReceiveProps: prev.componentWillReceiveProps,
                 id,
-                template,
-                this,
+                componentTemplate: this,
                 context,
-                instance,
-                instance.getState(undefined, true)
-            );
-
-            if (needStore) {
-                component.set('storeState', storeState);
-            }
+                ref: instance
+            });
 
             nextComponents[id] = component;
             updateComponents[id] = component.ref;

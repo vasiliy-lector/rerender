@@ -1,25 +1,21 @@
 import { VCOMPONENT } from './types';
 
-function VComponent(
+function VComponent({
+    render,
+    componentWillReceiveProps,
     componentType,
-    props,
-    children,
     id,
-    template,
     componentTemplate,
     context,
-    ref,
-    state
-) {
+    ref
+}) {
+    this.render = render;
+    this.componentWillReceiveProps = componentWillReceiveProps;
     this.componentType = componentType;
-    this.props = props;
-    this.children = children;
     this.id = id;
-    this.template = template;
     this.componentTemplate = componentTemplate;
     this.context = context;
     this.ref = ref;
-    this.state = state;
     this.parent = context.parent;
 }
 

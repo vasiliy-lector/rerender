@@ -14,11 +14,15 @@ class Component extends Events {
         this.children = children;
     }
 
-    getState(path, snapshot) {
-        if (this._prevState && snapshot === true) {
+    getStateSnapshot(path) {
+        if (this._prevState) {
             delete this._prevState;
         }
 
+        return this.getState(path);
+    }
+
+    getState(path) {
         if (path && Array.isArray(path)) {
             let result = this.state;
 
@@ -70,6 +74,10 @@ class Component extends Events {
                 this.setState(value[keys[i]], [keys[i]]);
             }
         }
+    }
+
+    forceRender() {
+        this._options.events.emit('force-render', this._id);
     }
 
     dispatch(event, payload) {

@@ -1,4 +1,4 @@
-import { deepEqual, shallowClone } from '../src/utils';
+import { deepEqual, shallowClone, memoizeLast } from '../src/utils';
 
 describe('utils', () => {
     describe('shallowClone', () => {
@@ -102,5 +102,53 @@ describe('utils', () => {
         };
 
         runTests(tests);
+    });
+
+    describe('memoizeLast', () => {
+        it('should work without config', () => {
+            const fn = value => ({ value });
+            const memoized = memoizeLast(fn);
+            const result1 = memoized('a');
+            const result2 = memoized('a');
+            const result3 = memoized('b');
+            const result4 = memoized('b');
+            const result5 = memoized('b');
+
+            expect(result1).toEqual({ value: 'a' });
+            expect(result1).toBe(result2);
+            expect(result3).toEqual({ value: 'b' });
+            expect(result3).toBe(result4);
+            expect(result3).toBe(result5);
+        });
+
+        it('should work with shallowConfig', () => {
+            const fn = (value1, value2, obj) => ({ value1, value2, obj });
+            const memoized = memoizeLast(fn, [false, false, true]);
+            const result1 = memoized('a', 'b', { c: 'd' });
+            const result2 = memoized('a', 'b', { c: 'd' });
+
+            expect(result1).toEqual({
+                value1: 'a',
+                value2: 'b',
+                obj: {
+                    c: 'd'
+                }
+            });
+            expect(result1).toBe(result2);
+        });
+
+        it('should not execute function if initialValues parameter equals firstValues', () => {
+            let callsCount = 0;
+            const fn = (value1, value2, obj) => {
+                callsCount++;
+                return { value1, value2, obj };
+            };
+            const memoized = memoizeLast(fn, [false, false, true], [ 'a', 'b', { c: 'd' } ]);
+
+            memoized('a', 'b', { c: 'd' });
+            expect(callsCount).toBe(0);
+            memoized('a', 'b', { c: 'e' });
+            expect(callsCount).toBe(1);
+        });
     });
 });
