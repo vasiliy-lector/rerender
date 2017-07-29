@@ -4,7 +4,6 @@ import VComponent from './VComponent';
 import { mayAsync } from './utils';
 import VText from './VText';
 import { componentInit, componentBeforeRender, componentSetProps } from './componentLifeCycle';
-import reuseTemplate from './reuseTemplate';
 import { specialAttrs, specialAttrsWrapper } from './constants';
 import { memoizeLast } from './utils';
 

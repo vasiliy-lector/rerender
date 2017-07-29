@@ -1,17 +1,15 @@
 import { VCOMPONENT_STATELESS } from './types';
 
 function VComponentStateless({
+    render,
     componentType,
-    props,
-    children,
     id,
     template,
     componentTemplate,
     context
 }) {
+    this.render = render;
     this.componentType = componentType;
-    this.props = props;
-    this.children = children;
     this.id = id;
     this.template = template;
     this.componentTemplate = componentTemplate;

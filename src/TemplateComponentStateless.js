@@ -1,9 +1,8 @@
 import { TEMPLATE, TEMPLATE_COMPONENT_STATELESS, TEMPLATE_VNODE, VCOMPONENT_STATELESS } from './types';
 import { stringifyChildrenItem } from './TemplateVNode';
 import VComponentStateless from './VComponentStateless';
-import { shallowEqualProps } from './utils';
+import { memoizeLast } from './utils';
 import VText from './VText';
-import reuseTemplate from './reuseTemplate';
 
 const SPECIAL_PROPS = {
     key: true,
@@ -57,11 +56,14 @@ TemplateComponentStateless.prototype = {
         let prev = components[id];
 
         if (prev === undefined || prev.type !== VCOMPONENT_STATELESS || prev.componentType !== componentType) {
-            template = componentType(props, children);
-            component = new VComponentStateless({
+            const render = memoizeLast(
                 componentType,
-                props,
-                children,
+                [ true, false ]
+            );
+            template = render(props, children);
+            component = new VComponentStateless({
+                render,
+                componentType,
                 id,
                 template,
                 templateComponent: this,
@@ -70,28 +72,11 @@ TemplateComponentStateless.prototype = {
 
             nextComponents[id] = component;
         } else {
-            const sameProps = shallowEqualProps(prev.props, props);
-            // FIXME
-            const sameChildren = false; // children.isEqual(prev.children);
-
-            if (sameProps) {
-                props = prev.props;
-            }
-
-            if (sameChildren) {
-                children = prev.children;
-            }
-
-            if (sameProps && sameChildren) {
-                template = prev.template;
-            } else {
-                template = reuseTemplate(componentType(props, children), prev.template);
-            }
+            template = prev.render(props, children);
 
             component = new VComponentStateless({
+                render: prev.render,
                 componentType,
-                props,
-                children,
                 id,
                 template,
                 templateComponent: this,
