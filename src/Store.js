@@ -24,7 +24,7 @@ class Store extends Events {
             : this.getState();
     }
 
-    getSnapshot(path) {
+    getStateSnapshot(path) {
         if (this.prevState) {
             delete this.prevState;
         }

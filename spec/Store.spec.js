@@ -138,7 +138,7 @@ describe('Store', () => {
             expect(muttable).not.toBe(newState);
             store.setState({}, ['todos']);
             expect(store.getState()).toBe(muttable);
-            const snapshot = store.getSnapshot();
+            const snapshot = store.getStateSnapshot();
             expect(snapshot).toBe(muttable);
             store.setState([1], ['todos', 'list']);
             expect(store.getState()).toEqual({

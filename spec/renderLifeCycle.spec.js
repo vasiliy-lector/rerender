@@ -157,7 +157,7 @@ describe('renderClient life cycle', () => {
 
         refPage.forceRender();
 
-        expectedLifeCycle.push('componentWillReceiveProps', 'render');
+        expectedLifeCycle.push('render');
         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
         expect(domNode.querySelector('a').getAttribute('href')).toBe('newHref');
     });
