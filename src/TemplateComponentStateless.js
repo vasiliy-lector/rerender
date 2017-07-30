@@ -1,7 +1,7 @@
 import { TEMPLATE, TEMPLATE_COMPONENT_STATELESS, TEMPLATE_VNODE, VCOMPONENT_STATELESS } from './types';
 import { stringifyChildrenItem } from './TemplateVNode';
 import VComponentStateless from './VComponentStateless';
-import { memoizeLast } from './utils';
+import { memoizeLast, shallowEqualProps } from './utils';
 import VText from './VText';
 
 const SPECIAL_PROPS = {
@@ -58,7 +58,7 @@ TemplateComponentStateless.prototype = {
         if (prev === undefined || prev.type !== VCOMPONENT_STATELESS || prev.componentType !== componentType) {
             const render = memoizeLast(
                 componentType,
-                [ true, false ]
+                [ shallowEqualProps, undefined ]
             );
             template = render(props, children);
             component = new VComponentStateless({

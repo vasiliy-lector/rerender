@@ -5,7 +5,7 @@ import { mayAsync } from './utils';
 import VText from './VText';
 import { componentInit, componentBeforeRender, componentSetProps } from './componentLifeCycle';
 import { specialAttrs, specialAttrsWrapper } from './constants';
-import { memoizeLast } from './utils';
+import { memoizeLast, shallowEqualProps } from './utils';
 
 function TemplateComponent(componentType, props, children, targetComponentType) {
     let nextProps = props || {};
@@ -124,12 +124,12 @@ TemplateComponent.prototype = {
             );
             const componentWillReceiveProps = memoizeLast(
                 (props, children, additional) => componentSetProps(instance, props, children, additional),
-                [ true, false, false ],
+                [ shallowEqualProps, undefined, undefined ],
                 [ props, children, storeState ]
             );
             const render = memoizeLast(
                 () => instance.render(),
-                [ true, false, false ]
+                [ shallowEqualProps, undefined, undefined ]
             );
 
             componentInit(instance);

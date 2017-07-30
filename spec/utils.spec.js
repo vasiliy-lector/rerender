@@ -1,4 +1,4 @@
-import { deepEqual, shallowClone, memoizeLast } from '../src/utils';
+import { deepEqual, shallowClone, memoizeLast, shallowEqual } from '../src/utils';
 
 describe('utils', () => {
     describe('shallowClone', () => {
@@ -121,9 +121,9 @@ describe('utils', () => {
             expect(result3).toBe(result5);
         });
 
-        it('should work with shallowConfig', () => {
+        it('should work with equalityFunctions', () => {
             const fn = (value1, value2, obj) => ({ value1, value2, obj });
-            const memoized = memoizeLast(fn, [false, false, true]);
+            const memoized = memoizeLast(fn, [undefined, undefined, shallowEqual]);
             const result1 = memoized('a', 'b', { c: 'd' });
             const result2 = memoized('a', 'b', { c: 'd' });
 
@@ -143,7 +143,7 @@ describe('utils', () => {
                 callsCount++;
                 return { value1, value2, obj };
             };
-            const memoized = memoizeLast(fn, [false, false, true], [ 'a', 'b', { c: 'd' } ]);
+            const memoized = memoizeLast(fn, [undefined, undefined, shallowEqual], [ 'a', 'b', { c: 'd' } ]);
 
             memoized('a', 'b', { c: 'd' });
             expect(callsCount).toBe(0);
