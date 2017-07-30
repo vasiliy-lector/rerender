@@ -270,27 +270,33 @@ function shallowClone(obj) {
         }, {});
 }
 
-function memoizeLast(fn, shallowConfig = [], initialValues, initialResult) {
+function memoizeLast(fn, equalityFunctions = [], initialValues, initialResult) {
     let lastResult = initialResult;
     let lastArgs = initialValues;
 
-    return function(...args) {
+    return function() {
+        let args;
+
         if (lastArgs) {
             let same = true;
+            args = [];
 
-            for (let i = 0, l = args.length; i < l; i++) {
-                if (args[i] !== lastArgs[i]) {
-                    if (!shallowConfig[i] || !shallowEqual(args[i], lastArgs[i])) {
-                        same = false;
-                        break;
-                    }
+            for (let i = 0, l = arguments.length; i < l; i++) {
+                if (arguments[i] === lastArgs[i] || (typeof equalityFunctions[i] === 'function' && equalityFunctions[i](arguments[i], lastArgs[i]))) {
+                    args.push(lastArgs[i]);
+                } else {
+                    same = false;
+                    args.push(arguments[i]);
                 }
             }
 
             if (same && args.length === lastArgs.length) {
                 return lastResult;
             }
+        } else {
+            args = arguments;
         }
+
         lastArgs = args;
         lastResult = fn(...args);
 
