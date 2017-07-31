@@ -18,19 +18,20 @@ export default function createTemplate(componentType, props) {
     }
 
     if (props && props.controller) {
-        return createTemplateController(componentType, props, children);
+        return new TemplateComponent(Controllers, props, createTemplateFragment(children), componentType);
     } if (typeof componentType === 'string') {
         return new TemplateVNode(componentType, props, children);
     } else if (componentType.controller !== undefined) {
-        return createTemplateController(componentType, props, children);
+        return new TemplateComponent(Controllers, props, createTemplateFragment(children), componentType);
     } else if (componentType.prototype instanceof Component) {
-        return new TemplateComponent(componentType, props, children && new TemplateFragment(children));
+        return new TemplateComponent(componentType, props, createTemplateFragment(children));
     } else {
-        return new TemplateComponentStateless(componentType, props, children && new TemplateFragment(children));
+        return new TemplateComponentStateless(componentType, props, createTemplateFragment(children));
     }
 }
 
-function createTemplateController(componentType, props, children) {
-    // FIXME: TemplateFragment?
-    return new TemplateComponent(Controllers, props, children && new TemplateFragment(children), componentType);
+function createTemplateFragment(fragment) {
+    return fragment == null || fragment.fragment !== undefined
+        ? fragment
+        : new TemplateFragment(fragment);
 }
