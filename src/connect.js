@@ -1,5 +1,5 @@
-import Component from './Component';
-import createDecorator from './createDecorator';
+import { Component } from './Component';
+import { createDecorator } from './createDecorator';
 import { memoizeLast, shallowEqual } from './utils';
 
 const identity = value => value;
@@ -76,5 +76,7 @@ Connect.store = true;
 
 const connect = createDecorator(Connect);
 
-export default connect;
-export { Connect };
+export {
+    connect,
+    Connect
+};

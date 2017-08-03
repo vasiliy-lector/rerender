@@ -114,4 +114,4 @@ DynamicVNode.prototype = {
     }
 };
 
-export default DynamicVNode;
+export { DynamicVNode };

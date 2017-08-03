@@ -34,4 +34,4 @@ VNode.prototype = {
     }
 };
 
-export default VNode;
+export { VNode };

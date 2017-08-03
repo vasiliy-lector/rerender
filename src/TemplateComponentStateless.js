@@ -1,8 +1,8 @@
 import { TEMPLATE, TEMPLATE_COMPONENT_STATELESS, TEMPLATE_VNODE, VCOMPONENT_STATELESS } from './types';
 import { stringifyChildrenItem } from './TemplateVNode';
-import VComponentStateless from './VComponentStateless';
+import { VComponentStateless } from './VComponentStateless';
 import { memoizeLast, shallowEqualProps } from './utils';
-import VText from './VText';
+import { VText } from './VText';
 
 const SPECIAL_PROPS = {
     key: true,
@@ -110,4 +110,4 @@ TemplateComponentStateless.prototype = {
     }
 };
 
-export default TemplateComponentStateless;
+export { TemplateComponentStateless };

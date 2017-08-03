@@ -1,8 +1,8 @@
 import { shallowClone } from './utils';
-import Events from './Events';
-import VEvent from './VEvent';
-import debug from './debug';
-import VComponent from './VComponent';
+import { Events } from './Events';
+import { VEvent } from './VEvent';
+import { debug } from './debug';
+import { VComponent } from './VComponent';
 
 class Component extends Events {
     constructor(props, children, options, id) {
@@ -109,4 +109,4 @@ class Component extends Events {
     }
 }
 
-export default Component;
+export { Component };

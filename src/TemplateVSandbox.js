@@ -1,5 +1,5 @@
-import Context from './Context';
-import VSandbox from './VSandbox';
+import { Context } from './Context';
+import { VSandbox } from './VSandbox';
 
 const rootContext = new Context({
     parentId: 'r',
@@ -30,4 +30,4 @@ TemplateVSandbox.prototype = {
     }
 };
 
-export default TemplateVSandbox;
+export { TemplateVSandbox };

@@ -16,4 +16,4 @@ VText.prototype = {
     }
 };
 
-export default VText;
+export { VText };

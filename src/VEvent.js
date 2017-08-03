@@ -1,4 +1,4 @@
-export default class VEvent {
+export class VEvent {
     constructor(name, payload) {
         this.name = name;
         this.payload = payload;

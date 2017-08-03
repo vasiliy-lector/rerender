@@ -1,9 +1,9 @@
-import createTemplate from '../src/createTemplate';
-import TemplateVNode from '../src/TemplateVNode';
-import TemplateComponent from '../src/TemplateComponent';
-import TemplateComponentStateless from '../src/TemplateComponentStateless';
-import TemplateFragment from '../src/TemplateFragment';
-import Component from '../src/Component';
+import { createTemplate } from '../src/createTemplate';
+import { TemplateVNode } from '../src/TemplateVNode';
+import { TemplateComponent } from '../src/TemplateComponent';
+import { TemplateComponentStateless } from '../src/TemplateComponentStateless';
+import { TemplateFragment } from '../src/TemplateFragment';
+import { Component } from '../src/Component';
 
 describe('createTemplate', () => {
     it('should return instance of TemplateVNode', () => {

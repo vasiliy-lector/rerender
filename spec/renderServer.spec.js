@@ -1,8 +1,8 @@
-import renderServer from '../src/renderServer';
-import Component from '../src/Component';
-import jsx from '../src/jsx';
-import Promise from '../src/Promise';
-import createTemplate from '../src/createTemplate';
+import { renderServer } from '../src/renderServer';
+import { Component } from '../src/Component';
+import { jsx } from '../src/jsx';
+import { Promise } from '../src/Promise';
+import { createTemplate } from '../src/createTemplate';
 
 class Block extends Component {
     render() {

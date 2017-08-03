@@ -1,4 +1,4 @@
-import createTemplate from './createTemplate';
+import { createTemplate } from './createTemplate';
 
 function createDecorator (Wrapper) {
     return options => Wrapped => {
@@ -32,4 +32,4 @@ function createDecorator (Wrapper) {
     };
 }
 
-export default createDecorator;
+export { createDecorator };

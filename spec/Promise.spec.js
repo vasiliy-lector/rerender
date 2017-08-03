@@ -1,4 +1,4 @@
-import Promise from '../src/Promise';
+import { Promise } from '../src/Promise';
 
 let string = '';
 

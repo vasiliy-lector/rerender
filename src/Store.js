@@ -1,4 +1,4 @@
-import Events from './Events';
+import { Events } from './Events';
 import { shallowClone } from './utils';
 
 class Store extends Events {
@@ -81,4 +81,4 @@ class Store extends Events {
     }
 }
 
-export default Store;
+export { Store };

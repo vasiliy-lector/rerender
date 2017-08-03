@@ -29,4 +29,4 @@ VComponentStateless.prototype = {
     }
 };
 
-export default VComponentStateless;
+export { VComponentStateless };
