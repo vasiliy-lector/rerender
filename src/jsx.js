@@ -1,4 +1,4 @@
-import createTemplate from './createTemplate';
+import { createTemplate } from './createTemplate';
 
 var parser = require('nano-parser'),
     any = parser.any,
