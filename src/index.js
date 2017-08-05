@@ -6,7 +6,7 @@ export { debug, performanceStart, performanceEnd } from './debug';
 export { Dispatcher } from './Dispatcher';
 export { Events } from './Events';
 export { Promise } from './Promise';
-export { jsx } from './jsx';
+export { jsx } from './jsx'; // FIXME: remove from framework - independent package
 export { renderClient } from './renderClient';
 export { renderServer } from './renderServer';
 export { shallowEqual, memoizeLast } from './utils';

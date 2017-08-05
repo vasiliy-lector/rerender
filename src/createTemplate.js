@@ -31,7 +31,7 @@ export function createTemplate(componentType, props) {
 }
 
 function createTemplateFragment(fragment) {
-    return fragment == null || fragment.fragment !== undefined
+    return fragment == null || fragment instanceof TemplateFragment
         ? fragment
         : new TemplateFragment(fragment);
 }
