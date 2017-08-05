@@ -1,7 +1,7 @@
 import { getWrapHeader, getWrapFooter, getApplicationAfter, applicationId as defaultApplicationId } from './defaults';
-import Events from './Events';
-import DispatcherFirstRender from './DispatcherFirstRender';
-import Promise from './Promise';
+import { Events } from './Events';
+import { DispatcherFirstRender } from './DispatcherFirstRender';
+import { Promise } from './Promise';
 import { mayAsync } from './utils';
 
 function renderServer(userTemplate, {
@@ -94,4 +94,4 @@ function renderServer(userTemplate, {
     return promise;
 }
 
-export default renderServer;
+export { renderServer };

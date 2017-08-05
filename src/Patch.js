@@ -399,8 +399,8 @@ function createElement(nextNode, document, skipCreation) {
     return nextDomNode;
 }
 
-export default Patch;
 export {
+    Patch,
     Create,
     Move,
     Remove,

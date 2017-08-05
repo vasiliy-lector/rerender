@@ -1,8 +1,8 @@
 import { deepEqual } from './utils';
-import Store from './Store';
+import { Store } from './Store';
 import { eventDefaults } from './defaults';
 import { debug } from './debug';
-import Promise, { isPromise } from './Promise';
+import { Promise, isPromise } from './Promise';
 
 class Dispatcher {
     constructor(options = {}) {
@@ -156,4 +156,4 @@ class Dispatcher {
     }
 }
 
-export default Dispatcher;
+export { Dispatcher };

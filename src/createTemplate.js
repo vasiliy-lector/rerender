@@ -1,11 +1,11 @@
-import TemplateVNode from './TemplateVNode';
-import TemplateComponent from './TemplateComponent';
-import TemplateFragment from './TemplateFragment';
-import TemplateComponentStateless from './TemplateComponentStateless';
-import Component from './Component';
-import Controllers from './Controllers';
+import { TemplateVNode } from './TemplateVNode';
+import { TemplateComponent } from './TemplateComponent';
+import { TemplateFragment } from './TemplateFragment';
+import { TemplateComponentStateless } from './TemplateComponentStateless';
+import { Component } from './Component';
+import { Controllers } from './Controllers';
 
-export default function createTemplate(componentType, props) {
+export function createTemplate(componentType, props) {
     const length = arguments.length;
     let children = null;
 

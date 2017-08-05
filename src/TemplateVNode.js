@@ -3,9 +3,9 @@ import { debug } from './debug';
 import { escapeHtml, escapeAttr, escapeStyle, calcHash, mayAsync } from './utils';
 import { noRenderAttrs } from './constants';
 import { isPromise } from './Promise';
-import VNode from './VNode';
-import VText from './VText';
-import DynamicVNode from './DynamicVNode';
+import { VNode } from './VNode';
+import { VText } from './VText';
+import { DynamicVNode } from './DynamicVNode';
 
 // TODO: full list
 const interactiveTags = {
@@ -228,5 +228,4 @@ function convertAttrName(name) {
     return convertAttr[name] || name;
 }
 
-export default TemplateVNode;
-export { stringifyAttr, stringifyChildrenItem };
+export { TemplateVNode, stringifyAttr, stringifyChildrenItem };

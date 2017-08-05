@@ -1,10 +1,10 @@
 import { jsdom } from 'jsdom';
-import jsx from '../src/jsx';
-import Events from '../src/Events';
-import renderServer from '../src/renderServer';
-import renderClient from '../src/renderClient';
-import Component from '../src/Component';
-import connect from '../src/connect';
+import { jsx } from '../src/jsx';
+import { Events } from '../src/Events';
+import { renderServer } from '../src/renderServer';
+import { renderClient } from '../src/renderClient';
+import { Component } from '../src/Component';
+import { connect } from '../src/connect';
 import { debug } from '../src/debug';
 
 let lifeCycleCalls;

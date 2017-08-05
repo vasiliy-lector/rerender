@@ -1,6 +1,6 @@
-import Component from './Component';
-import createDecorator from './createDecorator';
-import createTemplate from './createTemplate';
+import { Component } from './Component';
+import { createDecorator } from './createDecorator';
+import { createTemplate } from './createTemplate';
 
 class Controllers extends Component {
     init() {
@@ -66,4 +66,4 @@ class Controllers extends Component {
 
 Controllers.wrapper = true;
 
-export default Controllers;
+export { Controllers };

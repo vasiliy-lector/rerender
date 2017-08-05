@@ -1,4 +1,4 @@
-import Context from '../src/Context';
+import { Context } from '../src/Context';
 
 describe('Context', () => {
     let context1;

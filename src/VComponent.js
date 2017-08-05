@@ -31,4 +31,4 @@ VComponent.prototype = {
     }
 };
 
-export default VComponent;
+export { VComponent };

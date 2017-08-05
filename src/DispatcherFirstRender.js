@@ -1,6 +1,6 @@
-import Dispatcher from './Dispatcher';
+import { Dispatcher } from './Dispatcher';
 import { NeverResolvePromise } from './Promise';
-import Promise from './Promise';
+import { Promise } from './Promise';
 import { deepEqual } from './utils';
 
 const crossUserCache = {};
@@ -214,4 +214,4 @@ class DispatcherFirstRender extends Dispatcher {
     }
 }
 
-export default DispatcherFirstRender;
+export { DispatcherFirstRender };

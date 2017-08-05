@@ -183,4 +183,4 @@ jsx.setOutputMethod = function setOutputMethod(method) {
 // FIXME
 jsx.setOutputMethod(createTemplate);
 
-module.exports = jsx;
+module.exports = { jsx };

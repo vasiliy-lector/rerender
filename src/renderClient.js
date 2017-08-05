@@ -1,11 +1,11 @@
-import Events from './Events';
-import Dispatcher from './Dispatcher';
+import { Events } from './Events';
+import { Dispatcher } from './Dispatcher';
 import { componentMount, componentUnmount, componentDestroy, componentUpdate } from './componentLifeCycle';
-import createInitialPatch from './createInitialPatch';
-import diff from './diff';
+import { createInitialPatch } from './createInitialPatch';
+import { diff } from './diff';
 import { debug } from './debug';
-import TemplateVSandbox from './TemplateVSandbox';
-import Context from './Context';
+import { TemplateVSandbox } from './TemplateVSandbox';
+import { Context } from './Context';
 import { VNODE, VTEXT, VCOMPONENT } from './types';
 import { groupByIdComponents, groupByIdNodes } from './utils';
 import { applicationId as defaultApplicationId } from './defaults';
@@ -305,5 +305,4 @@ function update(instances) {
     }
 }
 
-export default renderClient;
-export { RENDER_THROTTLE };
+export { renderClient, RENDER_THROTTLE };

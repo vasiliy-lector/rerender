@@ -1,5 +1,5 @@
 import { VNODE, VTEXT } from './types';
-import Patch, { Create, SetRef, AttachEvents, SplitText } from './Patch';
+import { Patch, Create, SetRef, AttachEvents, SplitText } from './Patch';
 
 function createInitialPatchRecursive(nextNode, options, insideCreation, nextSibling) {
     if (nextNode.type === VNODE) {
@@ -53,4 +53,4 @@ function createInitialPatch(nextNode, options = {}) {
     return patch;
 }
 
-export default createInitialPatch;
+export { createInitialPatch };

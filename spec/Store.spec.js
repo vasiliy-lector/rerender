@@ -1,4 +1,4 @@
-import Store from '../src/Store.js';
+import { Store } from '../src/Store.js';
 
 describe('Store', () => {
     describe('method setState', () => {

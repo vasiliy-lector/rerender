@@ -1,5 +1,5 @@
 import { VNODE, VTEXT } from './types';
-import Patch, { Create, Replace, Move, Update, Remove, RemoveRef } from './Patch';
+import { Patch, Create, Replace, Move, Update, Remove, RemoveRef } from './Patch';
 import { shallowEqual, groupByIdNodes } from './utils';
 
 function diffNext(nextNode, options, insideCreation) {
@@ -99,4 +99,4 @@ function diff(nextNode, node, options = {}) {
     return patch;
 }
 
-export default diff;
+export { diff };

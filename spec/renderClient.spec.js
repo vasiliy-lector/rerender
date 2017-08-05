@@ -1,8 +1,8 @@
 import { jsdom } from 'jsdom';
-import renderClient from '../src/renderClient';
-import Component from '../src/Component';
-import jsx from '../src/jsx';
-import createTemplate from '../src/createTemplate';
+import { renderClient } from '../src/renderClient';
+import { Component } from '../src/Component';
+import { jsx } from '../src/jsx';
+import { createTemplate } from '../src/createTemplate';
 
 class Block extends Component {
     render() {

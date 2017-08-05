@@ -8,4 +8,4 @@ TemplateFragment.prototype = {
     type: TEMPLATE_FRAGMENT
 };
 
-export default TemplateFragment;
+export { TemplateFragment };

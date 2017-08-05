@@ -113,5 +113,4 @@ class NeverResolvePromise extends Promise {
     }
 }
 
-export default Promise;
-export { isPromise, NeverResolvePromise };
+export { Promise, isPromise, NeverResolvePromise };

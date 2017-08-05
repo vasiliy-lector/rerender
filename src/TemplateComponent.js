@@ -1,8 +1,8 @@
 import { TEMPLATE, TEMPLATE_COMPONENT, TEMPLATE_VNODE, VCOMPONENT } from './types';
 import { stringifyChildrenItem } from './TemplateVNode';
-import VComponent from './VComponent';
+import { VComponent } from './VComponent';
 import { mayAsync } from './utils';
-import VText from './VText';
+import { VText } from './VText';
 import { componentInit, componentBeforeRender, componentSetProps } from './componentLifeCycle';
 import { specialAttrs, specialAttrsWrapper } from './constants';
 import { memoizeLast, shallowEqualProps } from './utils';
@@ -206,4 +206,4 @@ TemplateComponent.prototype = {
     }
 };
 
-export default TemplateComponent;
+export { TemplateComponent };

@@ -27,4 +27,4 @@ VSandbox.prototype = {
     }
 };
 
-export default VSandbox;
+export { VSandbox };

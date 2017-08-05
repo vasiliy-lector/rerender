@@ -163,4 +163,4 @@ Context.prototype = {
     }
 };
 
-export default Context;
+export { Context };
