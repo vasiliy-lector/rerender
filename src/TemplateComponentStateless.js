@@ -44,7 +44,7 @@ TemplateComponentStateless.prototype = {
         return stringifyChildrenItem(this.componentType(this.props), config);
     },
 
-    render(config, context) {
+    renderClient(config, context) {
         let props = this.props;
         let template;
         let component;
@@ -87,7 +87,7 @@ TemplateComponentStateless.prototype = {
         let childs;
 
         if (template) {
-            childs = template.render(
+            childs = template.renderClient(
                 config,
                 context.addIdLevel(component)[
                     template.subtype === TEMPLATE_VNODE

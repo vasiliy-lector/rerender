@@ -15,7 +15,7 @@ function TemplateVSandbox(domNode, template) {
 }
 
 TemplateVSandbox.prototype = {
-    render(config, context) {
+    renderClient(config, context) {
         const sandbox = new VSandbox(this.domNode);
 
         if (context === undefined) {
@@ -24,7 +24,7 @@ TemplateVSandbox.prototype = {
         }
         context.parentNode = sandbox;
         context.parent = sandbox;
-        sandbox.setChilds([this.template.render(config, context)]);
+        sandbox.setChilds([this.template.renderClient(config, context)]);
 
         return sandbox;
     }

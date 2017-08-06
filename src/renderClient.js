@@ -60,7 +60,7 @@ function renderClient(userTemplate, settings = {}) {
         events
     };
 
-    const nextVirtualRoot = rootTemplate.render(config);
+    const nextVirtualRoot = rootTemplate.renderClient(config);
     const patch = createInitialPatch(nextVirtualRoot.childNodes[0], {
         nextNodesById: config.nextNodes,
         document
@@ -88,7 +88,7 @@ function renderClient(userTemplate, settings = {}) {
 }
 
 function rerenderClient(config) {
-    const nextVirtualRoot = config.rootTemplate.render(config);
+    const nextVirtualRoot = config.rootTemplate.renderClient(config);
     const patch = diff(nextVirtualRoot.childNodes[0], config.virtualRoot.childNodes[0], {
         nextNodesById: config.nextNodes,
         nodesById: config.nodes,
@@ -108,7 +108,7 @@ function rerenderClientOne(config, id) {
     const component = config.components[id];
     const node = getFirstNode(component);
     const sandbox = new TemplateVSandbox(node.parentNode, component.componentTemplate);
-    const nextSandboxNode = sandbox.render(config, new Context(component.context));
+    const nextSandboxNode = sandbox.renderClient(config, new Context(component.context));
     const nodesById = groupByIdNodes(node, {});
     const options = {
         nodesById,

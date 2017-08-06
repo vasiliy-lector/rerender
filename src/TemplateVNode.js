@@ -81,7 +81,7 @@ TemplateVNode.prototype = {
         return this.ref || interactiveTags[this.tag];
     },
 
-    render(config, context) {
+    renderClient(config, context) {
         if (config.hashEnabled) {
             this.calcHash(config);
         }
@@ -128,7 +128,7 @@ function renderChildren(items, config, context, needKeys) {
                 if (needKeys && item.key === undefined) {
                     debug.warn('Each child in array should have key');
                 }
-                childs.push(item.render(
+                childs.push(item.renderClient(
                     config,
                     context[
                         item.subtype === TEMPLATE_VNODE
