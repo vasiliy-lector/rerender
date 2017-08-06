@@ -60,7 +60,7 @@ class Controllers extends Component {
     render() {
         const { Root } = this.state;
 
-        return createTemplate(Root, this.props, this.children);
+        return createTemplate(Root, this.props, this.props.children);
     }
 }
 

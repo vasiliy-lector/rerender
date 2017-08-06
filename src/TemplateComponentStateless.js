@@ -34,7 +34,6 @@ function TemplateComponentStateless(componentType, props, children) {
 
     this.componentType = componentType;
     this.props = nextProps;
-    this.children = children;
 }
 
 TemplateComponentStateless.prototype = {
@@ -42,12 +41,11 @@ TemplateComponentStateless.prototype = {
     subtype: TEMPLATE_COMPONENT_STATELESS,
 
     renderServer(config) {
-        return stringifyChildrenItem(this.componentType(this.props, this.children), config);
+        return stringifyChildrenItem(this.componentType(this.props), config);
     },
 
     render(config, context) {
         let props = this.props;
-        let children = this.children;
         let template;
         let component;
         const componentType = this.componentType;
@@ -58,9 +56,9 @@ TemplateComponentStateless.prototype = {
         if (prev === undefined || prev.type !== VCOMPONENT_STATELESS || prev.componentType !== componentType) {
             const render = memoizeLast(
                 componentType,
-                [ shallowEqualProps, undefined ]
+                [ shallowEqualProps ]
             );
-            template = render(props, children);
+            template = render(props);
             component = new VComponentStateless({
                 render,
                 componentType,
@@ -72,7 +70,7 @@ TemplateComponentStateless.prototype = {
 
             nextComponents[id] = component;
         } else {
-            template = prev.render(props, children);
+            template = prev.render(props);
 
             component = new VComponentStateless({
                 render: prev.render,

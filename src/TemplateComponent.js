@@ -51,7 +51,6 @@ function TemplateComponent(componentType, props, children, targetComponentType) 
 
     this.componentType = componentType;
     this.props = nextProps;
-    this.children = children;
 }
 
 TemplateComponent.prototype = {
@@ -71,12 +70,12 @@ TemplateComponent.prototype = {
         if (dispatcher.isCatched()) {
             return dispatcher.waitCatched().then(() => {
                 if (this.componentType.store) {
-                    componentSetProps(instance, this.props, this.children, config.store.getState());
+                    componentSetProps(instance, this.props, config.store.getState());
                 }
             }, error => config.stream.emit('error', error));
         // FIXME: for what setProps inside else?
         } else if (this.componentType.store) {
-            componentSetProps(instance, this.props, this.children, config.store.getState());
+            componentSetProps(instance, this.props, config.store.getState());
         }
     },
 
@@ -84,7 +83,6 @@ TemplateComponent.prototype = {
         const componentType = this.componentType;
         const instance = new componentType(
             this.props,
-            this.children,
             config.componentOptions,
             undefined,
             componentType.store ? config.store.getState() : undefined
@@ -99,7 +97,6 @@ TemplateComponent.prototype = {
 
     render(config, context) {
         let props = this.props;
-        let children = this.children;
         let template;
         let component;
         const componentType = this.componentType;
@@ -119,25 +116,24 @@ TemplateComponent.prototype = {
             const storeState = needStore ? store.getStateSnapshot() : undefined;
             const instance = new componentType(
                 props,
-                children,
                 componentOptions,
                 id,
                 storeState
             );
             const componentWillReceiveProps = memoizeLast(
-                (props, children, additional) => componentSetProps(instance, props, children, additional),
-                [ shallowEqualProps, undefined, undefined ],
-                [ props, children, storeState ]
+                (props, additional) => componentSetProps(instance, props, additional),
+                [ shallowEqualProps, undefined ],
+                [ props, storeState ]
             );
             const render = memoizeLast(
                 () => instance.render(),
-                [ shallowEqualProps, undefined, undefined ]
+                [ shallowEqualProps, undefined ]
             );
 
             componentInit(instance);
 
             if (needStore && typeof instance.init === 'function' && typeof componentWillReceiveProps === 'function') {
-                componentWillReceiveProps(props, children, store.getStateSnapshot());
+                componentWillReceiveProps(props, store.getStateSnapshot());
             }
 
             if (this.ref && typeof this.ref === 'function') {
@@ -149,7 +145,7 @@ TemplateComponent.prototype = {
 
             componentBeforeRender(instance);
 
-            template = render(props, children, instance.getStateSnapshot());
+            template = render(props, instance.getStateSnapshot());
 
             component = new VComponent({
                 render,
@@ -166,8 +162,8 @@ TemplateComponent.prototype = {
         } else {
             const instance = prev.ref;
             componentBeforeRender(instance);
-            prev.componentWillReceiveProps(props, children, needStore && store.getStateSnapshot());
-            template = prev.render(props, children, instance.getStateSnapshot());
+            prev.componentWillReceiveProps(props, needStore && store.getStateSnapshot());
+            template = prev.render(props, instance.getStateSnapshot());
 
             component = new VComponent({
                 componentType,

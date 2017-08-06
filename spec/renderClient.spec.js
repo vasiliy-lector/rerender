@@ -6,7 +6,7 @@ import { createTemplate } from '../src/createTemplate';
 
 class Block extends Component {
     render() {
-        return jsx `<div className="${this.props.className}"><p>${this.props.text}</p>${this.children}</div>`;
+        return jsx `<div className="${this.props.className}"><p>${this.props.text}</p>${this.props.children}</div>`;
     }
 }
 
@@ -14,8 +14,8 @@ Block.defaults = {
     className: 'block'
 };
 
-function Stateless(props, children) {
-    return jsx `<div className="${props.className}"><p>${props.text}</p>${children}</div>`;
+function Stateless(props) {
+    return jsx `<div className="${props.className}"><p>${props.text}</p>${props.children}</div>`;
 }
 
 Stateless.defaults = {

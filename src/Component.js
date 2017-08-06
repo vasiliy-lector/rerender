@@ -5,13 +5,12 @@ import { debug } from './debug';
 import { VComponent } from './VComponent';
 
 class Component extends Events {
-    constructor(props, children, options, id) {
+    constructor(props, options, id) {
         super();
         this._options = options;
         this._id = id;
         this.state = {};
         this.props = props;
-        this.children = children;
     }
 
     getStateSnapshot(path) {

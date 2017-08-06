@@ -30,15 +30,14 @@ function componentMount(instance) {
     }
 }
 
-function componentSetProps(instance, props, children, additional) {
+function componentSetProps(instance, props, additional) {
     if (typeof instance.componentWillReceiveProps !== 'undefined') {
         instance._settingProps = true;
-        instance.componentWillReceiveProps(props, children, additional);
+        instance.componentWillReceiveProps(props, additional);
         instance._settingProps = false;
     }
 
     instance.props = props;
-    instance.children = children;
 }
 
 function componentUnmount(instance) {

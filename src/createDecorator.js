@@ -16,7 +16,7 @@ function createDecorator (Wrapper) {
                 return createTemplate(
                     this.Wrapped,
                     typeof this.renderProps === 'function' ? this.renderProps() : this.props,
-                    this.children
+                    this.props.children
                 );
             };
         }

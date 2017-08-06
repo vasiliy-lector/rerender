@@ -37,8 +37,6 @@ describe('createTemplate', () => {
 
         expect(template instanceof TemplateComponent).toBe(true);
         expect(template.props).toEqual(Object.assign({}, props, { children: new TemplateFragment(['text', 'another text']) }));
-        expect(template.children instanceof TemplateFragment).toBe(true);
-        expect(template.children.fragment).toEqual(['text', 'another text']);
     });
 
     it('should work with null props and children for components', () => {
@@ -47,7 +45,6 @@ describe('createTemplate', () => {
 
         expect(template instanceof TemplateComponent).toBe(true);
         expect(template.props).toEqual({ children: null });
-        expect(template.children).toBe(null);
     });
 
     it('should work with undefined props and children for components', () => {
@@ -56,7 +53,6 @@ describe('createTemplate', () => {
 
         expect(template instanceof TemplateComponent).toBe(true);
         expect(template.props).toEqual({ children: null });
-        expect(template.children).toBe(null);
     });
 
     it('should return instance of TemplateComponentStateless', () => {
@@ -65,8 +61,6 @@ describe('createTemplate', () => {
 
         expect(template instanceof TemplateComponentStateless).toBe(true);
         expect(template.props).toEqual(Object.assign({}, props, { children: new TemplateFragment(['text', 'another text']) }));
-        expect(template.children instanceof TemplateFragment).toBe(true);
-        expect(template.children.fragment).toEqual(['text', 'another text']);
     });
 
 });

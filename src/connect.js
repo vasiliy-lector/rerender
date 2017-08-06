@@ -32,7 +32,7 @@ class Connect extends Component {
         }
     }
 
-    componentWillReceiveProps(nextProps, nextChildren, nextStoreState) {
+    componentWillReceiveProps(nextProps, nextStoreState) {
         this.setState({
             storeState: nextStoreState
         });
