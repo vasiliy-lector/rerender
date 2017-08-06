@@ -9,7 +9,7 @@ class Connect extends Component {
         super(...args);
 
         this.setState({
-            storeState: args[4]
+            storeState: args[3]
         });
     }
 
