@@ -12,22 +12,22 @@ const SPECIAL_PROPS = {
 function TemplateComponentStateless(componentType, props, children) {
     let nextProps = props || {};
 
-    if (nextProps.key || componentType.defaults || nextProps.uniqid) {
-        nextProps = Object.keys(nextProps).reduce((memo, key) => {
-            if (SPECIAL_PROPS[key]) {
-                this[key] = nextProps[key];
-            } else {
-                memo[key] = nextProps[key];
-            }
+    nextProps = Object.keys(nextProps).reduce((memo, key) => {
+        if (SPECIAL_PROPS[key]) {
+            this[key] = nextProps[key];
+        } else {
+            memo[key] = nextProps[key];
+        }
 
-            return memo;
-        }, {});
+        return memo;
+    }, {});
 
-        if (componentType.defaults) {
-            for (let name in componentType.defaults) {
-                if (nextProps[name] === undefined) {
-                    nextProps[name] = componentType.defaults[name];
-                }
+    nextProps.children = children;
+
+    if (componentType.defaults) {
+        for (let name in componentType.defaults) {
+            if (nextProps[name] === undefined) {
+                nextProps[name] = componentType.defaults[name];
             }
         }
     }

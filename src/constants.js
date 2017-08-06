@@ -20,7 +20,8 @@ export const noRenderAttrs = {
     targetComponentType: true,
     targetController: true,
     uniqid: true,
-    wrapperRef: true
+    wrapperRef: true,
+    children: true
 };
 
 export const styleProps = {

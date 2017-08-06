@@ -36,7 +36,7 @@ describe('createTemplate', () => {
         const template = createTemplate(Block, props, 'text', 'another text');
 
         expect(template instanceof TemplateComponent).toBe(true);
-        expect(template.props).toEqual(props);
+        expect(template.props).toEqual(Object.assign({}, props, { children: new TemplateFragment(['text', 'another text']) }));
         expect(template.children instanceof TemplateFragment).toBe(true);
         expect(template.children.fragment).toEqual(['text', 'another text']);
     });
@@ -46,7 +46,7 @@ describe('createTemplate', () => {
         const template = createTemplate(Block, null, null);
 
         expect(template instanceof TemplateComponent).toBe(true);
-        expect(template.props).toEqual({});
+        expect(template.props).toEqual({ children: null });
         expect(template.children).toBe(null);
     });
 
@@ -55,7 +55,7 @@ describe('createTemplate', () => {
         const template = createTemplate(Block);
 
         expect(template instanceof TemplateComponent).toBe(true);
-        expect(template.props).toEqual({});
+        expect(template.props).toEqual({ children: null });
         expect(template.children).toBe(null);
     });
 
@@ -64,7 +64,7 @@ describe('createTemplate', () => {
         const template = createTemplate(function() {}, props, 'text', 'another text');
 
         expect(template instanceof TemplateComponentStateless).toBe(true);
-        expect(template.props).toEqual(props);
+        expect(template.props).toEqual(Object.assign({}, props, { children: new TemplateFragment(['text', 'another text']) }));
         expect(template.children instanceof TemplateFragment).toBe(true);
         expect(template.children.fragment).toEqual(['text', 'another text']);
     });

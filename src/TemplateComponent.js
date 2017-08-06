@@ -32,6 +32,8 @@ function TemplateComponent(componentType, props, children, targetComponentType) 
         }, {});
     }
 
+    nextProps.children = children;
+
     if (componentType.defaults) {
         for (let name in componentType.defaults) {
             if (nextProps[name] === undefined) {
