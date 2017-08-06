@@ -1,11 +1,11 @@
 import { jsdom } from 'jsdom';
-import { jsx } from '../src/jsx';
 import { Events } from '../src/Events';
 import { renderServer } from '../src/renderServer';
 import { renderClient } from '../src/renderClient';
 import { Component } from '../src/Component';
 import { connect } from '../src/connect';
 import { debug } from '../src/debug';
+import { createTemplate } from '../src/createTemplate';
 
 let lifeCycleCalls;
 let refCalls;
@@ -52,7 +52,7 @@ class StatefullPure extends Component {
         lifeCycleCalls.push('render');
         const { href, target } = this.state;
 
-        return jsx `<a onclick=${this.handleClick} target=${target} ref=${this.handleSetRef} href=${href}>link</a>`;
+        return <a onclick={this.handleClick} target={target} ref={this.handleSetRef} href={href}>link</a>;
     }
 }
 
@@ -68,7 +68,7 @@ class PagePure extends Component {
         refCalls.push('handleRef');
     }
     render() {
-        return this.props.noLink ? null : jsx `<${Statefull} ref=${this.handleRef} />`;
+        return this.props.noLink ? null : <Statefull ref={this.handleRef} />;
     }
 }
 
@@ -103,7 +103,7 @@ describe('renderServer life cycle', () => {
         };
         lifeCycleCalls = [];
 
-        return renderServer(jsx `<${Page} />`, renderOptions)
+        return renderServer(<Page />, renderOptions)
             .then(html => {
                 expect(html).toBe('<a target="initTarget" href="initHref">link</a>');
                 expect(lifeCycleCalls).toEqual(['init', 'render']);
@@ -123,7 +123,7 @@ describe('renderClient life cycle', () => {
     it('renderClient should call init, componentWillMount, componentDidMount', () => {
         lifeCycleCalls = [];
         refCalls = [];
-        renderClient(jsx `<${Page} ref=${setRef}/>`, {
+        renderClient(<Page ref={setRef}/>, {
             window,
             externalEvents,
             applicationId: 'application'
