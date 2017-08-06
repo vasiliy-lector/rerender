@@ -44,6 +44,54 @@ TemplateComponentStateless.prototype = {
         return stringifyChildrenItem(this.componentType(this.props), config);
     },
 
+    renderClientFirst(config, context) {
+        let props = this.props;
+        let template;
+        let component;
+        const componentType = this.componentType;
+        const { components, nextComponents } = config;
+        const id = context.getId();
+
+        const render = memoizeLast(
+            componentType,
+            [ shallowEqualProps ]
+        );
+        template = render(props);
+        component = new VComponentStateless({
+            render,
+            componentType,
+            id,
+            template,
+            templateComponent: this,
+            context
+        });
+
+        nextComponents[id] = component;
+
+        // FIXME: createText and move increment inside render
+        let childs;
+
+        if (template) {
+            childs = template.renderClientFirst(
+                config,
+                context.addIdLevel(component)[
+                    template.subtype === TEMPLATE_VNODE
+                        ? 'incrementDom'
+                        : 'incrementComponent'
+                ](template.key, template.uniqid)
+            );
+        } else {
+            const nextContext = context.addIdLevel(component).incrementDom();
+            const nextTextNode = new VText('', nextContext);
+            childs = nextTextNode;
+            config.nextNodes[nextContext.getId()] = nextTextNode;
+        }
+
+        component.set('childs', [childs]);
+
+        return component;
+    },
+
     renderClient(config, context) {
         let props = this.props;
         let template;

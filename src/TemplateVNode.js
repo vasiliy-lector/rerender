@@ -81,6 +81,38 @@ TemplateVNode.prototype = {
         return this.ref || interactiveTags[this.tag];
     },
 
+    renderClientFirst(config, context) {
+        if (config.hashEnabled) {
+            this.calcHash(config);
+        }
+
+        const nextNode = new VNode(this.tag, this.attrs, context);
+        const id = context.getId();
+
+        if (this.needDynamic()) {
+            let dynamic;
+            if (config.dynamicNodes[id]) {
+                dynamic = config.dynamicNodes[id];
+                dynamic._replaceNode(nextNode);
+            } else {
+                dynamic = new DynamicVNode(nextNode);
+            }
+            config.nextDynamicNodes[id] = dynamic;
+            nextNode.setDynamic(dynamic);
+        }
+
+        config.nextNodes[id] = nextNode;
+
+        nextNode.setChilds(renderChildrenFirst(
+            this.children,
+            config,
+            context.addDomLevel(nextNode, context.getId()),
+            false
+        ));
+
+        return nextNode;
+    },
+
     renderClient(config, context) {
         if (config.hashEnabled) {
             this.calcHash(config);
@@ -114,7 +146,11 @@ TemplateVNode.prototype = {
     }
 };
 
-function renderChildren(items, config, context, needKeys) {
+function renderChildrenFirst(items, config, context, needKeys) {
+    return renderChildren(items, config, context, needKeys, true)
+}
+
+function renderChildren(items, config, context, needKeys, first) {
     let childs;
 
     if (items) {
@@ -128,7 +164,7 @@ function renderChildren(items, config, context, needKeys) {
                 if (needKeys && item.key === undefined) {
                     debug.warn('Each child in array should have key');
                 }
-                childs.push(item.renderClient(
+                childs.push(item[first ? 'renderClientFirst' : 'renderClient'](
                     config,
                     context[
                         item.subtype === TEMPLATE_VNODE
@@ -137,9 +173,9 @@ function renderChildren(items, config, context, needKeys) {
                     ](needKeys ? item.key || '$' + i : item.key, item.uniqid)
                 ));
             } else if (Array.isArray(item)) {
-                childs.push.apply(childs, renderChildren(item, config, context.addIdLevel(), true));
+                childs.push.apply(childs, renderChildren(item, config, context.addIdLevel(), true, first));
             } else if (isObject && item.type === TEMPLATE_FRAGMENT) {
-                childs.push.apply(childs, renderChildren(item.fragment, config, context.addIdLevel(), false));
+                childs.push.apply(childs, renderChildren(item.fragment, config, context.addIdLevel(), false, first));
             } else {
                 if (config.hashEnabled && item) {
                     config.hash = calcHash(config.hash, String(item));
