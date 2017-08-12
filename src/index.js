@@ -1,3 +1,4 @@
+/// <reference path="./index.d.ts" />
 export { Component } from './Component';
 export { connect } from './connect';
 export { createController } from './createController';
@@ -8,5 +9,5 @@ export { Events } from './Events';
 export { Promise } from './Promise';
 export { renderClient } from './renderClient';
 export { renderServer } from './renderServer';
-export { shallowEqual, memoizeLast } from './utils';
+export { shallowEqual, memoize } from './utils';
 export { Store } from './Store';

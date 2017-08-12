@@ -270,7 +270,7 @@ function shallowClone(obj) {
         }, {});
 }
 
-function memoizeLast(fn, equalityFunctions = [], initialValues, initialResult) {
+function memoize(fn, equalityFunctions = [], initialValues, initialResult) {
     let lastResult = initialResult;
     let lastArgs = initialValues;
 
@@ -318,7 +318,7 @@ export {
     escapeStyle,
     groupByIdNodes,
     groupByIdComponents,
-    memoizeLast,
+    memoize,
     shallowClone,
     deepEqual,
     shallowEqual,

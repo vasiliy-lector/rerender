@@ -1,6 +1,6 @@
 import { Component } from './Component';
 import { createDecorator } from './createDecorator';
-import { memoizeLast, shallowEqual } from './utils';
+import { memoize, shallowEqual } from './utils';
 
 const identity = value => value;
 
@@ -22,10 +22,10 @@ class Connect extends Component {
             merge = true
         } = this.options;
 
-        this.selectProps = useProps ? memoizeLast(this.selectProps) : identity;
-        this.select = select ? memoizeLast(select) : identity;
-        this.map = map ? memoizeLast(map, [shallowEqual]) : identity;
-        this.merge = merge !== false ? memoizeLast(this.merge) : identity;
+        this.selectProps = useProps ? memoize(this.selectProps) : identity;
+        this.select = select ? memoize(select) : identity;
+        this.map = map ? memoize(map, [shallowEqual]) : identity;
+        this.merge = merge !== false ? memoize(this.merge) : identity;
 
         if (typeof init === 'function') {
             init.call(this);
