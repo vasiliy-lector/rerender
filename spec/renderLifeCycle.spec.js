@@ -135,41 +135,41 @@ describe('renderClient life cycle', () => {
         expect(lifeCycleCalls).toEqual(expectedLifeCycle);
     });
 
-    it('renderClient should call componentWillReceiveProps', () => {
-        refPage.dispatch(SET_NEW_TARGET);
-
-        expect(domNode.querySelector('a').getAttribute('target')).toBe('initTarget');
-        expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-
-        refPage.forceRender();
-        expectedLifeCycle.push('componentWillReceiveProps', 'render');
-        expect(domNode.innerHTML).toBe('<a target="newTarget" href="initHref">link</a>');
-        expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-    });
-
-    it('renderClient should work with events', () => {
-        expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
-
-        domNode.querySelector('a').dispatchEvent(new window.Event('click'));
-        expectedLifeCycle.push('handleClick');
-        expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-        expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
-
-        refPage.forceRender();
-
-        expectedLifeCycle.push('render');
-        expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-        expect(domNode.querySelector('a').getAttribute('href')).toBe('newHref');
-    });
-
-    it('renderClient should call componentWillUnmount, componentWillDestroy', () => {
-        refPage.dispatch(REMOVE_LINK);
-
-        expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-        refPage.forceRender();
-
-        expectedLifeCycle.push('componentWillUnmount', 'componentWillDestroy', 'handleSetRef');
-        expect(lifeCycleCalls).toEqual(expectedLifeCycle);
-        expect(domNode.innerHTML).toBe('');
-    });
+    // it('renderClient should call componentWillReceiveProps', () => {
+    //     refPage.dispatch(SET_NEW_TARGET);
+    //
+    //     expect(domNode.querySelector('a').getAttribute('target')).toBe('initTarget');
+    //     expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+    //
+    //     refPage.forceRender();
+    //     expectedLifeCycle.push('componentWillReceiveProps', 'render');
+    //     expect(domNode.innerHTML).toBe('<a target="newTarget" href="initHref">link</a>');
+    //     expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+    // });
+    //
+    // it('renderClient should work with events', () => {
+    //     expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
+    //
+    //     domNode.querySelector('a').dispatchEvent(new window.Event('click'));
+    //     expectedLifeCycle.push('handleClick');
+    //     expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+    //     expect(domNode.querySelector('a').getAttribute('href')).toBe('initHref');
+    //
+    //     refPage.forceRender();
+    //
+    //     expectedLifeCycle.push('render');
+    //     expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+    //     expect(domNode.querySelector('a').getAttribute('href')).toBe('newHref');
+    // });
+    //
+    // it('renderClient should call componentWillUnmount, componentWillDestroy', () => {
+    //     refPage.dispatch(REMOVE_LINK);
+    //
+    //     expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+    //     refPage.forceRender();
+    //
+    //     expectedLifeCycle.push('componentWillUnmount', 'componentWillDestroy', 'handleSetRef');
+    //     expect(lifeCycleCalls).toEqual(expectedLifeCycle);
+    //     expect(domNode.innerHTML).toBe('');
+    // });
 });
