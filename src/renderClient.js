@@ -12,23 +12,24 @@ import { applicationId as defaultApplicationId } from './defaults';
 
 const RENDER_THROTTLE = 16;
 
-function renderClient(userTemplate, settings = {}) {
-    const {
-        window = self,
-        applicationId = defaultApplicationId
-    } = settings;
+function renderClient(userTemplate, rootNode, {
+    window = window,
+    applicationId = defaultApplicationId,
+    settings: {
+        hash: serverHash,
+        hashEnabled,
+        fullHash,
+        eventDefaults
+    } = window[`__RERENDER__${applicationId}`] || {},
+}) {
     const document = window.document;
-    const {
-        settings: serverSettings = {}
-    } = window[`__RERENDER__${applicationId}`] || {};
 
-    const {
-        rootNode = document.getElementById(applicationId),
-        hashEnabled = serverSettings.hashEnabled,
-        fullHash = serverSettings.fullHash
-    } = settings;
+    if (rootNode === undefined) {
+        rootNode = document.getElementById(applicationId);
+    }
+
     const dispatcher = new Dispatcher({
-        eventDefaults: serverSettings.eventDefaults
+        eventDefaults
     });
     const store = dispatcher.store;
 
@@ -65,7 +66,6 @@ function renderClient(userTemplate, settings = {}) {
         nextNodesById: config.nextNodes,
         document
     });
-    const serverHash = serverSettings.hash;
 
     if (!hashEnabled || !serverHash || serverHash !== config.hash) {
         hashEnabled && debug.warn('Server and client html do not match!');

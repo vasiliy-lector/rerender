@@ -28,20 +28,19 @@ describe('renderClient', () => {
         window = jsdom('<div id="application"></div>').defaultView.window;
         renderOptions = {
             window,
-            settings: {},
             applicationId: 'application'
         };
     });
 
     it('should render div to div', () => {
-        renderClient(<div className="block">Text of block</div>, renderOptions);
+        renderClient(<div className="block">Text of block</div>, undefined, renderOptions);
 
         expect(window.document.getElementById('application').innerHTML)
             .toBe('<div class="block">Text of block</div>');
     });
 
     it('should render component', () => {
-        renderClient(<Block text="Text of block"><p>Text from parent</p></Block>, renderOptions);
+        renderClient(<Block text="Text of block"><p>Text from parent</p></Block>, undefined, renderOptions);
 
         expect(window.document.getElementById('application').innerHTML)
             .toBe('<div class="block"><p>Text of block</p><p>Text from parent</p></div>');

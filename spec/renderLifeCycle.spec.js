@@ -123,10 +123,8 @@ describe('renderClient life cycle', () => {
     it('renderClient should call init, componentWillMount, componentDidMount', () => {
         lifeCycleCalls = [];
         refCalls = [];
-        renderClient(<Page ref={setRef}/>, {
-            window,
-            externalEvents,
-            applicationId: 'application'
+        renderClient(<Page ref={setRef}/>, domNode, {
+            window
         });
 
         expectedLifeCycle.push('init', 'componentWillMount', 'render', 'handleSetRef', 'componentDidMount');
