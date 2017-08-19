@@ -60,7 +60,7 @@ function renderClient(userTemplate, settings = {}) {
         events
     };
 
-    const nextVirtualRoot = rootTemplate.renderClientFirst(config);
+    const nextVirtualRoot = rootTemplate.renderClientServerLike(config);
     const patch = createInitialPatch(nextVirtualRoot.childNodes[0], {
         nextNodesById: config.nextNodes,
         document

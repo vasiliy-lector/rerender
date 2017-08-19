@@ -92,7 +92,7 @@ TemplateComponent.prototype = {
         );
     },
 
-    renderClientFirst(config, context) {
+    renderClientServerLike(config, context) {
         let props = this.props;
         let template;
         let component;
@@ -159,7 +159,7 @@ TemplateComponent.prototype = {
         let childs;
 
         if (template) {
-            childs = template.renderClientFirst(
+            childs = template.renderClientServerLike(
                 config,
                 context.addIdLevel(component)[
                     template.subtype === TEMPLATE_VNODE

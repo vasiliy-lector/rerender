@@ -81,7 +81,7 @@ TemplateVNode.prototype = {
         return this.ref || interactiveTags[this.tag];
     },
 
-    renderClientFirst(config, context) {
+    renderClientServerLike(config, context) {
         if (config.hashEnabled) {
             this.calcHash(config);
         }
@@ -150,7 +150,7 @@ function renderChildrenFirst(items, config, context, needKeys) {
     return renderChildren(items, config, context, needKeys, true)
 }
 
-function renderChildren(items, config, context, needKeys, first) {
+function renderChildren(items, config, context, needKeys, serverLike) {
     let childs;
 
     if (items) {
@@ -164,7 +164,7 @@ function renderChildren(items, config, context, needKeys, first) {
                 if (needKeys && item.key === undefined) {
                     debug.warn('Each child in array should have key');
                 }
-                childs.push(item[first ? 'renderClientFirst' : 'renderClient'](
+                childs.push(item[serverLike ? 'renderClientServerLike' : 'renderClient'](
                     config,
                     context[
                         item.subtype === TEMPLATE_VNODE
@@ -173,9 +173,9 @@ function renderChildren(items, config, context, needKeys, first) {
                     ](needKeys ? item.key || '$' + i : item.key, item.uniqid)
                 ));
             } else if (Array.isArray(item)) {
-                childs.push.apply(childs, renderChildren(item, config, context.addIdLevel(), true, first));
+                childs.push.apply(childs, renderChildren(item, config, context.addIdLevel(), true, serverLike));
             } else if (isObject && item.type === TEMPLATE_FRAGMENT) {
-                childs.push.apply(childs, renderChildren(item.fragment, config, context.addIdLevel(), false, first));
+                childs.push.apply(childs, renderChildren(item.fragment, config, context.addIdLevel(), false, serverLike));
             } else {
                 if (config.hashEnabled && item) {
                     config.hash = calcHash(config.hash, String(item));
