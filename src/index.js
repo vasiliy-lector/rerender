@@ -1,4 +1,3 @@
-/// <reference path="./index.d.ts" />
 export { Component } from './Component';
 export { connect } from './connect';
 export { createController } from './createController';

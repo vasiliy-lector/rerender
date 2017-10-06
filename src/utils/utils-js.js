@@ -260,16 +260,6 @@ function groupByIdComponents(component, memo) {
     return memo;
 }
 
-function shallowClone(obj) {
-    return Array.isArray(obj)
-        ? obj.map(item => item)
-        : Object.keys(obj).reduce((memo, name) => {
-            memo[name] = obj[name];
-
-            return memo;
-        }, {});
-}
-
 function memoize(fn, equalityFunctions = [], initialValues, initialResult) {
     let lastResult = initialResult;
     let lastArgs = initialValues;
@@ -319,7 +309,6 @@ export {
     groupByIdNodes,
     groupByIdComponents,
     memoize,
-    shallowClone,
     deepEqual,
     shallowEqual,
     shallowEqualProps,
