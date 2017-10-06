@@ -19,6 +19,7 @@ function renderClient(userTemplate, rootNode, {
         hash: serverHash,
         hashEnabled,
         fullHash,
+        dispatcherCache,
         eventDefaults
     } = window[`__RERENDER__${applicationId}`] || {},
 }) {
@@ -29,7 +30,8 @@ function renderClient(userTemplate, rootNode, {
     }
 
     const dispatcher = new Dispatcher({
-        eventDefaults
+        eventDefaults,
+        cache: dispatcherCache
     });
     const store = dispatcher.store;
 
@@ -61,7 +63,10 @@ function renderClient(userTemplate, rootNode, {
         events
     };
 
-    const nextVirtualRoot = rootTemplate.renderClientServerLike(config);
+    const nextVirtualRoot = hashEnabled && serverHash
+        ? rootTemplate.renderClientServerLike(config)
+        : rootTemplate.renderClient(config);
+
     const patch = createInitialPatch(nextVirtualRoot.childNodes[0], {
         nextNodesById: config.nextNodes,
         document
