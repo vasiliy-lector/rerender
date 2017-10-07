@@ -4,7 +4,7 @@ import { VEvent } from './VEvent';
 import { debug } from './debug';
 import { VComponent } from './VComponent';
 
-class Component extends Events {
+export class Component extends Events {
     constructor(props, options, id) {
         super();
         this._options = options;
@@ -107,5 +107,3 @@ class Component extends Events {
         return;
     }
 }
-
-export { Component };

@@ -7,7 +7,7 @@ describe('Events', () => {
         events = new Events();
     });
 
-    it('should work subscription with method on', () => {
+    it('should work subscription', () => {
         const mock = jasmine.createSpyObj('mock', ['event1Handler', 'event1HandlerAnother', 'event2Handler']);
         const payload1 = {
             something: true
@@ -46,8 +46,19 @@ describe('Events', () => {
         expect(mock.eventHandler).toHaveBeenCalledTimes(0);
     });
 
+    it('should correctly work with double adding handler', () => {
+        const mock = jasmine.createSpyObj('mock', ['eventHandler']);
+
+        events.on('event', mock.eventHandler);
+        events.on('event', mock.eventHandler);
+        events.emit('event', true);
+
+        expect(mock.eventHandler).toHaveBeenCalledTimes(1);
+    });
+
     it('should unsubsribe only one listener', () => {
         const mock = jasmine.createSpyObj('mock', ['eventHandler', 'eventHandlerAnother']);
+        events.un('event', mock.eventHandler);
 
         events.on('event', mock.eventHandler);
         events.on('event', mock.eventHandlerAnother);
