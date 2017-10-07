@@ -1,4 +1,4 @@
-import { shallowClone } from './utils';
+import { shallowClone } from './utils/shallowClone';
 import { Events } from './Events';
 import { VEvent } from './VEvent';
 import { debug } from './debug';

@@ -20,26 +20,23 @@
       ".ts"
     ],
     "lines": 100,
-    "include": [
-      "src/**/*.ts"
-    ],
     "exclude": [
       "**/*.d.ts",
       "spec/**/*.ts",
-      "src/**/index.ts"
+      "src/**/index.ts",
+      "src/debug.ts"
     ],
     "reporter": [
       "lcov",
       "text"
-    ],
-    "all": true
+    ]
   },
   "devDependencies": {
     "@types/jasmine": "^2.6.0",
     "eslint": "~4.3.0",
     "jasmine-ts": "^0.2.1",
     "jsdom": "^9.4.5",
-    "typescript": "^2.5.3",
-    "nyc": "^11.2.1"
+    "nyc": "^11.2.1",
+    "typescript": "^2.5.3"
   }
 }
