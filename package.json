@@ -10,8 +10,10 @@
   "scripts": {
     "compile": "tsc",
     "prepublish": "npm run compile",
+    "test:unit": "jasmine-ts",
+    "test:coverage": "node --max_old_space_size=3000 ./node_modules/.bin/nyc npm run test:unit",
     "lint": "tslint -c tslint.json spec/*.ts spec/**/*.ts src/*.ts src/**/*.ts",
-    "test": "node --max_old_space_size=3000 ./node_modules/.bin/nyc jasmine-ts"
+    "test": "npm run lint && npm run test:coverage"
   },
   "author": "vasiliy.lector@gmail.com",
   "license": "MIT",
@@ -30,7 +32,8 @@
     "reporter": [
       "lcov",
       "text"
-    ]
+    ],
+    "cache": false
   },
   "devDependencies": {
     "@types/jasmine": "^2.6.0",

@@ -1,27 +1,17 @@
 import { Events } from './Events';
 import { shallowClone } from './utils/shallowClone';
 
+type Path = Array<string | number>;
+
 export class Store<State> extends Events {
     private prevState: Partial<State>;
+    private state: Partial<State> = {};
 
-    constructor(private state: Partial<State> = {}) {
+    constructor() {
         super();
-
-        this.setState = this.setState.bind(this);
-        this.getState = this.getState.bind(this);
-
-        this.state = state;
     }
 
-    public getStateSnapshot(path: string[]) {
-        if (this.prevState) {
-            delete this.prevState;
-        }
-
-        return this.getState(path);
-    }
-
-    public getState(path?: string[]) {
+    public getState = (path?: Path) => {
         if (path) {
             let result: any = this.state;
 
@@ -35,7 +25,7 @@ export class Store<State> extends Events {
         }
     }
 
-    public setState(value: any, path: string[]) {
+    public setState = (value: any, path?: Path) => {
         if (path && Array.isArray(path)) {
             if (this.getState(path) !== value) {
                 if (!this.prevState) {
@@ -67,5 +57,13 @@ export class Store<State> extends Events {
             this.state = value;
             this.emit('change');
         }
+    }
+
+    public getStateSnapshot(path?: Path) {
+        if (this.prevState) {
+            delete this.prevState;
+        }
+
+        return this.getState(path);
     }
 }

@@ -1,22 +1,32 @@
-import { Store } from '../src/Store.js';
+import { Store } from '../src/Store';
+
+interface Todo {
+    id: number;
+    text: string;
+}
+interface StoreState {
+    todos: {
+        list: Todo[]
+    };
+}
+
+let store: Store<StoreState>;
+const state = {
+    todos: {
+        list: [
+            { id: 1, text: 'todo1' },
+            { id: 2, text: 'todo2' }
+        ]
+    }
+};
 
 describe('Store', () => {
-    describe('method setState', () => {
-        let store;
-        const state = {
-            todos: {
-                list: [
-                    { id: 1, text: 'todo1' },
-                    { id: 2, text: 'todo2' }
-                ]
-            }
-        };
+    beforeEach(() => {
+        store = new Store();
+        store.setState(state);
+    });
 
-        beforeEach(() => {
-            store = new Store({
-                state
-            });
-        });
+    describe('method setState', () => {
 
         it('should change full state if no path parameter', () => {
             expect(store.getState()).toEqual(state);
@@ -64,22 +74,6 @@ describe('Store', () => {
     });
 
     describe('method getState', () => {
-        let store;
-        const state = {
-            todos: {
-                list: [
-                    { id: 1, text: 'todo1' },
-                    { id: 2, text: 'todo2' }
-                ]
-            }
-        };
-
-        beforeEach(() => {
-            store = new Store({
-                state
-            });
-        });
-
         it('should return full state if no path parameter', () => {
             expect(store.getState()).toBe(state);
         });
@@ -99,22 +93,6 @@ describe('Store', () => {
     });
 
     describe('immutability', () => {
-        let store;
-        const state = {
-            todos: {
-                list: [
-                    { id: 1, text: 'todo1' },
-                    { id: 2, text: 'todo2' }
-                ]
-            }
-        };
-
-        beforeEach(() => {
-            store = new Store({
-                state
-            });
-        });
-
         it('should replace state if no path parameter', () => {
             const newState = {
                 todos: {}
@@ -131,7 +109,7 @@ describe('Store', () => {
             store.setState(newState);
             expect(store.getState()).not.toBe(state);
             expect(store.getState()).toBe(newState);
-            const newList = [];
+            const newList: any[] = [];
             store.setState(newList, ['todos', 'list']);
             expect(store.getState(['todos', 'list'])).toBe(newList);
             const muttable = store.getState();
