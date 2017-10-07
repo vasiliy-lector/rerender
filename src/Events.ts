@@ -5,7 +5,7 @@ export class Events {
         [eventName: string]: Function[]
     };
 
-    emit(eventName: string, payload: any): void {
+    emit(eventName: string, payload?: any): void {
         if (!this.callbacks || !this.callbacks[eventName]) {
             return;
         }
