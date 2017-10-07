@@ -6,13 +6,22 @@ import { VComponent } from './VComponent';
 
 type Path = Array<string | number>;
 
-export class Component<Props, State> extends Events {
+export abstract class Component<Props, State> extends Events {
     public settingProps: boolean = false; // FIXME: private
     public componentMounted: boolean = false; // FIXME: private
+
+    public abstract init: () => void;
+    public abstract componentWillMount: () => void;
+    public abstract componentWillUnmount: () => void;
+    public abstract componentDidMount: () => void;
+    public abstract componentDidUpdate: () => void;
+    public abstract componentWillReceiveProps: (props: Props, additional: any) => void;
+    public abstract componentWillDestroy: () => void;
+
     protected state: Partial<State> = {};
     private prevState: Partial<State>;
 
-    constructor(/* FIXME: private*/public props: Props, private readonly options: any, private readonly id: string) {
+    constructor(/* FIXME: protected*/public props: Props, private readonly options: any, private readonly id: string) {
         super();
     }
 

@@ -1,28 +1,30 @@
-function componentInit(instance) {
+import { Component } from './Component';
+
+export function componentInit<C extends Component<any, any>>(instance: C) {
     if (typeof instance.init === 'function') {
         instance.init();
     }
 }
 
-function componentBeforeRender(instance) {
+export function componentBeforeRender<C extends Component<any, any>>(instance: C) {
     if (!instance.componentMounted && typeof instance.componentWillMount !== 'undefined') {
         instance.componentWillMount();
     }
 }
 
-function componentDestroy(instance) {
+export function componentDestroy<C extends Component<any, any>>(instance: C) {
     if (typeof instance.componentWillDestroy !== 'undefined') {
         instance.componentWillDestroy();
     }
 }
 
-function componentUpdate(instance) {
+export function componentUpdate<C extends Component<any, any>>(instance: C) {
     if (typeof instance.componentDidUpdate !== 'undefined') {
         instance.componentDidUpdate();
     }
 }
 
-function componentMount(instance) {
+export function componentMount<C extends Component<any, any>>(instance: C) {
     instance.componentMounted = true;
 
     if (typeof instance.componentDidMount !== 'undefined') {
@@ -30,7 +32,7 @@ function componentMount(instance) {
     }
 }
 
-function componentSetProps(instance, props, additional) {
+export function componentSetProps<C extends Component<any, any>>(instance: C, props: any, additional: any) {
     if (typeof instance.componentWillReceiveProps !== 'undefined') {
         instance.settingProps = true;
         instance.componentWillReceiveProps(props, additional);
@@ -40,20 +42,10 @@ function componentSetProps(instance, props, additional) {
     instance.props = props;
 }
 
-function componentUnmount(instance) {
+export function componentUnmount<C extends Component<any, any>>(instance: C) {
     instance.componentMounted = false;
 
     if (typeof instance.componentWillUnmount !== 'undefined') {
         instance.componentWillUnmount();
     }
 }
-
-export {
-    componentInit,
-    componentBeforeRender,
-    componentDestroy,
-    componentUpdate,
-    componentMount,
-    componentSetProps,
-    componentUnmount
-};
