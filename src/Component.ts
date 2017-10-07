@@ -4,26 +4,27 @@ import { VEvent } from './VEvent';
 import { debug } from './debug';
 import { VComponent } from './VComponent';
 
-export class Component extends Events {
-    constructor(props, options, id) {
+export class Component<Props, State> extends Events {
+    _settingProps: boolean = false;
+    _componentMounted: boolean = false;
+    private prevState: Partial<State>;
+    protected state: Partial<State> = {};
+
+    constructor(private props: Props, private options: any, private id: string) {
         super();
-        this._options = options;
-        this._id = id;
-        this.state = {};
-        this.props = props;
     }
 
-    getStateSnapshot(path) {
-        if (this._prevState) {
-            delete this._prevState;
+    getStateSnapshot(path?: string[]): any {
+        if (this.prevState) {
+            delete this.prevState;
         }
 
         return this.getState(path);
     }
 
-    getState(path) {
+    getState(path?: string[]): any {
         if (path && Array.isArray(path)) {
-            let result = this.state;
+            let result: any = this.state;
 
             for (let i = 0, l = path.length; result !== undefined && i < l; i++) {
                 result = result[path[i]];
@@ -35,16 +36,16 @@ export class Component extends Events {
         }
     }
 
-    setState(value, path) {
+    setState(value: any, path?: string[]): void {
         if (path && Array.isArray(path)) {
             if (this.getState(path) !== value) {
-                if (!this._prevState) {
-                    this._prevState = this.state;
-                    this.state = shallowClone(this._prevState);
+                if (!this.prevState) {
+                    this.prevState = this.state;
+                    this.state = shallowClone(this.prevState);
                 }
 
-                let stateParent = this.state;
-                let prevStateParent = this._prevState;
+                let stateParent: any = this.state;
+                let prevStateParent: any = this.prevState;
                 let last = path.length - 1;
 
                 for (let i = 0, l = last; i < l; i++) {
@@ -63,7 +64,7 @@ export class Component extends Events {
                 stateParent[path[last]] = value;
 
                 if (this._componentMounted && !this._settingProps) {
-                    this._options.events.emit('rerender-one', this._id);
+                    this.options.events.emit('rerender-one', this.id);
                 }
             }
         } else if (value && typeof value === 'object'){
@@ -75,15 +76,15 @@ export class Component extends Events {
         }
     }
 
-    forceRender() {
-        this._options.events.emit('force-render', this._id);
+    forceRender(): void {
+        this.options.events.emit('force-render', this.id);
     }
 
-    dispatch(event, payload) {
-        return this._options.dispatch.call(null, event, payload);
+    dispatch(event: string, payload?: any) {
+        return this.options.dispatch.call(null, event, payload);
     }
 
-    trigger(eventName, payload) {
+    trigger(eventName: string, payload?: any): void {
         if (this._componentMounted) {
             const event = new VEvent(eventName, payload);
             let parent = this.getParent();
@@ -100,7 +101,7 @@ export class Component extends Events {
     }
 
     getParent() {
-        return this._options.getParent(this._id);
+        return this.options.getParent(this.id);
     }
 
     render() {
