@@ -4,6 +4,8 @@ import { VEvent } from './VEvent';
 import { debug } from './debug';
 import { VComponent } from './VComponent';
 
+type Path = Array<string | number>;
+
 export class Component<Props, State> extends Events {
     public settingProps: boolean = false; // FIXME: private
     public componentMounted: boolean = false; // FIXME: private
@@ -14,7 +16,7 @@ export class Component<Props, State> extends Events {
         super();
     }
 
-    public getStateSnapshot(path?: string[]): any {
+    public getStateSnapshot(path?: Path): any {
         if (this.prevState) {
             delete this.prevState;
         }
@@ -22,7 +24,7 @@ export class Component<Props, State> extends Events {
         return this.getState(path);
     }
 
-    public getState(path?: string[]): any {
+    public getState(path?: Path): any {
         if (path && Array.isArray(path)) {
             let result: any = this.state;
 
@@ -68,7 +70,7 @@ export class Component<Props, State> extends Events {
         return;
     }
 
-    protected setState(value: any, path?: string[]): void {
+    protected setState(value: any, path?: Path): void {
         if (path && Array.isArray(path)) {
             if (this.getState(path) !== value) {
                 if (!this.prevState) {
