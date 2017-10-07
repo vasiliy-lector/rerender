@@ -1,30 +1,30 @@
 import { Component } from './Component';
 
-export function componentInit<C extends Component<any, any>>(instance: C) {
+export function componentInit(instance: Component<any, any>) {
     if (typeof instance.init === 'function') {
         instance.init();
     }
 }
 
-export function componentBeforeRender<C extends Component<any, any>>(instance: C) {
+export function componentBeforeRender(instance: Component<any, any>) {
     if (!instance.componentMounted && typeof instance.componentWillMount !== 'undefined') {
         instance.componentWillMount();
     }
 }
 
-export function componentDestroy<C extends Component<any, any>>(instance: C) {
+export function componentDestroy(instance: Component<any, any>) {
     if (typeof instance.componentWillDestroy !== 'undefined') {
         instance.componentWillDestroy();
     }
 }
 
-export function componentUpdate<C extends Component<any, any>>(instance: C) {
+export function componentUpdate(instance: Component<any, any>) {
     if (typeof instance.componentDidUpdate !== 'undefined') {
         instance.componentDidUpdate();
     }
 }
 
-export function componentMount<C extends Component<any, any>>(instance: C) {
+export function componentMount(instance: Component<any, any>) {
     instance.componentMounted = true;
 
     if (typeof instance.componentDidMount !== 'undefined') {
@@ -32,7 +32,7 @@ export function componentMount<C extends Component<any, any>>(instance: C) {
     }
 }
 
-export function componentSetProps<C extends Component<any, any>>(instance: C, props: any, additional: any) {
+export function componentSetProps(instance: Component<any, any>, props: any, additional: any) {
     if (typeof instance.componentWillReceiveProps !== 'undefined') {
         instance.settingProps = true;
         instance.componentWillReceiveProps(props, additional);
@@ -42,7 +42,7 @@ export function componentSetProps<C extends Component<any, any>>(instance: C, pr
     instance.props = props;
 }
 
-export function componentUnmount<C extends Component<any, any>>(instance: C) {
+export function componentUnmount(instance: Component<any, any>) {
     instance.componentMounted = false;
 
     if (typeof instance.componentWillUnmount !== 'undefined') {
