@@ -1,7 +1,11 @@
 const noop = () => {};
 
-class Events {
-    emit(eventName, payload) {
+export class Events {
+    private callbacks: {
+        [eventName: string]: Function[]
+    };
+
+    emit(eventName: string, payload: any): void {
         if (!this.callbacks || !this.callbacks[eventName]) {
             return;
         }
@@ -11,7 +15,7 @@ class Events {
         }
     }
 
-    on(eventName, callback) {
+    on(eventName: string, callback: Function): void {
         if (!this.callbacks) {
             this.callbacks = {};
         }
@@ -25,19 +29,20 @@ class Events {
         this.callbacks[eventName].push(callback);
     }
 
-    un(eventName, callback) {
+    un(eventName: string, callback?: Function): void {
         if (!this.callbacks || !this.callbacks[eventName]) {
+            return;
+        }
+
+        if (!callback) {
+            delete this.callbacks[eventName];
             return;
         }
 
         const index = this.callbacks[eventName].indexOf(callback);
 
-        if (!callback) {
-            delete this.callbacks[eventName];
-        } else if (index !== -1) {
+        if (index !== -1) {
             this.callbacks[eventName].splice(index, 1);
         }
     }
 }
-
-export { Events };
