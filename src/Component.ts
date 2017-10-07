@@ -5,16 +5,16 @@ import { debug } from './debug';
 import { VComponent } from './VComponent';
 
 export class Component<Props, State> extends Events {
-    _settingProps: boolean = false;
-    _componentMounted: boolean = false;
-    private prevState: Partial<State>;
+    public settingProps: boolean = false; // FIXME: private
+    public componentMounted: boolean = false; // FIXME: private
     protected state: Partial<State> = {};
+    private prevState: Partial<State>;
 
-    constructor(private props: Props, private options: any, private id: string) {
+    constructor(/* FIXME: private*/public props: Props, private readonly options: any, private readonly id: string) {
         super();
     }
 
-    getStateSnapshot(path?: string[]): any {
+    public getStateSnapshot(path?: string[]): any {
         if (this.prevState) {
             delete this.prevState;
         }
@@ -22,7 +22,7 @@ export class Component<Props, State> extends Events {
         return this.getState(path);
     }
 
-    getState(path?: string[]): any {
+    public getState(path?: string[]): any {
         if (path && Array.isArray(path)) {
             let result: any = this.state;
 
@@ -36,7 +36,39 @@ export class Component<Props, State> extends Events {
         }
     }
 
-    setState(value: any, path?: string[]): void {
+    public forceRender(): void {
+        this.options.events.emit('force-render', this.id);
+    }
+
+    public dispatch(event: string, payload?: any) {
+        return this.options.dispatch.call(null, event, payload);
+    }
+
+    public trigger(eventName: string, payload?: any): void {
+        if (this.componentMounted) {
+            const event = new VEvent(eventName, payload);
+            let parent = this.getParent();
+            while (parent && !event.isStopped()) {
+                if (parent instanceof VComponent && parent.ref) {
+                    parent.ref.emit(eventName, event);
+                }
+
+                parent = parent.getParent();
+            }
+        } else {
+            debug.warn('Try emit event on unmounted component, event not triggered');
+        }
+    }
+
+    public getParent() {
+        return this.options.getParent(this.id);
+    }
+
+    public render() {
+        return;
+    }
+
+    protected setState(value: any, path?: string[]): void {
         if (path && Array.isArray(path)) {
             if (this.getState(path) !== value) {
                 if (!this.prevState) {
@@ -46,7 +78,7 @@ export class Component<Props, State> extends Events {
 
                 let stateParent: any = this.state;
                 let prevStateParent: any = this.prevState;
-                let last = path.length - 1;
+                const last = path.length - 1;
 
                 for (let i = 0, l = last; i < l; i++) {
                     if (prevStateParent && typeof prevStateParent[path[i]] === 'object') {
@@ -63,48 +95,16 @@ export class Component<Props, State> extends Events {
 
                 stateParent[path[last]] = value;
 
-                if (this._componentMounted && !this._settingProps) {
+                if (this.componentMounted && !this.settingProps) {
                     this.options.events.emit('rerender-one', this.id);
                 }
             }
-        } else if (value && typeof value === 'object'){
+        } else if (value && typeof value === 'object') {
             const keys = Object.keys(value);
 
             for (let i = 0, l = keys.length; i < l; i++) {
                 this.setState(value[keys[i]], [keys[i]]);
             }
         }
-    }
-
-    forceRender(): void {
-        this.options.events.emit('force-render', this.id);
-    }
-
-    dispatch(event: string, payload?: any) {
-        return this.options.dispatch.call(null, event, payload);
-    }
-
-    trigger(eventName: string, payload?: any): void {
-        if (this._componentMounted) {
-            const event = new VEvent(eventName, payload);
-            let parent = this.getParent();
-            while (parent && !event.isStopped()) {
-                if (parent instanceof VComponent && parent.ref) {
-                    parent.ref.emit(eventName, event);
-                }
-
-                parent = parent.getParent();
-            }
-        } else {
-            debug.warn('Try emit event on unmounted component, event not triggered');
-        }
-    }
-
-    getParent() {
-        return this.options.getParent(this.id);
-    }
-
-    render() {
-        return;
     }
 }

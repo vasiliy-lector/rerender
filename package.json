@@ -10,6 +10,7 @@
   "scripts": {
     "compile": "tsc",
     "prepublish": "npm run compile",
+    "lint": "tslint -c tslint.json spec/*.ts spec/**/*.ts src/*.ts src/**/*.ts",
     "test": "node --max_old_space_size=3000 ./node_modules/.bin/nyc jasmine-ts"
   },
   "author": "vasiliy.lector@gmail.com",
@@ -33,10 +34,10 @@
   },
   "devDependencies": {
     "@types/jasmine": "^2.6.0",
-    "eslint": "~4.3.0",
     "jasmine-ts": "^0.2.1",
     "jsdom": "^9.4.5",
     "nyc": "^11.2.1",
+    "tslint": "^5.7.0",
     "typescript": "^2.5.3"
   }
 }

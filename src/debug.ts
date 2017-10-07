@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* tslint:disable: no-console */
 export const debug = {
     log(...args: any[]) {
         console.log(...args);
@@ -11,11 +11,11 @@ export const debug = {
     }
 };
 
-type Mesuarements = {
-    [key: string]: number
-};
+interface Mesuarements {
+    [key: string]: number;
+}
 
-let mesuarements: Mesuarements = {};
+const mesuarements: Mesuarements = {};
 
 export function performanceStart(type: string) {
     if (typeof performance === 'undefined') {

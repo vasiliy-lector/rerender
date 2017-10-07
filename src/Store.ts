@@ -1,30 +1,19 @@
 import { Events } from './Events';
-import { shallowClone } from './utils';
+import { shallowClone } from './utils/shallowClone';
 
-class Store extends Events {
-    constructor({ state = {}, dehydrate, rehydrate } = {}) {
+export class Store<State> extends Events {
+    private prevState: Partial<State>;
+
+    constructor(private state: Partial<State> = {}) {
         super();
 
         this.setState = this.setState.bind(this);
         this.getState = this.getState.bind(this);
 
         this.state = state;
-        if (rehydrate) {
-            rehydrate({ getState: this.getState, setState: this.setState });
-        }
-
-        if (typeof dehydrate === 'function') {
-            this.providedDehydrate = dehydrate;
-        }
     }
 
-    dehydrate() {
-        return this.providedDehydrate
-            ? this.providedDehydrate({ getState: this.getState })
-            : this.getState();
-    }
-
-    getStateSnapshot(path) {
+    public getStateSnapshot(path: string[]) {
         if (this.prevState) {
             delete this.prevState;
         }
@@ -32,9 +21,9 @@ class Store extends Events {
         return this.getState(path);
     }
 
-    getState(path) {
+    public getState(path?: string[]) {
         if (path) {
-            let result = this.state;
+            let result: any = this.state;
 
             for (let i = 0, l = path.length; result !== undefined && i < l; i++) {
                 result = typeof result === 'object' ? result[path[i]] : undefined;
@@ -46,7 +35,7 @@ class Store extends Events {
         }
     }
 
-    setState(value, path) {
+    public setState(value: any, path: string[]) {
         if (path && Array.isArray(path)) {
             if (this.getState(path) !== value) {
                 if (!this.prevState) {
@@ -54,9 +43,9 @@ class Store extends Events {
                     this.state = shallowClone(this.prevState);
                 }
 
-                let stateParent = this.getState();
-                let prevStateParent = this.prevState;
-                let last = path.length - 1;
+                let stateParent: any = this.getState();
+                let prevStateParent: any = this.prevState;
+                const last = path.length - 1;
 
                 for (let i = 0, l = last; i < l; i++) {
                     if (prevStateParent && typeof prevStateParent[path[i]] === 'object') {
@@ -80,5 +69,3 @@ class Store extends Events {
         }
     }
 }
-
-export { Store };

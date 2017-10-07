@@ -5,7 +5,7 @@ function componentInit(instance) {
 }
 
 function componentBeforeRender(instance) {
-    if (!instance._componentMounted && typeof instance.componentWillMount !== 'undefined') {
+    if (!instance.componentMounted && typeof instance.componentWillMount !== 'undefined') {
         instance.componentWillMount();
     }
 }
@@ -23,7 +23,7 @@ function componentUpdate(instance) {
 }
 
 function componentMount(instance) {
-    instance._componentMounted = true;
+    instance.componentMounted = true;
 
     if (typeof instance.componentDidMount !== 'undefined') {
         instance.componentDidMount();
@@ -32,16 +32,16 @@ function componentMount(instance) {
 
 function componentSetProps(instance, props, additional) {
     if (typeof instance.componentWillReceiveProps !== 'undefined') {
-        instance._settingProps = true;
+        instance.settingProps = true;
         instance.componentWillReceiveProps(props, additional);
-        instance._settingProps = false;
+        instance.settingProps = false;
     }
 
     instance.props = props;
 }
 
 function componentUnmount(instance) {
-    instance._componentMounted = false;
+    instance.componentMounted = false;
 
     if (typeof instance.componentWillUnmount !== 'undefined') {
         instance.componentWillUnmount();

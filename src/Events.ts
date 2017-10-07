@@ -1,11 +1,13 @@
 const noop = () => {};
 
+type Callback = (payload?: any) => any;
+
 export class Events {
     private callbacks: {
-        [eventName: string]: Function[]
+        [eventName: string]: Callback[]
     };
 
-    emit(eventName: string, payload?: any): void {
+    public emit(eventName: string, payload?: any): void {
         if (!this.callbacks || !this.callbacks[eventName]) {
             return;
         }
@@ -15,7 +17,7 @@ export class Events {
         }
     }
 
-    on(eventName: string, callback: Function): void {
+    public on(eventName: string, callback: Callback): void {
         if (!this.callbacks) {
             this.callbacks = {};
         }
@@ -29,7 +31,7 @@ export class Events {
         this.callbacks[eventName].push(callback);
     }
 
-    un(eventName: string, callback?: Function): void {
+    public un(eventName: string, callback?: Callback): void {
         if (!this.callbacks || !this.callbacks[eventName]) {
             return;
         }

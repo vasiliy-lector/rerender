@@ -3,11 +3,11 @@ export class VEvent {
 
     constructor(public name: string, public payload?: any) {}
 
-    stopPropagation(): void {
+    public stopPropagation(): void {
         this.stopped = true;
     }
 
-    isStopped(): boolean {
+    public isStopped(): boolean {
         return this.stopped;
     }
 }
