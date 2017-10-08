@@ -1,4 +1,4 @@
-import { shallowClone } from '../../src/utils/shallowClone';
+import { shallowClone } from '../../src/utils';
 
 describe('utils', () => {
     describe('shallowClone', () => {

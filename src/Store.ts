@@ -1,5 +1,5 @@
 import { Events } from './Events';
-import { shallowClone } from './utils/shallowClone';
+import { shallowClone } from './utils';
 
 type Path = Array<string | number>;
 

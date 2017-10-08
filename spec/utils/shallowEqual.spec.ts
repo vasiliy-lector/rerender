@@ -1,4 +1,5 @@
-import { shallowEqual, EqualityFunction } from '../../src/utils/shallowEqual';
+import { shallowEqual } from '../../src/utils';
+import { EqualityFunction } from '../../src/utils/shallowEqual';
 
 export type EqualityTest = [any, any, boolean];
 
