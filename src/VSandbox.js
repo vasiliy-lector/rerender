@@ -1,4 +1,4 @@
-import { VSANDBOX } from './types';
+import { VSANDBOX } from './constants';
 
 function VSandbox(domNode) {
     this.parent = null;

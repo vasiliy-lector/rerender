@@ -1,4 +1,4 @@
-import { VCOMPONENT } from './types';
+import { VCOMPONENT } from './constants';
 
 function VComponent({
     render,

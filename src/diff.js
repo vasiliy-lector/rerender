@@ -1,4 +1,4 @@
-import { VNODE, VTEXT } from './types';
+import { VNODE, VTEXT } from './constants';
 import { Patch, Create, Replace, Move, Update, Remove, RemoveRef } from './Patch';
 import { shallowEqual, groupByIdNodes } from './utils';
 

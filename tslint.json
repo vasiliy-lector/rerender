@@ -10,6 +10,7 @@
         },
         "ordered-imports": false,
         "only-arrow-functions": false,
+        "forin": false,
         "object-literal-sort-keys": false,
         "no-empty": false,
         "trailing-comma": false,

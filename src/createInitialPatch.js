@@ -1,4 +1,4 @@
-import { VNODE, VTEXT } from './types';
+import { VNODE, VTEXT } from './constants';
 import { Patch, Create, SetRef, AttachEvents, SplitText } from './Patch';
 
 function createInitialPatchRecursive(nextNode, options, insideCreation, nextSibling) {

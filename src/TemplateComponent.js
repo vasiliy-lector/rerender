@@ -1,4 +1,4 @@
-import { TEMPLATE, TEMPLATE_COMPONENT, TEMPLATE_VNODE, VCOMPONENT } from './types';
+import { TEMPLATE, TEMPLATE_COMPONENT, TEMPLATE_VNODE, VCOMPONENT } from './constants';
 import { stringifyChildrenItem } from './TemplateVNode';
 import { VComponent } from './VComponent';
 import { mayAsync } from './utils';
@@ -7,55 +7,55 @@ import { componentInit, componentBeforeRender, componentSetProps } from './compo
 import { specialAttrs, specialAttrsWrapper } from './constants';
 import { memoize, shallowEqualProps } from './utils';
 
-function TemplateComponent(componentType, props, children, targetComponentType) {
-    let nextProps = props || {};
+class TemplateComponent {
+    type = TEMPLATE;
+    subtype = TEMPLATE_COMPONENT;
 
-    if (componentType.wrapper) {
-        nextProps = Object.keys(nextProps).reduce((memo, key) => {
-            if (specialAttrsWrapper[key]) {
-                this[key] = nextProps[key];
-            } else {
-                memo[key] = nextProps[key];
-            }
+    constructor(componentType, props, children, targetComponentType) {
+        let nextProps = props || {};
 
-            return memo;
-        }, {});
-    } else {
-        nextProps = Object.keys(nextProps).reduce((memo, key) => {
-            if (specialAttrs[key]) {
-                this[key] = nextProps[key];
-            } else {
-                memo[key] = nextProps[key];
-            }
+        if (componentType.wrapper) {
+            nextProps = Object.keys(nextProps).reduce((memo, key) => {
+                if (specialAttrsWrapper[key]) {
+                    this[key] = nextProps[key];
+                } else {
+                    memo[key] = nextProps[key];
+                }
 
-            return memo;
-        }, {});
-    }
+                return memo;
+            }, {});
+        } else {
+            nextProps = Object.keys(nextProps).reduce((memo, key) => {
+                if (specialAttrs[key]) {
+                    this[key] = nextProps[key];
+                } else {
+                    memo[key] = nextProps[key];
+                }
 
-    nextProps.children = children;
+                return memo;
+            }, {});
+        }
 
-    if (componentType.defaults) {
-        for (let name in componentType.defaults) {
-            if (nextProps[name] === undefined) {
-                nextProps[name] = componentType.defaults[name];
+        nextProps.children = children;
+
+        if (componentType.defaults) {
+            for (let name in componentType.defaults) {
+                if (nextProps[name] === undefined) {
+                    nextProps[name] = componentType.defaults[name];
+                }
             }
         }
-    }
 
-    if (targetComponentType) {
-        nextProps.targetComponentType = targetComponentType;
-        if (this.controller) {
-            nextProps.targetController = this.controller;
+        if (targetComponentType) {
+            nextProps.targetComponentType = targetComponentType;
+            if (this.controller) {
+                nextProps.targetController = this.controller;
+            }
         }
+
+        this.componentType = componentType;
+        this.props = nextProps;
     }
-
-    this.componentType = componentType;
-    this.props = nextProps;
-}
-
-TemplateComponent.prototype = {
-    type: TEMPLATE,
-    subtype: TEMPLATE_COMPONENT,
 
     firstRenderInit(instance, config) {
         if (typeof instance.init === 'undefined') {
@@ -74,7 +74,7 @@ TemplateComponent.prototype = {
                 }
             }, error => config.stream.emit('error', error));
         }
-    },
+    }
 
     renderServer(config) {
         const componentType = this.componentType;
@@ -90,7 +90,7 @@ TemplateComponent.prototype = {
             () => stringifyChildrenItem(instance.render(), config),
             error => config.stream.emit('error', error)
         );
-    },
+    }
 
     renderClientServerLike(config, context) {
         let props = this.props;
@@ -177,7 +177,7 @@ TemplateComponent.prototype = {
         component.set('childs', [childs]);
 
         return component;
-    },
+    }
 
     renderClient(config, context) {
         let props = this.props;

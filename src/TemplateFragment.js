@@ -1,11 +1,9 @@
-import { TEMPLATE_FRAGMENT } from './types';
+import { TEMPLATE_FRAGMENT } from './constants';
 
-function TemplateFragment(fragment) {
-    this.fragment = fragment;
+export class TemplateFragment {
+    type = TEMPLATE_FRAGMENT;
+
+    constructor(fragment) {
+        this.fragment = fragment;
+    }
 }
-
-TemplateFragment.prototype = {
-    type: TEMPLATE_FRAGMENT
-};
-
-export { TemplateFragment };

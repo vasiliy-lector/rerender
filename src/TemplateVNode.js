@@ -14,29 +14,29 @@ const interactiveTags = {
     select: true
 };
 
-function TemplateVNode(tag, attrs, children) {
-    if (attrs) {
-        if (attrs.key) {
-            this.key = attrs.key;
+export class TemplateVNode {
+    type = TEMPLATE;
+    subtype = TEMPLATE_VNODE;
+
+    constructor(tag, attrs, children) {
+        if (attrs) {
+            if (attrs.key) {
+                this.key = attrs.key;
+            }
+
+            if (attrs.uniqid) {
+                this.uniqid = attrs.uniqid;
+            }
+
+            if (typeof attrs.ref === 'function') {
+                this.ref = attrs.ref;
+            }
         }
 
-        if (attrs.uniqid) {
-            this.uniqid = attrs.uniqid;
-        }
-
-        if (typeof attrs.ref === 'function') {
-            this.ref = attrs.ref;
-        }
+        this.tag = tag;
+        this.attrs = attrs || null;
+        this.children = children;
     }
-
-    this.tag = tag;
-    this.attrs = attrs || null;
-    this.children = children;
-}
-
-TemplateVNode.prototype = {
-    type: TEMPLATE,
-    subtype: TEMPLATE_VNODE,
 
     calcHash(config) {
         let hash = config.hash;
@@ -54,7 +54,7 @@ TemplateVNode.prototype = {
         hash = calcHash(hash, '>');
 
         config.hash = hash;
-    },
+    }
 
     renderServer(config) {
         const tag = this.tag;
@@ -75,11 +75,11 @@ TemplateVNode.prototype = {
         return mayAsync(this.children && stringifyChildren(this.children, config), () => {
             config.stream.emit('data', '</' + tag + '>');
         }, error => config.stream.emit('error', error));
-    },
+    }
 
     needDynamic() {
         return this.ref || interactiveTags[this.tag];
-    },
+    }
 
     renderClientServerLike(config, context) {
         if (config.hashEnabled) {
@@ -111,7 +111,7 @@ TemplateVNode.prototype = {
         ));
 
         return nextNode;
-    },
+    }
 
     renderClient(config, context) {
         if (config.hashEnabled) {
@@ -264,4 +264,4 @@ function convertAttrName(name) {
     return convertAttr[name] || name;
 }
 
-export { TemplateVNode, stringifyAttr, stringifyChildrenItem };
+export { stringifyAttr, stringifyChildrenItem };

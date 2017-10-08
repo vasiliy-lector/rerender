@@ -1,4 +1,4 @@
-import { DYNAMIC_VNODE } from './types';
+import { DYNAMIC_VNODE } from './constants';
 import { UpdateDynamic } from './Patch';
 
 function DynamicVNode(node) {

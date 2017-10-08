@@ -1,4 +1,4 @@
-import { VCOMPONENT_STATELESS } from './types';
+import { VCOMPONENT_STATELESS } from './constants';
 
 function VComponentStateless({
     render,

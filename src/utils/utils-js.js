@@ -1,4 +1,4 @@
-import { TEMPLATE, VCOMPONENT } from '../types';
+import { TEMPLATE, VCOMPONENT } from '../constants';
 import { styleProps } from '../constants';
 import { isPromise } from '../Promise';
 

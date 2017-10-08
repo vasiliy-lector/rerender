@@ -6,7 +6,7 @@ import { diff } from './diff';
 import { debug } from './debug';
 import { TemplateVSandbox } from './TemplateVSandbox';
 import { Context } from './Context';
-import { VNODE, VTEXT, VCOMPONENT } from './types';
+import { VNODE, VTEXT, VCOMPONENT } from './constants';
 import { groupByIdComponents, groupByIdNodes } from './utils';
 import { applicationId as defaultApplicationId } from './defaults';
 

@@ -1,4 +1,4 @@
-import { VNODE } from './types';
+import { VNODE } from './constants';
 import { noRenderAttrs } from './constants';
 
 const CREATE = 'CREATE';

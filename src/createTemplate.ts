@@ -4,8 +4,9 @@ import { TemplateFragment } from './TemplateFragment';
 import { TemplateComponentStateless } from './TemplateComponentStateless';
 import { Component } from './Component';
 import { Controllers } from './Controllers';
+import { ElementType, Template, TemplateProps, StatelessComponent } from './types';
 
-export function createTemplate(componentType, props) {
+export function createTemplate(componentType: any, props: TemplateProps): Template {
     const length = arguments.length;
     let children = null;
 
@@ -19,18 +20,35 @@ export function createTemplate(componentType, props) {
 
     if (props && props.controller) {
         return new TemplateComponent(Controllers, props, createTemplateFragment(children), componentType);
-    } if (typeof componentType === 'string') {
-        return new TemplateVNode(componentType, props, children);
+    } else if (typeof componentType === 'string') {
+        return new TemplateVNode(
+            componentType as string,
+            props,
+            children
+        );
     } else if (componentType.controller !== undefined) {
-        return new TemplateComponent(Controllers, props, createTemplateFragment(children), componentType);
+        return new TemplateComponent(
+            Controllers,
+            props,
+            createTemplateFragment(children),
+            componentType as Component<typeof props, any>
+        );
     } else if (componentType.prototype instanceof Component) {
-        return new TemplateComponent(componentType, props, createTemplateFragment(children));
+        return new TemplateComponent(
+            componentType as Component<typeof props, any>,
+            props,
+            createTemplateFragment(children)
+        );
     } else {
-        return new TemplateComponentStateless(componentType, props, createTemplateFragment(children));
+        return new TemplateComponentStateless(
+            componentType as StatelessComponent<typeof props>,
+            props,
+            createTemplateFragment(children)
+        );
     }
 }
 
-function createTemplateFragment(fragment) {
+function createTemplateFragment(fragment: any) {
     return fragment == null || fragment instanceof TemplateFragment
         ? fragment
         : new TemplateFragment(fragment);

@@ -1,4 +1,4 @@
-import { TEMPLATE, TEMPLATE_COMPONENT_STATELESS, TEMPLATE_VNODE, VCOMPONENT_STATELESS } from './types';
+import { TEMPLATE, TEMPLATE_COMPONENT_STATELESS, TEMPLATE_VNODE, VCOMPONENT_STATELESS } from './constants';
 import { stringifyChildrenItem } from './TemplateVNode';
 import { VComponentStateless } from './VComponentStateless';
 import { memoize, shallowEqualProps } from './utils';
@@ -9,40 +9,40 @@ const SPECIAL_PROPS = {
     uniqid: true
 };
 
-function TemplateComponentStateless(componentType, props, children) {
-    let nextProps = props || {};
+export class TemplateComponentStateless {
+    type = TEMPLATE;
+    subtype = TEMPLATE_COMPONENT_STATELESS;
 
-    nextProps = Object.keys(nextProps).reduce((memo, key) => {
-        if (SPECIAL_PROPS[key]) {
-            this[key] = nextProps[key];
-        } else {
-            memo[key] = nextProps[key];
-        }
+    constructor(componentType, props, children) {
+        let nextProps = props || {};
 
-        return memo;
-    }, {});
+        nextProps = Object.keys(nextProps).reduce((memo, key) => {
+            if (SPECIAL_PROPS[key]) {
+                this[key] = nextProps[key];
+            } else {
+                memo[key] = nextProps[key];
+            }
 
-    nextProps.children = children;
+            return memo;
+        }, {});
 
-    if (componentType.defaults) {
-        for (let name in componentType.defaults) {
-            if (nextProps[name] === undefined) {
-                nextProps[name] = componentType.defaults[name];
+        nextProps.children = children;
+
+        if (componentType.defaults) {
+            for (let name in componentType.defaults) {
+                if (nextProps[name] === undefined) {
+                    nextProps[name] = componentType.defaults[name];
+                }
             }
         }
+
+        this.componentType = componentType;
+        this.props = nextProps;
     }
-
-    this.componentType = componentType;
-    this.props = nextProps;
-}
-
-TemplateComponentStateless.prototype = {
-    type: TEMPLATE,
-    subtype: TEMPLATE_COMPONENT_STATELESS,
 
     renderServer(config) {
         return stringifyChildrenItem(this.componentType(this.props), config);
-    },
+    }
 
     renderClientServerLike(config, context) {
         let props = this.props;
@@ -90,7 +90,7 @@ TemplateComponentStateless.prototype = {
         component.set('childs', [childs]);
 
         return component;
-    },
+    }
 
     renderClient(config, context) {
         let props = this.props;
@@ -154,6 +154,4 @@ TemplateComponentStateless.prototype = {
 
         return component;
     }
-};
-
-export { TemplateComponentStateless };
+}
