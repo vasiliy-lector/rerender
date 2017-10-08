@@ -1,6 +1,6 @@
-import { TEMPLATE, VCOMPONENT } from './types';
-import { styleProps } from './constants';
-import { isPromise } from './Promise';
+import { TEMPLATE, VCOMPONENT } from '../types';
+import { styleProps } from '../constants';
+import { isPromise } from '../Promise';
 
 const REGEXP_ATTR = /[<>"&]/;
 const REGEXP_HTML = /[<>&]/;

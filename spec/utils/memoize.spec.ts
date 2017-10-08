@@ -1,5 +1,5 @@
 import { shallowEqual } from '../../src/utils/shallowEqual';
-import { memoize } from '../../src/utils/memoize';
+import { memoize } from '../../src/utils';
 
 describe('memoize', () => {
     it('should work without config', () => {

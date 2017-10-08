@@ -23,6 +23,7 @@
     ],
     "lines": 100,
     "exclude": [
+      "**/*.js",
       "**/*.d.ts",
       "spec/**/*.ts",
       "src/**/index.ts",
