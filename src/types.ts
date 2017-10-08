@@ -4,20 +4,25 @@ import { TemplateFragment } from './TemplateFragment';
 import { TemplateComponentStateless } from './TemplateComponentStateless';
 import { Component } from './Component';
 
-export type Template = any; // TemplateVNode | TemplateComponent | TemplateComponentStateless;
-export type StatelessComponent<Props> = (props: Props) => any;
-export type Widget<Props> = Component<Props, any> | StatelessComponent<Props>;
-export type ElementType = string | Widget<any>;
+export type Template = any; // FIXME: TemplateVNode | TemplateComponent | TemplateComponentStateless;
+export type StatelessComponent = (props: PropsType) => Node;
+export type ElementType = string | typeof Component | StatelessComponent;
+
+export type ConfigServer = any; // FIXME
+export type ConfigClient = any; // FIXME
+
+export type VirtualDom = any; // FIXME
 
 export interface TemplateBase {
-    // FIXME: any
-    renderServer: (config: any) => Promise<void> | void;
-    renderClientServerLike: (config: any) => Promise<void> | void;
-    renderClient: (config: any) => any;
+    renderServer: (config: ConfigServer) => Promise<void> | void;
+    renderClientServerLike: (config: ConfigClient) => Promise<VirtualDom> | VirtualDom;
+    renderClient: (config: ConfigClient) => VirtualDom;
 }
 
-export type TemplateProps = Map<any> | null | void;
+export type PropsType = Map<any> | null | void;
 
 export interface Map<T> {
     [key: string]: T;
 }
+
+export type Node = any; // FIXME

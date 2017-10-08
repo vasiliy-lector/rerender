@@ -3,12 +3,13 @@ import { Events } from './Events';
 import { VEvent } from './VEvent';
 import { debug } from './debug';
 import { VComponent } from './VComponent';
+import { Map, Node } from './types';
 
 type Path = Array<string | number>;
 
-export abstract class Component<Props, State> extends Events {
-    public settingProps: boolean = false; // FIXME: private
-    public componentMounted: boolean = false; // FIXME: private
+export abstract class Component<Props extends Map<any>, State extends Map<any>> extends Events {
+    public settingProps: boolean = false;
+    public componentMounted: boolean = false;
 
     public abstract init: () => void;
     public abstract componentWillMount: () => void;
@@ -17,34 +18,13 @@ export abstract class Component<Props, State> extends Events {
     public abstract componentDidUpdate: () => void;
     public abstract componentWillReceiveProps: (props: Props, additional: any) => void;
     public abstract componentWillDestroy: () => void;
+    public abstract render: () => Node;
 
-    protected state: Partial<State> = {};
-    private prevState: Partial<State>;
+    protected state: State;
+    private prevState?: State;
 
-    constructor(/* FIXME: protected*/public props: Props, private readonly options: any, private readonly id: string) {
+    constructor(public props: Props, private readonly options: any, private readonly id: string) {
         super();
-    }
-
-    public getStateSnapshot(path?: Path): any {
-        if (this.prevState) {
-            delete this.prevState;
-        }
-
-        return this.getState(path);
-    }
-
-    public getState(path?: Path): any {
-        if (path && Array.isArray(path)) {
-            let result: any = this.state;
-
-            for (let i = 0, l = path.length; result !== undefined && i < l; i++) {
-                result = result[path[i]];
-            }
-
-            return result;
-        } else {
-            return this.state;
-        }
     }
 
     public forceRender(): void {
@@ -75,8 +55,26 @@ export abstract class Component<Props, State> extends Events {
         return this.options.getParent(this.id);
     }
 
-    public render() {
-        return;
+    public getStateSnapshot(path?: Path): any {
+        if (this.prevState) {
+            delete this.prevState;
+        }
+
+        return this.getState(path);
+    }
+
+    public getState(path?: Path): any {
+        if (path && Array.isArray(path)) {
+            let result: any = this.state;
+
+            for (let i = 0, l = path.length; result !== undefined && i < l; i++) {
+                result = result[path[i]];
+            }
+
+            return result;
+        } else {
+            return this.state;
+        }
     }
 
     protected setState(value: any, path?: Path): void {

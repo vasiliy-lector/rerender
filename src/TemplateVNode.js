@@ -1,4 +1,4 @@
-import { TEMPLATE, TEMPLATE_VNODE, TEMPLATE_FRAGMENT } from './types';
+import { TEMPLATE, TEMPLATE_VNODE, TEMPLATE_FRAGMENT } from './constants';
 import { debug } from './debug';
 import { escapeHtml, escapeAttr, escapeStyle, calcHash, mayAsync } from './utils';
 import { noRenderAttrs } from './constants';

@@ -46,14 +46,6 @@ class Controllers extends Component {
             }
         }
 
-        if (componentType !== 'string' && componentType.controller !== undefined) {
-            if (Array.isArray(componentType.controller)) {
-                controllers.concat(componentType.controller);
-            } else {
-                controllers.push(componentType.controller);
-            }
-        }
-
         return controllers;
     }
 

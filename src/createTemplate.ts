@@ -4,9 +4,9 @@ import { TemplateFragment } from './TemplateFragment';
 import { TemplateComponentStateless } from './TemplateComponentStateless';
 import { Component } from './Component';
 import { Controllers } from './Controllers';
-import { ElementType, Template, TemplateProps, StatelessComponent } from './types';
+import { ElementType, Template, PropsType, StatelessComponent } from './types';
 
-export function createTemplate(componentType: any, props: TemplateProps): Template {
+export function createTemplate(componentType: ElementType, props: PropsType): Template {
     const length = arguments.length;
     let children = null;
 
@@ -26,22 +26,15 @@ export function createTemplate(componentType: any, props: TemplateProps): Templa
             props,
             children
         );
-    } else if (componentType.controller !== undefined) {
-        return new TemplateComponent(
-            Controllers,
-            props,
-            createTemplateFragment(children),
-            componentType as Component<typeof props, any>
-        );
     } else if (componentType.prototype instanceof Component) {
         return new TemplateComponent(
-            componentType as Component<typeof props, any>,
+            componentType as typeof Component,
             props,
             createTemplateFragment(children)
         );
     } else {
         return new TemplateComponentStateless(
-            componentType as StatelessComponent<typeof props>,
+            componentType as StatelessComponent,
             props,
             createTemplateFragment(children)
         );
