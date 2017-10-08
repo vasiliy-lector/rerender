@@ -9,6 +9,8 @@
             "options": ["single"]
         },
         "ordered-imports": false,
+        "only-arrow-functions": false,
+        "object-literal-sort-keys": false,
         "no-empty": false,
         "trailing-comma": false,
         "interface-name": [true, "never-prefix"]

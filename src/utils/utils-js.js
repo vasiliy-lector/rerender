@@ -134,25 +134,6 @@ function deepEqual(obj1, obj2) {
     return true;
 }
 
-function shallowEqual(obj1, obj2) {
-    if (obj1 === obj2) {
-        return true;
-    } else if (obj1 === null || obj2 === null
-        || typeof obj1 !== 'object' || typeof obj2 !== 'object') {
-        return false;
-    } else if (Object.keys(obj1).length !== Object.keys(obj2).length) {
-        return false;
-    }
-
-    for (let name in obj1) {
-        if (obj1[name] !== obj2[name]) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 function shallowEqualProps(props1, props2) {
     if (props1 === props2) {
         return true;
@@ -260,40 +241,6 @@ function groupByIdComponents(component, memo) {
     return memo;
 }
 
-function memoize(fn, equalityFunctions = [], initialValues, initialResult) {
-    let lastResult = initialResult;
-    let lastArgs = initialValues;
-
-    return function() {
-        let args;
-
-        if (lastArgs) {
-            let same = true;
-            args = [];
-
-            for (let i = 0, l = arguments.length; i < l; i++) {
-                if (arguments[i] === lastArgs[i] || (typeof equalityFunctions[i] === 'function' && equalityFunctions[i](arguments[i], lastArgs[i]))) {
-                    args.push(lastArgs[i]);
-                } else {
-                    same = false;
-                    args.push(arguments[i]);
-                }
-            }
-
-            if (same && args.length === lastArgs.length) {
-                return lastResult;
-            }
-        } else {
-            args = arguments;
-        }
-
-        lastArgs = args;
-        lastResult = fn(...args);
-
-        return lastResult;
-    };
-}
-
 function mayAsync(result, callback, errorCallback) {
     return isPromise(result)
         ? result.then(callback).catch(errorCallback)
@@ -308,9 +255,7 @@ export {
     escapeStyle,
     groupByIdNodes,
     groupByIdComponents,
-    memoize,
     deepEqual,
-    shallowEqual,
     shallowEqualProps,
     shallowEqualArray
 };

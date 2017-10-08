@@ -6,10 +6,10 @@ export {
     escapeStyle,
     groupByIdNodes,
     groupByIdComponents,
-    memoize,
     deepEqual,
-    shallowEqual,
     shallowEqualProps,
     shallowEqualArray
 } from './utils-js';
 export { shallowClone } from './shallowClone';
+export { memoize } from './memoize';
+export { shallowEqual } from './shallowEqual';
