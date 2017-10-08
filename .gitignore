@@ -3,5 +3,4 @@ lib/
 .nyc_output/
 coverage/
 tags
-package-lock.json
 .DS_Store
