@@ -8,6 +8,7 @@ import { componentInit, componentBeforeRender, componentSetProps } from './compo
 import { specialAttrs, specialAttrsWrapper } from './constants';
 import { memoize, shallowEqualProps } from './utils';
 import {
+    ElementType,
     Node,
     TemplateBase,
     PropsType,
@@ -16,7 +17,7 @@ import {
     ConfigClient
 } from './types';
 
-export class TemplateComponent implements TemplateBase {
+export class TemplateComponent<T extends Component<any, any>> implements TemplateBase {
     public type: string = TEMPLATE;
     public subtype: string = TEMPLATE_COMPONENT;
     public props: PropsType;
@@ -27,10 +28,10 @@ export class TemplateComponent implements TemplateBase {
     public ref: any; // FIXME
 
     constructor(
-        public componentType: typeof Component,
+        public componentType: T,
         props: PropsType,
         children: Node,
-        targetComponentType: typeof Component
+        targetComponentType?: ElementType
     ) {
         let nextProps = props || {};
 
