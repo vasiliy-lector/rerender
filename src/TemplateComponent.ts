@@ -1,4 +1,5 @@
 import { TEMPLATE, TEMPLATE_COMPONENT, TEMPLATE_VNODE, VCOMPONENT } from './constants';
+import { Component } from './Component';
 import { stringifyChildrenItem } from './TemplateVNode';
 import { VComponent } from './VComponent';
 import { mayAsync } from './utils';
@@ -6,12 +7,31 @@ import { VText } from './VText';
 import { componentInit, componentBeforeRender, componentSetProps } from './componentLifeCycle';
 import { specialAttrs, specialAttrsWrapper } from './constants';
 import { memoize, shallowEqualProps } from './utils';
+import {
+    Node,
+    TemplateBase,
+    PropsType,
+    Context,
+    ConfigServer,
+    ConfigClient
+} from './types';
 
-class TemplateComponent {
-    type = TEMPLATE;
-    subtype = TEMPLATE_COMPONENT;
+export class TemplateComponent implements TemplateBase {
+    public type: string = TEMPLATE;
+    public subtype: string = TEMPLATE_COMPONENT;
+    public props: PropsType;
+    public controller: boolean;
+    public key: string | number;
+    public uniqid: string;
+    public wrapperRef: any; // FIXME
+    public ref: any; // FIXME
 
-    constructor(componentType, props, children, targetComponentType) {
+    constructor(
+        public componentType: typeof Component,
+        props: PropsType,
+        children: Node,
+        targetComponentType: typeof Component
+    ) {
         let nextProps = props || {};
 
         if (componentType.wrapper) {
@@ -39,7 +59,7 @@ class TemplateComponent {
         nextProps.children = children;
 
         if (componentType.defaults) {
-            for (let name in componentType.defaults) {
+            for (const name in componentType.defaults) {
                 if (nextProps[name] === undefined) {
                     nextProps[name] = componentType.defaults[name];
                 }
@@ -57,26 +77,7 @@ class TemplateComponent {
         this.props = nextProps;
     }
 
-    firstRenderInit(instance, config) {
-        if (typeof instance.init === 'undefined') {
-            return;
-        }
-
-        const { dispatcher } = config;
-
-        dispatcher.beginCatch();
-        componentInit(instance);
-
-        if (dispatcher.isCatched()) {
-            return dispatcher.waitCatched().then(() => {
-                if (this.componentType.store) {
-                    componentSetProps(instance, this.props, config.store.getState());
-                }
-            }, error => config.stream.emit('error', error));
-        }
-    }
-
-    renderServer(config) {
+    public renderServer(config: ConfigServer) {
         const componentType = this.componentType;
         const instance = new componentType(
             this.props,
@@ -92,8 +93,8 @@ class TemplateComponent {
         );
     }
 
-    renderClientServerLike(config, context) {
-        let props = this.props;
+    public renderClientServerLike(config: ConfigClient, context: Context) {
+        const props = this.props;
         let template;
         let component;
         const componentType = this.componentType;
@@ -179,7 +180,7 @@ class TemplateComponent {
         return component;
     }
 
-    renderClient(config, context) {
+    public renderClient(config: ConfigClient, context: Context) {
         let props = this.props;
         let template;
         let component;
@@ -286,6 +287,23 @@ class TemplateComponent {
 
         return component;
     }
-};
 
-export { TemplateComponent };
+    private firstRenderInit(instance: Component<any, any>, config: ConfigServer) {
+        if (typeof instance.init === 'undefined') {
+            return;
+        }
+
+        const { dispatcher } = config;
+
+        dispatcher.beginCatch();
+        componentInit(instance);
+
+        if (dispatcher.isCatched()) {
+            return dispatcher.waitCatched().then(() => {
+                if (this.componentType.store) {
+                    componentSetProps(instance, this.props, config.store.getState());
+                }
+            }, error => config.stream.emit('error', error));
+        }
+    }
+}

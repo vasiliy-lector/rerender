@@ -12,11 +12,12 @@ export type ConfigServer = any; // FIXME
 export type ConfigClient = any; // FIXME
 
 export type VirtualDom = any; // FIXME
+export type Context = any; // FIXME
 
 export interface TemplateBase {
     renderServer: (config: ConfigServer) => Promise<void> | void;
-    renderClientServerLike: (config: ConfigClient) => Promise<VirtualDom> | VirtualDom;
-    renderClient: (config: ConfigClient) => VirtualDom;
+    renderClientServerLike: (config: ConfigClient, context: any) => Promise<VirtualDom> | VirtualDom;
+    renderClient: (config: ConfigClient, context: any) => VirtualDom;
 }
 
 export type PropsType = Map<any> | null | void;

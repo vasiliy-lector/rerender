@@ -8,16 +8,19 @@ import { Map, Node } from './types';
 type Path = Array<string | number>;
 
 export abstract class Component<Props extends Map<any>, State extends Map<any>> extends Events {
+    public static wrapper?: boolean;
+    public static defaults?: any; // FIXME
+
     public settingProps: boolean = false;
     public componentMounted: boolean = false;
 
-    public abstract init: () => void;
-    public abstract componentWillMount: () => void;
-    public abstract componentWillUnmount: () => void;
-    public abstract componentDidMount: () => void;
-    public abstract componentDidUpdate: () => void;
-    public abstract componentWillReceiveProps: (props: Props, additional: any) => void;
-    public abstract componentWillDestroy: () => void;
+    public abstract init?: () => void;
+    public abstract componentWillMount?: () => void;
+    public abstract componentWillUnmount?: () => void;
+    public abstract componentDidMount?: () => void;
+    public abstract componentDidUpdate?: () => void;
+    public abstract componentWillReceiveProps?: (props: Props, additional: any) => void;
+    public abstract componentWillDestroy?: () => void;
     public abstract render: () => Node;
 
     protected state: State;
