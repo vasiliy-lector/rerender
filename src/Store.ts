@@ -5,13 +5,17 @@ type Path = Array<string | number>;
 
 export class Store<State> extends Events {
     private prevState: Partial<State>;
-    private state: Partial<State> = {};
+    private state: State;
 
     constructor() {
         super();
+        this.getState = this.getState.bind(this);
+        this.setState = this.setState.bind(this);
     }
 
-    public getState = (path?: Path) => {
+    public getState(): State;
+    public getState(path: Path): any;
+    public getState(path?: Path) {
         if (path) {
             let result: any = this.state;
 
@@ -25,7 +29,9 @@ export class Store<State> extends Events {
         }
     }
 
-    public setState = (value: any, path?: Path) => {
+    public setState(value: State): void;
+    public setState(value: any, path: Path): void;
+    public setState(value: State | any, path?: Path): void {
         if (path && Array.isArray(path)) {
             if (this.getState(path) !== value) {
                 if (!this.prevState) {
@@ -59,11 +65,13 @@ export class Store<State> extends Events {
         }
     }
 
+    public getStateSnapshot(): State;
+    public getStateSnapshot(path: Path): any;
     public getStateSnapshot(path?: Path) {
         if (this.prevState) {
             delete this.prevState;
         }
 
-        return this.getState(path);
+        return path ? this.getState(path) : this.getState();
     }
 }

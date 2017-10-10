@@ -2,11 +2,11 @@ import { Store } from '../src/Store';
 
 interface Todo {
     id: number;
-    text: string;
+    text?: string;
 }
 interface StoreState {
-    todos: {
-        list: Todo[]
+    todos?: {
+        list?: Todo[]
     };
 }
 
@@ -118,10 +118,10 @@ describe('Store', () => {
             expect(store.getState()).toBe(muttable);
             const snapshot = store.getStateSnapshot();
             expect(snapshot).toBe(muttable);
-            store.setState([1], ['todos', 'list']);
+            store.setState([{ id: 1 }], ['todos', 'list']);
             expect(store.getState()).toEqual({
                 todos: {
-                    list: [1]
+                    list: [{ id: 1 }]
                 }
             });
             expect(store.getState()).not.toBe(snapshot);
