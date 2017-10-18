@@ -8,6 +8,7 @@ import { componentInit, componentBeforeRender, componentSetProps } from './compo
 import { specialAttrs, specialAttrsWrapper } from './constants';
 import { memoize, shallowEqualProps } from './utils';
 import {
+    Map,
     ElementType,
     Node,
     TemplateBase,
@@ -17,7 +18,7 @@ import {
     ConfigClient
 } from './types';
 
-export class TemplateComponent<T extends Component<any, any>> implements TemplateBase {
+export class TemplateComponent implements TemplateBase {
     public type: string = TEMPLATE;
     public subtype: string = TEMPLATE_COMPONENT;
     public props: PropsType;
@@ -27,8 +28,10 @@ export class TemplateComponent<T extends Component<any, any>> implements Templat
     public wrapperRef: any; // FIXME
     public ref: any; // FIXME
 
+    [name: string]: any;
+
     constructor(
-        public componentType: T,
+        public componentType: typeof Component,
         props: PropsType,
         children: Node,
         targetComponentType?: ElementType
@@ -36,7 +39,7 @@ export class TemplateComponent<T extends Component<any, any>> implements Templat
         let nextProps = props || {};
 
         if (componentType.wrapper) {
-            nextProps = Object.keys(nextProps).reduce((memo, key) => {
+            nextProps = Object.keys(nextProps).reduce((memo: Map<any>, key: string) => {
                 if (specialAttrsWrapper[key]) {
                     this[key] = nextProps[key];
                 } else {
@@ -46,7 +49,7 @@ export class TemplateComponent<T extends Component<any, any>> implements Templat
                 return memo;
             }, {});
         } else {
-            nextProps = Object.keys(nextProps).reduce((memo, key) => {
+            nextProps = Object.keys(nextProps).reduce((memo: Map<any>, key: string) => {
                 if (specialAttrs[key]) {
                     this[key] = nextProps[key];
                 } else {
@@ -182,7 +185,7 @@ export class TemplateComponent<T extends Component<any, any>> implements Templat
     }
 
     public renderClient(config: ConfigClient, context: Context) {
-        let props = this.props;
+        const props = this.props;
         let template;
         let component;
         const componentType = this.componentType;

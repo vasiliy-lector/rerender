@@ -1,3 +1,4 @@
+import { Map } from './types';
 export const TEMPLATE = 'TEMPLATE';
 export const TEMPLATE_VNODE = 'TEMPLATE_VNODE';
 export const TEMPLATE_COMPONENT = 'TEMPLATE_COMPONENT';
@@ -11,7 +12,7 @@ export const VTEXT = 'VTEXT';
 export const VCOMPONENT = 'VCOMPONENT';
 export const VCOMPONENT_STATELESS = 'VCOMPONENT_STATELESS';
 
-export const specialAttrs = {
+export const specialAttrs: Map<boolean> = {
     controller: true,
     key: true,
     ref: true,
@@ -19,14 +20,14 @@ export const specialAttrs = {
     wrapperRef: true
 };
 
-export const specialAttrsWrapper = {
+export const specialAttrsWrapper: Map<boolean> = {
     controller: true,
     key: true,
     uniqid: true,
     wrapperRef: true
 };
 
-export const noRenderAttrs = {
+export const noRenderAttrs: Map<boolean> = {
     controller: true,
     key: true,
     ref: true,
