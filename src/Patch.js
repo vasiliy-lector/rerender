@@ -284,11 +284,12 @@ Update.prototype = {
     }
 };
 
-function UpdateDynamic(node) {
-    this.node = node;
-}
-UpdateDynamic.prototype = {
-    type: UPDATE_DYNAMIC,
+class UpdateDynamic {
+    type = UPDATE_DYNAMIC;
+
+    constructor(node) {
+        this.node = node;
+    }
 
     apply() {
         const prevAttrs = this.node.dynamic.prevAttrs;
@@ -311,7 +312,8 @@ UpdateDynamic.prototype = {
             this.node.dynamic._setUpdated();
         }
     }
-};
+}
+
 // TODO: rename AttachEventsAndDynamic
 function AttachEvents(nextNode) {
     this.nextNode = nextNode;

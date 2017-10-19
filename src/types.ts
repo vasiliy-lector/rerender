@@ -15,6 +15,9 @@ export type VirtualDom = any; // FIXME
 export type VirtualDomNode = any; // FIXME
 export type Context = any; // FIXME
 
+export type AttrsValue = any;
+export type Attrs = Map<AttrsValue>;
+
 export interface TemplateBase {
     renderServer: (config: ConfigServer) => Promise<void> | void;
     renderClientServerLike: (config: ConfigClient, context: Context) => Promise<VirtualDom> | VirtualDom;

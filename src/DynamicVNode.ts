@@ -1,17 +1,21 @@
 import { DYNAMIC_VNODE } from './constants';
 import { UpdateDynamic } from './Patch';
+import { VirtualDomNode, Map, Attrs, AttrsValue } from './types';
 
-function DynamicVNode(node) {
-    this.node = node;
-    this.tag = node.tag;
-    this.attrs = {};
-    this._setListeners();
-}
+export class DynamicVNode {
+    public type: string = DYNAMIC_VNODE;
+    private tag: string;
+    private attrs: Attrs;
+    private prevAttrs?: Attrs;
+    private timeout: number;
 
-DynamicVNode.prototype = {
-    type: DYNAMIC_VNODE,
+    constructor(private node: VirtualDomNode) {
+        this.tag = node.tag;
+        this.attrs = {};
+        this.setListeners();
+    }
 
-    set(name, value) {
+    public set(name: string, value: AttrsValue): void {
         if (this.attrs[name] === value) {
             return;
         }
@@ -22,16 +26,16 @@ DynamicVNode.prototype = {
             this.prevAttrs[name] = this.attrs[name];
         }
         this.attrs[name] = value;
-        this._scheduleUpdate();
-    },
+        this.scheduleUpdate();
+    }
 
-    get(name) {
+    public get(name: string) {
         return this.attrs[name] !== undefined
             ? this.attrs[name]
             : this.node.attrs && this.node.attrs[name];
-    },
+    }
 
-    reset(name) {
+    public reset(name: string) {
         if (name === undefined) {
             if (Object.keys(this.attrs).length) {
                 for (let name in this.attrs) {
@@ -40,7 +44,7 @@ DynamicVNode.prototype = {
                         this.attrs[name] = null;
                     }
                 }
-                this._scheduleUpdate();
+                this.scheduleUpdate();
             }
         } else if (this.attrs[name] !== undefined) {
             if (!this.prevAttrs) {
@@ -48,70 +52,60 @@ DynamicVNode.prototype = {
             }
             this.prevAttrs[name] = this.attrs[name];
             delete this.attrs[name];
-            this._scheduleUpdate();
+            this.scheduleUpdate();
         }
-    },
+    }
 
-    getNode() {
+    public getNode() {
         return this.node;
-    },
+    }
 
-    getDomNode() {
+    public getDomNode() {
         return this.node.getDomNode();
-    },
+    }
 
-    _replaceNode(node) {
-        this.node = node;
-    },
-
-    _setListeners() {
+    private setListeners() {
         const nodeAttrs = this.node.attrs;
 
         // TODO: textarea, radio, select, contenteditable
         if (this.tag === 'input') {
             if (!nodeAttrs || (!nodeAttrs.type || nodeAttrs.type === 'text')) {
-                this.attrs.oninput = this._handleInput.bind(this);
+                this.attrs.oninput = this.handleInput.bind(this);
             } else if (nodeAttrs.type === 'checkbox'){
-                this.attrs.onchange = this._handleCheckboxChange.bind(this);
+                this.attrs.onchange = this.handleCheckboxChange.bind(this);
             }
         }
-    },
+    }
 
-    _scheduleUpdate() {
-        if (!this._timeout) {
-            this._timeout = setTimeout(() => this._update(), 0);
+    private scheduleUpdate() {
+        if (!this.timeout) {
+            this.timeout = setTimeout(() => this.update(), 0);
         }
-    },
+    }
 
-    _update() {
-        delete this._timeout;
+    private update() {
+        delete this.timeout;
 
         if (this.prevAttrs) {
             (new UpdateDynamic(this.node)).apply();
         }
-    },
+    }
 
-    _setUpdated() {
-        delete this.prevAttrs;
-    },
-
-    _handleInput(event) {
-        this.attrs.value = event.target.value;
+    private handleInput(event: Event) {
+        this.attrs.value = (event.target as HTMLInputElement).value;
         const nodeAttrs = this.node.attrs;
 
         if (nodeAttrs && typeof nodeAttrs.oninput === 'function') {
             nodeAttrs.oninput.apply(null, arguments);
         }
-    },
+    }
 
-    _handleCheckboxChange(event) {
-        this.attrs.checked = event.target.checked;
+    private handleCheckboxChange(event: Event) {
+        this.attrs.checked = (event.target as HTMLInputElement).checked;
         const nodeAttrs = this.node.attrs;
 
         if (nodeAttrs && typeof nodeAttrs.onchange === 'function') {
             nodeAttrs.onchange.apply(null, arguments);
         }
     }
-};
-
-export { DynamicVNode };
+}
