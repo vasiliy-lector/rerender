@@ -12,6 +12,7 @@ export type ConfigServer = any; // FIXME
 export type ConfigClient = any; // FIXME
 
 export type VirtualDom = any; // FIXME
+export type VirtualDomNode = any; // FIXME
 export type Context = any; // FIXME
 
 export interface TemplateBase {
