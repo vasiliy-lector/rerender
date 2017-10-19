@@ -38,10 +38,10 @@ export class DynamicVNode {
     public reset(name: string) {
         if (name === undefined) {
             if (Object.keys(this.attrs).length) {
-                for (let name in this.attrs) {
-                    if (name.substr(0, 2) !== 'on') {
-                        (this.prevAttrs || (this.prevAttrs = {}))[name] = this.attrs[name];
-                        this.attrs[name] = null;
+                for (const key in this.attrs) {
+                    if (key.substr(0, 2) !== 'on') {
+                        (this.prevAttrs || (this.prevAttrs = {}))[key] = this.attrs[key];
+                        this.attrs[key] = null;
                     }
                 }
                 this.scheduleUpdate();
@@ -71,7 +71,7 @@ export class DynamicVNode {
         if (this.tag === 'input') {
             if (!nodeAttrs || (!nodeAttrs.type || nodeAttrs.type === 'text')) {
                 this.attrs.oninput = this.handleInput.bind(this);
-            } else if (nodeAttrs.type === 'checkbox'){
+            } else if (nodeAttrs.type === 'checkbox') {
                 this.attrs.onchange = this.handleCheckboxChange.bind(this);
             }
         }

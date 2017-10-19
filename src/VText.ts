@@ -13,7 +13,7 @@ export class VText {
         context.getParentNode().appendChild(this);
     }
 
-    getDomNode() {
+    public getDomNode() {
         return this.node || (this.node = this.context.getDomNode());
     }
 }

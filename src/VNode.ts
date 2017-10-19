@@ -6,9 +6,9 @@ export class VNode {
     public type: string = VNODE;
     public childs: VirtualDom[];
     public childNodes: VirtualDomNode[];
+    public dynamic: DynamicVNode;
     private parent: VirtualDom;
     private parentNode: VirtualDomNode;
-    private dynamic: DynamicVNode;
     private node: HTMLElement;
 
     constructor(public tag: string, public attrs: Map<string>, private context: Context) {
@@ -18,23 +18,23 @@ export class VNode {
         context.getParentNode().appendChild(this);
     }
 
-    setDynamic(dynamic: DynamicVNode) {
+    public setDynamic(dynamic: DynamicVNode) {
         this.dynamic = dynamic;
     }
 
-    setChilds(childs: VirtualDom[]) {
+    public setChilds(childs: VirtualDom[]) {
         this.childs = childs;
     }
 
-    appendChild(childNode: VirtualDomNode) {
+    public appendChild(childNode: VirtualDomNode) {
         this.childNodes.push(childNode);
     }
 
-    getParent() {
+    public getParent() {
         return this.parent;
     }
 
-    getDomNode() {
+    public getDomNode() {
         return this.node || (this.node = this.context.getDomNode());
     }
 }
