@@ -142,7 +142,7 @@ class TemplateComponent {
 
         template = render(props, instance.getStateSnapshot());
 
-        component = new VComponent({
+        component = new VComponent(
             render,
             componentWillReceiveProps,
             componentType,
@@ -150,7 +150,7 @@ class TemplateComponent {
             componentTemplate: this,
             context,
             ref: instance
-        });
+        );
 
         nextComponents[id] = component;
         mountComponents[id] = component.ref;
@@ -174,7 +174,7 @@ class TemplateComponent {
             config.nextNodes[nextContext.getId()] = nextTextNode;
         }
 
-        component.set('childs', [childs]);
+        component.setChilds([childs]);
 
         return component;
     }
@@ -231,7 +231,7 @@ class TemplateComponent {
 
             template = render(props, instance.getStateSnapshot());
 
-            component = new VComponent({
+            component = new VComponent(
                 render,
                 componentWillReceiveProps,
                 componentType,
@@ -239,7 +239,7 @@ class TemplateComponent {
                 componentTemplate: this,
                 context,
                 ref: instance
-            });
+            );
 
             nextComponents[id] = component;
             mountComponents[id] = component.ref;
@@ -249,15 +249,15 @@ class TemplateComponent {
             prev.componentWillReceiveProps(props, needStore && store.getStateSnapshot());
             template = prev.render(props, instance.getStateSnapshot());
 
-            component = new VComponent({
-                componentType,
+            component = new VComponent(
                 render: prev.render,
                 componentWillReceiveProps: prev.componentWillReceiveProps,
+                componentType,
                 id,
                 componentTemplate: this,
                 context,
                 ref: instance
-            });
+            );
 
             nextComponents[id] = component;
             updateComponents[id] = component.ref;
@@ -282,7 +282,7 @@ class TemplateComponent {
             config.nextNodes[nextContext.getId()] = nextTextNode;
         }
 
-        component.set('childs', [childs]);
+        component.setChilds', [childs]);
 
         return component;
     }

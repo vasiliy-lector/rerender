@@ -8,6 +8,7 @@
         "quotemark": {
             "options": ["single"]
         },
+        "interface-over-type-literal": false,
         "ordered-imports": false,
         "only-arrow-functions": false,
         "forin": false,
