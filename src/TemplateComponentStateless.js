@@ -57,14 +57,14 @@ export class TemplateComponentStateless {
             [ shallowEqualProps ]
         );
         template = render(props);
-        component = new VComponentStateless({
+        component = new VComponentStateless(
             render,
             componentType,
             id,
             template,
-            templateComponent: this,
+            this,
             context
-        });
+        );
 
         nextComponents[id] = component;
 
@@ -87,7 +87,7 @@ export class TemplateComponentStateless {
             config.nextNodes[nextContext.getId()] = nextTextNode;
         }
 
-        component.set('childs', [childs]);
+        component.setChilds([childs]);
 
         return component;
     }
@@ -107,27 +107,27 @@ export class TemplateComponentStateless {
                 [ shallowEqualProps ]
             );
             template = render(props);
-            component = new VComponentStateless({
+            component = new VComponentStateless(
                 render,
                 componentType,
                 id,
                 template,
-                templateComponent: this,
+                this,
                 context
-            });
+            );
 
             nextComponents[id] = component;
         } else {
             template = prev.render(props);
 
-            component = new VComponentStateless({
-                render: prev.render,
+            component = new VComponentStateless(
+                prev.render,
                 componentType,
                 id,
                 template,
-                templateComponent: this,
+                this,
                 context
-            });
+            );
             nextComponents[id] = component;
         }
 
@@ -150,7 +150,7 @@ export class TemplateComponentStateless {
             config.nextNodes[nextContext.getId()] = nextTextNode;
         }
 
-        component.set('childs', [childs]);
+        component.setChilds([childs]);
 
         return component;
     }
