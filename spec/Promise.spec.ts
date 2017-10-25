@@ -1,15 +1,15 @@
 import { Promise } from '../src/Promise';
 
-let string = '';
+let s = '';
 
 describe('Promise', () => {
     it('should support basic functionality', () => {
-        var p1 = new Promise(function(resolve) { resolve('foo'); });
-        var p2 = new Promise(function(resolve, reject) { reject('quux'); });
-        var score = 0;
+        const p1 = new Promise(function(resolve) { resolve('foo'); });
+        const p2 = new Promise(function(resolve, reject) { reject('quux'); });
+        let score = 0;
 
-        function thenFn(result)  { score += (result === 'foo'); }
-        function catchFn(result) { score += (result === 'quux'); }
+        function thenFn(result: string)  { score += Number(result === 'foo'); }
+        function catchFn(result: string) { score += Number(result === 'quux'); }
         function shouldNotRun()  { score = -Infinity; }
 
         p1.then(thenFn, shouldNotRun);
@@ -19,29 +19,29 @@ describe('Promise', () => {
 
         p1.then(function() {
             // Promise.prototype.then() should return a new Promise
-            score += p1.then() !== p1;
+            score += Number(p1.then() !== p1);
         });
 
         expect(score).toBe(4);
     });
 
     it('should call callbacks after resolving', () => {
-        let callback1;
-        let callback2;
-        let callback3;
+        let callback1: number;
+        let callback2: number;
+        let callback3: number;
 
         (new Promise(resolve => {
             setTimeout(() => resolve(1), 0);
         }))
-            .then(value => {
+            .then((value: number) => {
                 callback1 = value;
                 return 2;
             })
-            .then(value => {
+            .then((value: number) => {
                 callback2 = value;
                 return 3;
             })
-            .then(value => {
+            .then((value: number) => {
                 callback3 = value;
                 check();
             });
@@ -54,20 +54,20 @@ describe('Promise', () => {
     });
 
     it('should call callbacks for already resolved promise', () => {
-        let callback1;
-        let callback2;
-        let callback3;
+        let callback1 = 0;
+        let callback2 = 0;
+        let callback3 = 0;
 
         Promise.resolve(1)
-            .then(value => {
+            .then((value: number) => {
                 callback1 = value;
                 return 2;
             })
-            .then(value => {
+            .then((value: number) => {
                 callback2 = value;
                 return 3;
             })
-            .then(value => {
+            .then((value: number) => {
                 callback3 = value;
             });
 
@@ -78,10 +78,10 @@ describe('Promise', () => {
 
     it('should work sync', () => {
         Promise.resolve('hello').then(payload => {
-            string += payload + ' ';
+            s += payload + ' ';
         });
-        string += 'world!';
+        s += 'world!';
 
-        expect(string).toBe('hello world!');
+        expect(s).toBe('hello world!');
     });
 });

@@ -13,3 +13,4 @@ export {
 export { shallowClone } from './shallowClone';
 export { memoize } from './memoize';
 export { shallowEqual } from './shallowEqual';
+export { identity } from './identity';
