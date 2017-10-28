@@ -1,11 +1,10 @@
 import { identity } from './utils';
 
 type Status = 'pending' | 'resolved' | 'rejected';
-type Callback<T> = (payload: T) => any;
-type ErrorPayload = any;
-type ErrorCallback = (error: ErrorPayload) => any;
+type Callback<T, R> = (payload: T) => R;
+type ErrorCallback<R> = (error: any) => R;
 type ResolveFunction<T> = (payload: T | Promise<T>) => void;
-type RejectFunction = (error: ErrorPayload) => void;
+type RejectFunction = (error: any) => void;
 type ConstructorFunction<T> = (resolve: ResolveFunction<T>, reject: RejectFunction) => void;
 
 export class Promise<T> {
@@ -13,14 +12,14 @@ export class Promise<T> {
     public static resolve = <T>(payload: T): Promise<T> => {
         return new Promise(resolve => resolve(payload));
     }
-    public static reject = (error: ErrorPayload): Promise<any> => {
+    public static reject = (error: any): Promise<never> => {
         return new Promise((resolve, reject) => reject(error));
     }
 
     private status: Status = 'pending';
-    private value?: T | ErrorPayload;
-    private fulfilledCallbacks?: Array<Callback<T>>;
-    private rejectedCallbacks?: ErrorCallback[];
+    private value?: any;
+    private fulfilledCallbacks?: Array<Callback<T, any>>;
+    private rejectedCallbacks?: Array<ErrorCallback<any>>;
 
     constructor(fn: ConstructorFunction<T>) {
         try {
@@ -37,30 +36,30 @@ export class Promise<T> {
         }
     }
 
-    public then(onFulfilled: Callback<T> = identity, onRejected: ErrorCallback = identity) {
+    public then<R1 = T, R2 = never>(onFulfilled?: Callback<T, R1>, onRejected?: ErrorCallback<R2>): Promise<R1 | R2> {
         if (this.status === 'resolved') {
-            return Promise.resolve(onFulfilled(this.value as T));
+            return Promise.resolve(onFulfilled ? onFulfilled(this.value) : this.value);
         } else if (this.status === 'rejected') {
-            return Promise.reject(onRejected(this.value as ErrorPayload));
+            return Promise.reject(onRejected ? onRejected(this.value) : this.value) as Promise<never>;
         } else {
-            return new Promise((resolve: ResolveFunction<T>, reject: RejectFunction) => {
+            return new Promise<R1 | R2>((resolve: ResolveFunction<R1 | R2>, reject: RejectFunction) => {
                 (this.fulfilledCallbacks || (this.fulfilledCallbacks = []))
-                    .push((payload: T) => resolve(onFulfilled(payload)));
+                    .push((payload: T) => resolve(onFulfilled ? onFulfilled(payload) : this.value));
                 (this.rejectedCallbacks || (this.rejectedCallbacks = []))
-                    .push((error: ErrorPayload) => reject(onRejected(error)));
+                    .push((error: any) => reject(onRejected ? onRejected(error) : this.value));
             });
         }
     }
 
-    public catch(onRejected: ErrorCallback = identity) {
+    public catch<R1 = never>(onRejected: ErrorCallback<R1>): Promise<T | R1> {
         if (this.status === 'rejected') {
-            return Promise.reject(onRejected(this.value as ErrorPayload));
+            return Promise.reject(onRejected(this.value));
         } else if (this.status === 'pending') {
             return new Promise((resolve: ResolveFunction<T>, reject: RejectFunction): any => {
                 (this.fulfilledCallbacks || (this.fulfilledCallbacks = []))
                     .push((payload: T) => resolve(payload));
                 (this.rejectedCallbacks || (this.rejectedCallbacks = []))
-                    .push((error: ErrorPayload) => reject(onRejected(error)));
+                    .push((error: any) => reject(onRejected(error)));
             });
         } else {
             return this;
@@ -84,7 +83,7 @@ export class Promise<T> {
         }
     }
 
-    private reject(error: ErrorPayload): void {
+    private reject(error: any): void {
         if (this.status === 'pending') {
             this.status = 'rejected';
             this.value = error;
