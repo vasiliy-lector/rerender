@@ -147,9 +147,9 @@ class TemplateComponent {
             componentWillReceiveProps,
             componentType,
             id,
-            componentTemplate: this,
+            this,
             context,
-            ref: instance
+            instance
         );
 
         nextComponents[id] = component;
@@ -236,9 +236,9 @@ class TemplateComponent {
                 componentWillReceiveProps,
                 componentType,
                 id,
-                componentTemplate: this,
+                this,
                 context,
-                ref: instance
+                instance
             );
 
             nextComponents[id] = component;
@@ -250,13 +250,13 @@ class TemplateComponent {
             template = prev.render(props, instance.getStateSnapshot());
 
             component = new VComponent(
-                render: prev.render,
-                componentWillReceiveProps: prev.componentWillReceiveProps,
+                prev.render,
+                prev.componentWillReceiveProps,
                 componentType,
                 id,
-                componentTemplate: this,
+                this,
                 context,
-                ref: instance
+                instance
             );
 
             nextComponents[id] = component;
@@ -282,7 +282,7 @@ class TemplateComponent {
             config.nextNodes[nextContext.getId()] = nextTextNode;
         }
 
-        component.setChilds', [childs]);
+        component.setChilds([childs]);
 
         return component;
     }

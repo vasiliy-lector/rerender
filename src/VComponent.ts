@@ -16,7 +16,7 @@ export class VComponent {
         public id: string,
         public componentTemplate: TemplateComponent,
         private context: Context,
-        public ref: DynamicVNode
+        public ref: any // FIXME: DynamicVNode
     ) {
         this.parent = context.parent;
     }
