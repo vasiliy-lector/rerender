@@ -40,7 +40,7 @@ export class Promise<T> {
         if (this.status === 'resolved') {
             return Promise.resolve(onFulfilled ? onFulfilled(this.value) : this.value);
         } else if (this.status === 'rejected') {
-            return Promise.reject(onRejected ? onRejected(this.value) : this.value) as Promise<never>;
+            return Promise.reject(onRejected ? onRejected(this.value) : this.value);
         } else {
             return new Promise<R1 | R2>((resolve: ResolveFunction<R1 | R2>, reject: RejectFunction) => {
                 (this.fulfilledCallbacks || (this.fulfilledCallbacks = []))
@@ -76,7 +76,7 @@ export class Promise<T> {
 
                 if (this.fulfilledCallbacks) {
                     for (let i = 0, l = this.fulfilledCallbacks.length; i < l; i++) {
-                        this.fulfilledCallbacks[i](payload as T);
+                        this.fulfilledCallbacks[i](payload);
                     }
                 }
             }
