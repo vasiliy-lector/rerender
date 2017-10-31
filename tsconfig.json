@@ -6,7 +6,6 @@
         "allowJs": true,
         "jsx": "react",
         "jsxFactory": "h",
-        "rootDir": "src",
         "noImplicitReturns": true,
         "noImplicitThis": true,
         "noImplicitAny": true,

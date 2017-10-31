@@ -84,56 +84,6 @@ function escapeAttr(value) {
     return string;
 }
 
-const directEqual = {
-    'number': true,
-    'string': true,
-    'boolean': true,
-    'function': true,
-    'undefined': true
-};
-
-function deepEqual(obj1, obj2) {
-    if (obj1 === obj2) {
-        return true;
-    } else if (typeof obj1 !== typeof obj2) {
-        return false;
-    } else if (directEqual[typeof obj1] || obj1 === null) {
-        return obj1 === obj2;
-    } else if (Array.isArray(obj1)) {
-        if (!Array.isArray(obj2) || obj1.length !== obj2.length) {
-            return false;
-        }
-
-        for (let i = 0, l = obj1.length; i < l; i++) {
-            const equal = deepEqual(obj1[i], obj2[i]);
-
-            if (!equal) {
-                return false;
-            }
-        }
-    } else if (typeof obj1 === 'object') {
-        if (typeof obj2 !== 'object') {
-            return false;
-        }
-        const keys1 = Object.keys(obj1);
-        const keys2 = Object.keys(obj2);
-
-        if (keys1.length !== keys2.length) {
-            return false;
-        }
-
-        for (let i = 0, l = keys1.length; i < l; i++) {
-            const equal = deepEqual(obj1[keys1[i]], obj2[keys1[i]]);
-
-            if (!equal) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
 function shallowEqualProps(props1, props2) {
     if (props1 === props2) {
         return true;
