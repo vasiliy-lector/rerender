@@ -12,7 +12,7 @@
     "prepublishOnly": "npm test && npm run compile",
     "test:unit": "jasmine-ts",
     "test:coverage": "node --max_old_space_size=3000 ./node_modules/.bin/nyc npm run test:unit",
-    "lint": "tslint -c tslint.json spec/*.ts spec/**/*.ts src/*.ts src/**/*.ts",
+    "lint": "tslint spec/*.ts spec/**/*.ts src/*.ts src/**/*.ts --config tslint.json",
     "test": "npm run lint && npm run test:coverage"
   },
   "author": "vasiliy.lector@gmail.com",

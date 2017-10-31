@@ -4,9 +4,13 @@
         "module": "commonjs",
         "outDir": "./lib/",
         "allowJs": true,
-        "strict": true,
         "jsx": "react",
-        "jsxFactory": "h"
+        "jsxFactory": "h",
+        "rootDir": "src",
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true
     },
     "include": [
         "./src/**/*"

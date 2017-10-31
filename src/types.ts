@@ -15,6 +15,8 @@ export type VirtualDom = any; // FIXME
 export type VirtualDomNode = any; // FIXME
 export type Context = any; // FIXME
 
+export type Node = any; // FIXME
+
 export type AttrsValue = any;
 export type Attrs = Map<AttrsValue>;
 
@@ -24,10 +26,30 @@ export interface TemplateBase {
     renderClient: (config: ConfigClient, context: Context) => VirtualDom;
 }
 
+type DispatcherCache = any; // FIXME
+type EventsDefault = any; // FIXME
+
 export type PropsType = Map<any> | null | void;
 
 export interface Map<T> {
     [key: string]: T;
 }
 
-export type Node = any; // FIXME
+export type HeaderOptions = {
+    title: string,
+    head: string,
+    applicationId: string
+};
+
+export type FooterOptions = {
+    bodyEnd: string
+};
+
+export type ApplicationOptions = {
+    dispatcherCache: DispatcherCache,
+    applicationId?: string,
+    hashEnabled?: boolean,
+    eventDefaults?: EventsDefault,
+    hash?: boolean,
+    fullHash?: boolean
+};
