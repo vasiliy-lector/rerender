@@ -1,4 +1,4 @@
-/* tslint:disable object-literal-key-quotes */
+/* tslint:disable: object-literal-key-quotes */
 import { Map } from '../types';
 const directEqual: Map<boolean> = {
     'number': true,

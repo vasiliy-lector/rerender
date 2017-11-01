@@ -3,16 +3,49 @@ import { Store } from './Store';
 import { eventDefaults } from './defaults';
 import { debug } from './debug';
 import { Promise, isPromise } from './Promise';
+import {
+    Dispatch,
+    DispatcherCache,
+    DispatcherCacheItem,
+    Event,
+    EventDefaults,
+    GetState,
+    Map,
+    SetState
+} from './types';
 
-class Dispatcher {
-    constructor(options = {}) {
-        this.store = new Store();
+type Options = {
+    cache?: DispatcherCache,
+    eventDefaults?: EventDefaults & Map<any>,
+    hasInheritance?: boolean
+};
+
+export class Dispatcher {
+    private cache: DispatcherCache;
+    private brokenCacheKeys: {
+        [name: string]: boolean
+    };
+    private eventDefaults: EventDefaults & Map<any>;
+    private reducerOptions: {
+        getState: GetState,
+        setState: SetState
+    };
+    private actionOptions: {
+        dispatch: Dispatch,
+        getState: GetState
+    };
+    private actionOptionsInsideCache: {
+        dispatch: Dispatch,
+        getState: GetState
+    };
+
+    constructor(private store: Store<any>, options: Options = {}) {
         this.cache = options.cache || {};
         this.brokenCacheKeys = {};
 
         if (options.eventDefaults) {
             this.eventDefaults = {};
-            for (let name in eventDefaults) {
+            for (const name in eventDefaults) {
                 this.eventDefaults[name] = options.eventDefaults[name] !== undefined
                     ? options.eventDefaults[name]
                     : eventDefaults[name];
@@ -32,7 +65,7 @@ class Dispatcher {
         }
     }
 
-    setActionOptions() {
+    private setActionOptions() {
         this.actionOptions = Object.freeze({
             dispatch: this.dispatch,
             getState: this.store.getState
@@ -44,20 +77,22 @@ class Dispatcher {
         });
     }
 
-    getEventSetting(event, name) {
+    private getEventSetting(event: Event & Map<any>, name: string) {
         return event[name] !== undefined
             ? event[name]
             : this.eventDefaults[name];
     }
 
-    dispatchInsideCache(event, payload) {
+    private dispatchInsideCache(event: Event, payload: any): Promise<any> {
         if (event.reducers !== undefined) {
-            debug.warn('Do not use dispatch (event with reducers) inside event with cache enabled! Event ' + event.name + ' may not work correctly');
+            debug.warn('Do not use dispatch (event with reducers) inside event with cache enabled! Event '
+                + event.name + ' may not work correctly');
         }
-        this.dispatch(event, payload);
+
+        return this.dispatch(event, payload);
     }
 
-    dispatch(event, payload) {
+    private dispatch(event: Event, payload: any): Promise<any> {
         return this.runAction(event, payload)
             .then(actionResult => {
                 this.runReducers(event, actionResult);
@@ -66,7 +101,7 @@ class Dispatcher {
             });
     }
 
-    runAction(event, payload) {
+    private runAction(event: Event, payload: any): Promise<any> {
         if (typeof event.action !== 'function') {
             return Promise.resolve(payload);
         }
@@ -90,8 +125,8 @@ class Dispatcher {
         return this.runActionPure(event, payload);
     }
 
-    runActionPure(event, payload) {
-        const actionResult = event.action(
+    private runActionPure(event: Event, payload: any): Promise<any> {
+        const actionResult = event.action && event.action(
             this.getEventSetting(event, 'cache')
                 ? this.actionOptions
                 : this.actionOptionsInsideCache,
@@ -105,7 +140,7 @@ class Dispatcher {
         }
     }
 
-    runReducers(event, payload) {
+    private runReducers(event: Event, payload: any): void {
         if (!event.reducers || !event.reducers.length) {
             return;
         }
@@ -115,13 +150,14 @@ class Dispatcher {
         }
     }
 
-    getCached(event, payload) {
+    private getCached(event: Event, payload: any): any {
         if (this.cache[event.name]) {
             for (let i = 0, l = this.cache[event.name].length; i < l; i++) {
                 const cacheItem = this.cache[event.name][i];
                 if (cacheItem.event !== event) {
                     this.brokenCacheKeys[event.name] = true;
-                    debug.warn('There are many events with same name ' + event.name + '. Cache for this key will not work!');
+                    debug.warn('There are many events with same name '
+                        + event.name + '. Cache for this key will not work!');
                 } else if (deepEqual(cacheItem.payload, payload)) {
                     return cacheItem.result;
                 }
@@ -129,7 +165,7 @@ class Dispatcher {
         }
     }
 
-    setCache(event, payload, result) {
+    private setCache(event: Event, payload: any, result: any): void {
         if (this.brokenCacheKeys[event.name]) {
             return;
         }
@@ -145,7 +181,7 @@ class Dispatcher {
         result.catch(() => this.dropCacheItem(cacheByName, item));
     }
 
-    dropCacheItem(cacheByName, item) {
+    private dropCacheItem(cacheByName: DispatcherCacheItem[], item: DispatcherCacheItem) {
         for (let i = 0, l = cacheByName.length; i < l; i++) {
             if (cacheByName[i] === item) {
                 cacheByName.splice(i, 1);
@@ -155,5 +191,3 @@ class Dispatcher {
         }
     }
 }
-
-export { Dispatcher };

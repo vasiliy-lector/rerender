@@ -1,7 +1,6 @@
 import { Events } from './Events';
 import { shallowClone } from './utils';
-
-type Path = Array<string | number>;
+import { Path } from './types';
 
 export class Store<State> extends Events {
     private prevState: Partial<State>;

@@ -3,6 +3,7 @@ import { TemplateComponent } from './TemplateComponent';
 import { TemplateFragment } from './TemplateFragment';
 import { TemplateComponentStateless } from './TemplateComponentStateless';
 import { Component } from './Component';
+import { Promise } from './Promise';
 
 export type Template = any; // FIXME: TemplateVNode | TemplateComponent | TemplateComponentStateless;
 export type StatelessComponent = (props: PropsType) => Node;
@@ -26,8 +27,57 @@ export interface TemplateBase {
     renderClient: (config: ConfigClient, context: Context) => VirtualDom;
 }
 
-type DispatcherCache = any; // FIXME
-type EventsDefault = any; // FIXME
+export type Path = Array<string | number>;
+
+type SetStateDirect<State> = (value: State) => void;
+type SetStatePath<State> = (value: any, path: Path) => void;
+export type SetState<State = any> = SetStateDirect<State> | SetStatePath<State>;
+
+type GetStateDirect<State> = () => State;
+type GetStatePath<State> = (path: Path) => any;
+export type GetState<State = any> = GetStateDirect<State> | GetStatePath<State>;
+
+type ActionMethods<State = any, Payload = any, Result = any> = {
+    getState: GetState<State>,
+    dispatch: Dispatch<Payload, Result>
+};
+
+type ReducerMethods<State = any> = {
+    getState: GetState<State>,
+    setState: SetState<State>
+};
+export type Action<State = any, Payload = any, Result = any> =
+    (methods: ActionMethods<State, Payload, Result>, payload: Payload) => Result;
+export type Reducer<State = any, Payload = any> = (methods: ReducerMethods<State>, payload: Payload) => void;
+
+export type Event = {
+    name: string,
+    cache?: boolean,
+    serverEnabled?: boolean,
+    userIndependent?: boolean,
+    action?: Action,
+    serverCacheAge: number,
+    reducers?: Reducer[]
+};
+
+export type DispatcherCacheItem = {
+    event: Event,
+    payload: any,
+    result: any
+};
+
+export type DispatcherCache = {
+    [eventName: string]: DispatcherCacheItem[]
+};
+
+export type Dispatch<Payload = any, Result = any> = (event: Event, payload: Payload) => Promise<Result>;
+
+export type EventDefaults = {
+    cache?: boolean,
+    userIndependent?: boolean,
+    serverEnabled?: boolean,
+    serverCacheAge?: number
+};
 
 export type PropsType = Map<any> | null | void;
 
@@ -49,7 +99,7 @@ export type ApplicationOptions = {
     dispatcherCache: DispatcherCache,
     applicationId?: string,
     hashEnabled?: boolean,
-    eventDefaults?: EventsDefault,
+    eventDefaults?: EventDefaults,
     hash?: boolean,
     fullHash?: boolean
 };
