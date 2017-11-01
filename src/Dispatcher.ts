@@ -4,6 +4,7 @@ import { eventDefaults } from './defaults';
 import { debug } from './debug';
 import { Promise, isPromise } from './Promise';
 import {
+    ActionMethods,
     Dispatch,
     DispatcherCache,
     DispatcherCacheItem,
@@ -11,13 +12,15 @@ import {
     EventDefaults,
     GetState,
     Map,
+    ReducerMethods,
     SetState
 } from './types';
 
 type Options = {
     cache?: DispatcherCache,
     eventDefaults?: EventDefaults & Map<any>,
-    hasInheritance?: boolean
+    hasInheritance?: boolean,
+    isServer?: boolean
 };
 
 export class Dispatcher {
@@ -26,18 +29,9 @@ export class Dispatcher {
         [name: string]: boolean
     };
     private eventDefaults: EventDefaults & Map<any>;
-    private reducerOptions: {
-        getState: GetState,
-        setState: SetState
-    };
-    private actionOptions: {
-        dispatch: Dispatch,
-        getState: GetState
-    };
-    private actionOptionsInsideCache: {
-        dispatch: Dispatch,
-        getState: GetState
-    };
+    private reducerOptions: ReducerMethods;
+    private actionOptions: ActionMethods;
+    private actionOptionsInsideCache: ActionMethods;
 
     constructor(private store: Store<any>, options: Options = {}) {
         this.cache = options.cache || {};

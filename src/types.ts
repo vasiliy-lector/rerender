@@ -37,12 +37,12 @@ type GetStateDirect<State> = () => State;
 type GetStatePath<State> = (path: Path) => any;
 export type GetState<State = any> = GetStateDirect<State> | GetStatePath<State>;
 
-type ActionMethods<State = any, Payload = any, Result = any> = {
+export type ActionMethods<State = any, Payload = any, Result = any> = {
     getState: GetState<State>,
     dispatch: Dispatch<Payload, Result>
 };
 
-type ReducerMethods<State = any> = {
+export type ReducerMethods<State = any> = {
     getState: GetState<State>,
     setState: SetState<State>
 };

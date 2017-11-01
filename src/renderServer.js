@@ -1,4 +1,5 @@
 import { getWrapHeader, getWrapFooter, getApplicationAfter, applicationId as defaultApplicationId } from './defaults';
+import { Store } from './Store';
 import { Events } from './Events';
 import { DispatcherFirstRender } from './DispatcherFirstRender';
 import { Promise } from './Promise';
@@ -15,6 +16,7 @@ function renderServer(userTemplate, {
     fullHash = false,
     onData,
     onError,
+    store = new Store(),
     onEnd
 } = {}) {
     const stream = new Events();
@@ -50,7 +52,7 @@ function renderServer(userTemplate, {
         stream.on('end', () => promiseResolve(html));
     }
 
-    const dispatcher = new DispatcherFirstRender({ eventDefaults, isServer: true });
+    const dispatcher = new DispatcherFirstRender(store, { eventDefaults, isServer: true });
 
     if (wrap) {
         stream.emit('data', getWrapHeader({
@@ -61,7 +63,7 @@ function renderServer(userTemplate, {
     }
 
     const config = {
-        store: dispatcher.store,
+        store,
         dispatcher,
         hashEnabled,
         fullHash,
