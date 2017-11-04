@@ -1,7 +1,18 @@
 import { VNODE, VTEXT } from './constants';
 import { Patch, Create, SetRef, AttachEvents, SplitText } from './Patch';
+import { VirtualDomNode } from './types';
 
-function createInitialPatchRecursive(nextNode, options, insideCreation, nextSibling) {
+type Options = {
+    patch: Patch,
+    document?: HTMLDocument
+};
+
+function createInitialPatchRecursive(
+    nextNode: VirtualDomNode,
+    options: Options,
+    insideCreation?: boolean,
+    nextSibling?: VirtualDomNode
+) {
     if (nextNode.type === VNODE) {
         let childrenCreated;
 
@@ -17,7 +28,7 @@ function createInitialPatchRecursive(nextNode, options, insideCreation, nextSibl
             if (nextNode.dynamic) {
                 options.patch.pushNormalize(new AttachEvents(nextNode));
             } else {
-                for (let name in nextNode.attrs) {
+                for (const name in nextNode.attrs) {
                     if (name.substr(0, 2) === 'on') {
                         options.patch.pushNormalize(new AttachEvents(nextNode));
                         break;
@@ -45,7 +56,7 @@ function createInitialPatchRecursive(nextNode, options, insideCreation, nextSibl
     }
 }
 
-function createInitialPatch(nextNode, options = {}) {
+function createInitialPatch(nextNode: VirtualDomNode, options: Partial<Options> = {}) {
     const patch = new Patch(options.document);
 
     createInitialPatchRecursive(nextNode, { patch });
