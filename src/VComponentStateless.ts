@@ -1,8 +1,8 @@
 import { VCOMPONENT_STATELESS } from './constants';
 import { Component } from './Component';
 import { Context } from './Context';
-import { TemplateComponent } from './TemplateComponent';
-import { VirtualDom } from './types';
+import { TemplateComponentStateless } from './TemplateComponentStateless';
+import { StatelessComponent, VirtualDom } from './types';
 
 export class VComponentStateless {
     public type: string = VCOMPONENT_STATELESS;
@@ -11,10 +11,10 @@ export class VComponentStateless {
 
     constructor(
         public render: () => VirtualDom,
-        public componentType: typeof Component,
+        public componentType: StatelessComponent,
         public id: string,
         public template: VirtualDom, // FIXME: проверить
-        public componentTemplate: TemplateComponent,
+        public componentTemplate: TemplateComponentStateless,
         private context: Context
     ) {
         this.parent = context.parent;

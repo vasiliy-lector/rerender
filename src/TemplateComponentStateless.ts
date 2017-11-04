@@ -1,8 +1,19 @@
 import { TEMPLATE, TEMPLATE_COMPONENT_STATELESS, TEMPLATE_VNODE, VCOMPONENT_STATELESS } from './constants';
+import { Context } from './Context';
 import { stringifyChildrenItem } from './TemplateVNode';
 import { VComponentStateless } from './VComponentStateless';
 import { memoize, shallowEqualProps } from './utils';
 import { VText } from './VText';
+
+import {
+    Map,
+    PropsType,
+    ElementType,
+    TemplateBase,
+    ConfigServer,
+    StatelessComponent,
+    ConfigClient
+} from './types';
 
 const SPECIAL_PROPS = {
     key: true,
@@ -10,15 +21,17 @@ const SPECIAL_PROPS = {
 };
 
 export class TemplateComponentStateless {
-    type = TEMPLATE;
-    subtype = TEMPLATE_COMPONENT_STATELESS;
+    public type: string = TEMPLATE;
+    public subtype: string = TEMPLATE_COMPONENT_STATELESS;
 
-    constructor(componentType, props, children) {
+    private props: Map<any>;
+
+    constructor(private componentType: StatelessComponent, props: PropsType, children: any) {
         let nextProps = props || {};
 
-        nextProps = Object.keys(nextProps).reduce((memo, key) => {
-            if (SPECIAL_PROPS[key]) {
-                this[key] = nextProps[key];
+        nextProps = Object.keys(nextProps).reduce((memo: Map<any>, key: string) => {
+            if ((SPECIAL_PROPS as any)[key]) {
+                (this as any)[key] = nextProps[key];
             } else {
                 memo[key] = nextProps[key];
             }
@@ -28,30 +41,29 @@ export class TemplateComponentStateless {
 
         nextProps.children = children;
 
-        if (componentType.defaults) {
-            for (let name in componentType.defaults) {
+        if ((componentType as any).defaults) {
+            for (const name in (componentType as any).defaults) {
                 if (nextProps[name] === undefined) {
-                    nextProps[name] = componentType.defaults[name];
+                    nextProps[name] = (componentType as any).defaults[name];
                 }
             }
         }
 
-        this.componentType = componentType;
         this.props = nextProps;
     }
 
-    renderServer(config) {
+    public renderServer(config: ConfigServer) {
         return stringifyChildrenItem(this.componentType(this.props), config);
     }
 
-    renderClient(config, context) {
-        let props = this.props;
+    public renderClient(config: ConfigClient, context: Context) {
+        const props = this.props;
         let template;
         let component;
         const componentType = this.componentType;
         const { components, nextComponents } = config;
         const id = context.getId();
-        let prev = components[id];
+        const prev = components[id];
 
         if (prev === undefined || prev.type !== VCOMPONENT_STATELESS || prev.componentType !== componentType) {
             const render = memoize(

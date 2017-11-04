@@ -74,7 +74,6 @@ export class TemplateComponent implements TemplateBase {
             }
         }
 
-        this.componentType = componentType;
         this.props = nextProps;
     }
 
