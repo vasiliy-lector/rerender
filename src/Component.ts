@@ -7,23 +7,27 @@ import { Map, Node } from './types';
 
 type Path = Array<string | number>;
 
-export abstract class Component<Props extends Map<any>, State extends Map<any>> extends Events {
+export class Component<Props extends Map<any>, State extends Map<any>> extends Events {
+    public static wrapper?: boolean;
+    public static store?: boolean;
+    public static defaults?: Map<any>;
+
     public settingProps: boolean = false;
     public componentMounted: boolean = false;
 
-    public abstract init: () => void;
-    public abstract componentWillMount: () => void;
-    public abstract componentWillUnmount: () => void;
-    public abstract componentDidMount: () => void;
-    public abstract componentDidUpdate: () => void;
-    public abstract componentWillReceiveProps: (props: Props, additional: any) => void;
-    public abstract componentWillDestroy: () => void;
-    public abstract render: () => Node;
+    public init: () => void;
+    public componentWillMount: () => void;
+    public componentWillUnmount: () => void;
+    public componentDidMount: () => void;
+    public componentDidUpdate: () => void;
+    public componentWillReceiveProps: (props: Props, additional: any) => void;
+    public componentWillDestroy: () => void;
+    public render: () => Node;
 
     protected state: State;
     private prevState?: State;
 
-    constructor(public props: Props, private readonly options: any, private readonly id: string) {
+    constructor(public props: Props, private readonly options?: any, private readonly id?: string) {
         super();
     }
 

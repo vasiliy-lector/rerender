@@ -1,4 +1,6 @@
 import { TEMPLATE, TEMPLATE_COMPONENT, TEMPLATE_VNODE, VCOMPONENT } from './constants';
+import { Component } from './Component';
+import { Context } from './Context';
 import { stringifyChildrenItem } from './TemplateVNode';
 import { VComponent } from './VComponent';
 import { mayAsync } from './utils';
@@ -7,17 +9,36 @@ import { componentInit, componentBeforeRender, componentSetProps } from './compo
 import { specialAttrs, specialAttrsWrapper } from './constants';
 import { memoize, shallowEqualProps } from './utils';
 
-class TemplateComponent {
-    type = TEMPLATE;
-    subtype = TEMPLATE_COMPONENT;
+import {
+    Map,
+    PropsType,
+    ElementType,
+    TemplateBase,
+    ConfigServer,
+    ConfigClient
+} from './types';
 
-    constructor(componentType, props, children, targetComponentType) {
-        let nextProps = props || {};
+export class TemplateComponent implements TemplateBase {
+    public type: string = TEMPLATE;
+    public subtype: string = TEMPLATE_COMPONENT;
+
+    private controller: typeof Component;
+    private props: Map<any>;
+    private ref?: (ref: Component<any, any>) => any;
+    private wrapperRef?: (ref: Component<any, any>) => any;
+
+    constructor(
+        private componentType: typeof Component,
+        props: PropsType,
+        children: any, // FIXME
+        targetComponentType?: ElementType
+    ) {
+        let nextProps: Map<any> = props || {};
 
         if (componentType.wrapper) {
-            nextProps = Object.keys(nextProps).reduce((memo, key) => {
+            nextProps = Object.keys(nextProps).reduce((memo: Map<any>, key) => {
                 if (specialAttrsWrapper[key]) {
-                    this[key] = nextProps[key];
+                    (this as any)[key] = nextProps[key];
                 } else {
                     memo[key] = nextProps[key];
                 }
@@ -25,9 +46,9 @@ class TemplateComponent {
                 return memo;
             }, {});
         } else {
-            nextProps = Object.keys(nextProps).reduce((memo, key) => {
+            nextProps = Object.keys(nextProps).reduce((memo: Map<any>, key) => {
                 if (specialAttrs[key]) {
-                    this[key] = nextProps[key];
+                    (this as any)[key] = nextProps[key];
                 } else {
                     memo[key] = nextProps[key];
                 }
@@ -39,7 +60,7 @@ class TemplateComponent {
         nextProps.children = children;
 
         if (componentType.defaults) {
-            for (let name in componentType.defaults) {
+            for (const name in componentType.defaults) {
                 if (nextProps[name] === undefined) {
                     nextProps[name] = componentType.defaults[name];
                 }
@@ -57,32 +78,13 @@ class TemplateComponent {
         this.props = nextProps;
     }
 
-    firstRenderInit(instance, config) {
-        if (typeof instance.init === 'undefined') {
-            return;
-        }
-
-        const { dispatcher } = config;
-
-        dispatcher.beginCatch();
-        componentInit(instance);
-
-        if (dispatcher.isCatched()) {
-            return dispatcher.waitCatched().then(() => {
-                if (this.componentType.store) {
-                    componentSetProps(instance, this.props, config.store.getState());
-                }
-            }, error => config.stream.emit('error', error));
-        }
-    }
-
-    renderServer(config) {
+    public renderServer(config: ConfigServer) {
         const componentType = this.componentType;
         const instance = new componentType(
             this.props,
             config.componentOptions,
-            undefined,
-            componentType.store ? config.store.getState() : undefined
+            undefined
+            // FIXME: componentType.store ? config.store.getState() : undefined
         );
 
         return mayAsync(
@@ -92,8 +94,8 @@ class TemplateComponent {
         );
     }
 
-    renderClient(config, context) {
-        let props = this.props;
+    public renderClient(config: ConfigClient, context: Context) {
+        const props = this.props;
         let template;
         let component;
         const componentType = this.componentType;
@@ -106,7 +108,7 @@ class TemplateComponent {
             componentOptions
         } = config;
         const id = context.getId();
-        let prev = components[id];
+        const prev = components[id];
         const needStore = componentType.store;
 
         if (prev === undefined || prev.type !== VCOMPONENT || prev.componentType !== componentType) {
@@ -114,11 +116,11 @@ class TemplateComponent {
             const instance = new componentType(
                 props,
                 componentOptions,
-                id,
-                storeState
+                id
+                // FIXME: storeState
             );
             const componentWillReceiveProps = memoize(
-                (props, additional) => componentSetProps(instance, props, additional),
+                (nextProps, additional) => componentSetProps(instance, nextProps, additional),
                 [ shallowEqualProps, undefined ],
                 [ props, storeState ]
             );
@@ -199,6 +201,23 @@ class TemplateComponent {
 
         return component;
     }
-};
 
-export { TemplateComponent };
+    private firstRenderInit(instance: Component<any, any>, config: ConfigServer) {
+        if (typeof instance.init === 'undefined') {
+            return;
+        }
+
+        const { dispatcher } = config;
+
+        dispatcher.beginCatch();
+        componentInit(instance);
+
+        if (dispatcher.isCatched()) {
+            return dispatcher.waitCatched().then(() => {
+                if (this.componentType.store) {
+                    componentSetProps(instance, this.props, config.store.getState());
+                }
+            }, (error: any) => config.stream.emit('error', error));
+        }
+    }
+}
