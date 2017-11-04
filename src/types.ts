@@ -23,7 +23,6 @@ export type Attrs = Map<AttrsValue>;
 
 export interface TemplateBase {
     renderServer: (config: ConfigServer) => Promise<void> | void;
-    renderClientServerLike: (config: ConfigClient, context: Context) => Promise<VirtualDom> | VirtualDom;
     renderClient: (config: ConfigClient, context: Context) => VirtualDom;
 }
 

@@ -15,20 +15,6 @@ export class TemplateVSandbox {
         this.template = template;
     }
 
-    renderClientServerLike(config, context) {
-        const sandbox = new VSandbox(this.domNode);
-
-        if (context === undefined) {
-            context = rootContext;
-            context.rootNode = this.domNode;
-        }
-        context.parentNode = sandbox;
-        context.parent = sandbox;
-        sandbox.setChilds([this.template.renderClientServerLike(config, context)]);
-
-        return sandbox;
-    }
-
     renderClient(config, context) {
         const sandbox = new VSandbox(this.domNode);
 

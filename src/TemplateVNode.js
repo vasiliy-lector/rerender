@@ -81,38 +81,6 @@ export class TemplateVNode {
         return this.ref || interactiveTags[this.tag];
     }
 
-    renderClientServerLike(config, context) {
-        if (config.hashEnabled) {
-            this.calcHash(config);
-        }
-
-        const nextNode = new VNode(this.tag, this.attrs, context);
-        const id = context.getId();
-
-        if (this.needDynamic()) {
-            let dynamic;
-            if (config.dynamicNodes[id]) {
-                dynamic = config.dynamicNodes[id];
-                dynamic._replaceNode(nextNode);
-            } else {
-                dynamic = new DynamicVNode(nextNode);
-            }
-            config.nextDynamicNodes[id] = dynamic;
-            nextNode.setDynamic(dynamic);
-        }
-
-        config.nextNodes[id] = nextNode;
-
-        nextNode.setChilds(renderChildrenFirst(
-            this.children,
-            config,
-            context.addDomLevel(nextNode, context.getId()),
-            false
-        ));
-
-        return nextNode;
-    }
-
     renderClient(config, context) {
         if (config.hashEnabled) {
             this.calcHash(config);

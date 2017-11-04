@@ -65,7 +65,7 @@ function renderClient(userTemplate, rootNode, {
     };
 
     const nextVirtualRoot = hashEnabled && serverHash
-        ? rootTemplate.renderClientServerLike(config)
+        ? rootTemplate.renderClient(config) // rootTemplate.renderClientServerLike(config)
         : rootTemplate.renderClient(config);
 
     const patch = createInitialPatch(nextVirtualRoot.childNodes[0], {
