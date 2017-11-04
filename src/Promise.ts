@@ -66,6 +66,10 @@ export class Promise<T> {
         }
     }
 
+    public getValue(): T {
+        return this.value;
+    }
+
     private resolve(payload: T | Promise<T>): void {
         if (this.status === 'pending') {
             if (isPromise(payload)) {

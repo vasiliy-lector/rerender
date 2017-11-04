@@ -23,17 +23,17 @@ type Options = {
     isServer?: boolean
 };
 
-export class Dispatcher {
-    private cache: DispatcherCache;
-    private brokenCacheKeys: {
+export class Dispatcher<State = any> {
+    protected cache: DispatcherCache;
+    protected brokenCacheKeys: {
         [name: string]: boolean
     };
-    private eventDefaults: EventDefaults & Map<any>;
-    private reducerOptions: ReducerMethods;
-    private actionOptions: ActionMethods;
-    private actionOptionsInsideCache: ActionMethods;
+    protected eventDefaults: EventDefaults & Map<any>;
+    protected reducerOptions: ReducerMethods;
+    protected actionOptions: ActionMethods;
+    protected actionOptionsInsideCache: ActionMethods;
 
-    constructor(private store: Store<any>, options: Options = {}) {
+    constructor(protected store: Store<State>, options: Options = {}) {
         this.cache = options.cache || {};
         this.brokenCacheKeys = {};
 
@@ -59,7 +59,7 @@ export class Dispatcher {
         }
     }
 
-    private setActionOptions() {
+    protected setActionOptions() {
         this.actionOptions = Object.freeze({
             dispatch: this.dispatch,
             getState: this.store.getState
@@ -71,13 +71,13 @@ export class Dispatcher {
         });
     }
 
-    private getEventSetting(event: Event & Map<any>, name: string) {
+    protected getEventSetting(event: Event & Map<any>, name: string) {
         return event[name] !== undefined
             ? event[name]
             : this.eventDefaults[name];
     }
 
-    private dispatchInsideCache(event: Event, payload: any): Promise<any> {
+    protected dispatchInsideCache(event: Event, payload: any): Promise<any> {
         if (event.reducers !== undefined) {
             debug.warn('Do not use dispatch (event with reducers) inside event with cache enabled! Event '
                 + event.name + ' may not work correctly');
@@ -86,7 +86,7 @@ export class Dispatcher {
         return this.dispatch(event, payload);
     }
 
-    private dispatch(event: Event, payload: any): Promise<any> {
+    protected dispatch(event: Event, payload: any): Promise<any> {
         return this.runAction(event, payload)
             .then(actionResult => {
                 this.runReducers(event, actionResult);
@@ -95,7 +95,7 @@ export class Dispatcher {
             });
     }
 
-    private runAction(event: Event, payload: any): Promise<any> {
+    protected runAction(event: Event, payload: any): Promise<any> {
         if (typeof event.action !== 'function') {
             return Promise.resolve(payload);
         }
@@ -119,7 +119,7 @@ export class Dispatcher {
         return this.runActionPure(event, payload);
     }
 
-    private runActionPure(event: Event, payload: any): Promise<any> {
+    protected runActionPure(event: Event, payload: any): Promise<any> {
         const actionResult = event.action && event.action(
             this.getEventSetting(event, 'cache')
                 ? this.actionOptions
@@ -134,7 +134,7 @@ export class Dispatcher {
         }
     }
 
-    private runReducers(event: Event, payload: any): void {
+    protected runReducers(event: Event, payload: any): void {
         if (!event.reducers || !event.reducers.length) {
             return;
         }
@@ -144,7 +144,7 @@ export class Dispatcher {
         }
     }
 
-    private getCached(event: Event, payload: any): any {
+    protected getCached(event: Event, payload: any): Promise<any> | void {
         if (this.cache[event.name]) {
             for (let i = 0, l = this.cache[event.name].length; i < l; i++) {
                 const cacheItem = this.cache[event.name][i];
@@ -159,7 +159,7 @@ export class Dispatcher {
         }
     }
 
-    private setCache(event: Event, payload: any, result: any): void {
+    protected setCache(event: Event, payload: any, result: Promise<any>): void {
         if (this.brokenCacheKeys[event.name]) {
             return;
         }
@@ -175,7 +175,7 @@ export class Dispatcher {
         result.catch(() => this.dropCacheItem(cacheByName, item));
     }
 
-    private dropCacheItem(cacheByName: DispatcherCacheItem[], item: DispatcherCacheItem) {
+    protected dropCacheItem(cacheByName: DispatcherCacheItem[], item: DispatcherCacheItem): void {
         for (let i = 0, l = cacheByName.length; i < l; i++) {
             if (cacheByName[i] === item) {
                 cacheByName.splice(i, 1);

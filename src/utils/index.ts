@@ -14,3 +14,4 @@ export { memoize } from './memoize';
 export { shallowEqual } from './shallowEqual';
 export { identity } from './identity';
 export { deepEqual } from './deepEqual';
+export { noop } from './noop';

@@ -1,18 +1,50 @@
+import { Store } from './Store';
 import { Dispatcher } from './Dispatcher';
 import { NeverResolvePromise } from './NeverResolvePromise';
 import { Promise } from './Promise';
-import { deepEqual } from './utils';
+import { deepEqual, noop } from './utils';
 
-const crossUserCache = {};
+import {
+    EventDefaults,
+    Event,
+    DispatcherCache,
+    DispatcherCacheItem,
+    DispatcherCacheDehydrated,
+    DispatcherCacheItemDehydrated,
+    Dispatch,
+    Map
+} from './types';
 
-class DispatcherFirstRender extends Dispatcher {
-    constructor({
+const crossUserCache: DispatcherCache & Map<any> = {};
+
+type DispatcherFirstOptions = {
+    eventDefaults?: EventDefaults,
+    cacheFromServer: DispatcherCacheDehydrated,
+    isServer?: boolean,
+    crossUserCacheEnabled?: boolean
+};
+type CachedItem = {
+    event: Event,
+    payload: any,
+    result: any
+};
+
+class DispatcherFirstRender<State = any> extends Dispatcher<State> {
+    private dispatchOriginal: Dispatch;
+    private setCacheOriginal: (event: Event, payload: any, result: any) => void;
+    private getCachedOriginal: (event: Event, payload: any) => Promise<any> | void;
+    private cacheFromServer: DispatcherCacheDehydrated;
+    private crossUserCacheEnabled: boolean;
+    private executionEnabled?: boolean;
+    private catched: any[];
+
+    constructor(store: Store<State>, {
         eventDefaults,
         cacheFromServer,
         isServer = false,
         crossUserCacheEnabled = isServer
-    }) {
-        super({
+    }: DispatcherFirstOptions) {
+        super(store, {
             eventDefaults,
             hasInheritance: true
         });
@@ -35,16 +67,43 @@ class DispatcherFirstRender extends Dispatcher {
         }
     }
 
-    beginCatch() {
+    public getCache() {
+        return this.cache;
+    }
+
+    public dehydrate(): Map<CachedItem> {
+        const dehydrated: Map<any> = {};
+
+        for (const name in this.cache) {
+            dehydrated[name] = [];
+
+            for (let i = 0, l = this.cache[name].length; i < l; i++) {
+                const item = this.cache[name][i];
+                const value = item.result.getValue();
+
+                dehydrated[name].push({
+                    name: item.event.name,
+                    payload: item.payload,
+                    result: this.getEventSetting(item.event, 'dehydrate')
+                        ? this.getEventSetting(item.event, 'dehydrate')(value)
+                        : value
+                });
+            }
+        }
+
+        return dehydrated;
+    }
+
+    public beginCatch() {
         this.executionEnabled = true;
         this.catched = [];
     }
 
-    isCatched() {
+    public isCatched() {
         return this.catched.length > 0;
     }
 
-    endFirstRender() {
+    public endFirstRender() {
         delete this.cacheFromServer;
         this.setCache = this.setCacheOriginal;
         this.getCached = this.getCachedOriginal;
@@ -52,13 +111,13 @@ class DispatcherFirstRender extends Dispatcher {
         this.setActionOptions();
     }
 
-    waitCatched() {
-        return new Promise(resolve => {
+    public waitCatched() {
+        return new Promise<void>(resolve => {
             let settledCount = 0;
             const catched = this.catched;
             let catchCount = catched.length;
 
-            const check = item => {
+            const check = (item: CachedItem) => {
                 if (item.result instanceof NeverResolvePromise) {
                     settledCount++;
                 } else {
@@ -66,7 +125,7 @@ class DispatcherFirstRender extends Dispatcher {
                 }
             };
 
-            const settle = item => () => {
+            const settle = (item?: CachedItem) => () => {
                 settledCount++;
                 const newCatchedCount = catched.length;
 
@@ -86,7 +145,7 @@ class DispatcherFirstRender extends Dispatcher {
 
                 if (catchCount <= settledCount) {
                     this.executionEnabled = false;
-                    resolve();
+                    resolve(undefined);
                 }
             };
 
@@ -96,7 +155,7 @@ class DispatcherFirstRender extends Dispatcher {
         });
     }
 
-    getCachedClient(event, payload) {
+    private getCachedClient(event: Event, payload: any): Promise<any> | void {
         const cached = this.getCachedOriginal(event, payload);
 
         if (cached) {
@@ -112,21 +171,16 @@ class DispatcherFirstRender extends Dispatcher {
                 const cacheItem = cacheFromServer[event.name][i];
 
                 if (cacheItem.name === event.name && deepEqual(cacheItem.payload, payload)) {
-                    const result = Promise.resolve(this.getEventSetting(event, 'rehydrate')
+
+                    return Promise.resolve(this.getEventSetting(event, 'rehydrate')
                         ? this.getEventSetting(event, 'rehydrate')(cacheItem.result)
                         : cacheItem.result);
-
-                    return {
-                        event,
-                        payload,
-                        result
-                    };
                 }
             }
         }
     }
 
-    getCachedServer(event, payload) {
+    private getCachedServer(event: Event, payload: any): any {
         const cached = this.getCachedOriginal(event, payload);
 
         if (cached) {
@@ -146,10 +200,12 @@ class DispatcherFirstRender extends Dispatcher {
         }
     }
 
-    setCacheServer(event, payload, result) {
+    private setCacheServer(event: Event, payload: any, result: any): void {
         this.setCacheOriginal(event, payload, result);
 
-        if (this.crossUserCacheEnabled && this.getEventSetting(event, 'crossUser') && !this.brokenCacheKeys[event.name]) {
+        if (this.crossUserCacheEnabled && this.getEventSetting(event, 'crossUser')
+            && !this.brokenCacheKeys[event.name]) {
+
             const cacheByName = crossUserCache[event.name] || (crossUserCache[event.name] = []);
             const item = {
                 event,
@@ -170,9 +226,9 @@ class DispatcherFirstRender extends Dispatcher {
         }
     }
 
-    dispatchInsideInit(event, payload) {
+    private dispatchInsideInit(event: Event, payload: any) {
         if (!this.executionEnabled || this.getEventSetting(event, 'serverDisabled')) {
-            return new NeverResolvePromise();
+            return new NeverResolvePromise(noop);
         }
 
         const result = this.dispatchOriginal(event, payload);
@@ -184,33 +240,6 @@ class DispatcherFirstRender extends Dispatcher {
         });
 
         return result;
-    }
-
-    getCache() {
-        return this.cache;
-    }
-
-    dehydrate() {
-        const dehydrated = {};
-
-        for (let name in this.cache) {
-            dehydrated[name] = [];
-
-            for (let i = 0, l = this.cache[name].length; i < l; i++) {
-                const item = this.cache[name][i];
-                const value = item.result['[[PromiseValue]]'];
-
-                dehydrated[name].push({
-                    name: item.event.name,
-                    payload: item.payload,
-                    result: this.getEventSetting(item.event, 'dehydrate')
-                        ? this.getEventSetting(item.event, 'dehydrate')(value)
-                        : value
-                });
-            }
-        }
-
-        return dehydrated;
     }
 }
 

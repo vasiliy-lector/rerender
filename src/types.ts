@@ -63,11 +63,21 @@ export type Event = {
 export type DispatcherCacheItem = {
     event: Event,
     payload: any,
-    result: any
+    result: Promise<any>
 };
 
 export type DispatcherCache = {
     [eventName: string]: DispatcherCacheItem[]
+};
+
+export type DispatcherCacheItemDehydrated = {
+    name: string,
+    payload: any,
+    result: any
+};
+
+export type DispatcherCacheDehydrated = {
+    [eventName: string]: DispatcherCacheItemDehydrated[]
 };
 
 export type Dispatch<Payload = any, Result = any> = (event: Event, payload: Payload) => Promise<Result>;
