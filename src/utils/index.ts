@@ -1,5 +1,4 @@
 export {
-    mayAsync,
     calcHash,
     escapeAttr,
     escapeHtml,
@@ -15,3 +14,4 @@ export { shallowEqual } from './shallowEqual';
 export { identity } from './identity';
 export { deepEqual } from './deepEqual';
 export { noop } from './noop';
+export { mayAsync } from './mayAsync';

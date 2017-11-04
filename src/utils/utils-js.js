@@ -1,6 +1,5 @@
 import { TEMPLATE, VCOMPONENT } from '../constants';
 import { styleProps } from '../constants';
-import { isPromise } from '../Promise';
 
 const REGEXP_ATTR = /[<>"&]/;
 const REGEXP_HTML = /[<>&]/;
@@ -191,21 +190,13 @@ function groupByIdComponents(component, memo) {
     return memo;
 }
 
-function mayAsync(result, callback, errorCallback) {
-    return isPromise(result)
-        ? result.then(callback).catch(errorCallback)
-        : callback(result);
-}
-
 export {
-    mayAsync,
     calcHash,
     escapeAttr,
     escapeHtml,
     escapeStyle,
     groupByIdNodes,
     groupByIdComponents,
-    deepEqual,
     shallowEqualProps,
     shallowEqualArray
 };
