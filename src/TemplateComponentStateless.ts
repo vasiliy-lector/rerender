@@ -20,7 +20,7 @@ const SPECIAL_PROPS = {
     uniqid: true
 };
 
-export class TemplateComponentStateless {
+export class TemplateComponentStateless implements TemplateBase {
     public type: string = TEMPLATE;
     public subtype: string = TEMPLATE_COMPONENT_STATELESS;
 

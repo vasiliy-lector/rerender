@@ -7,37 +7,37 @@ type ContextParams = {
     index: number,
     parentPosition: string,
     domIndex: number,
-    parent: VirtualDom,
-    parentNode: VirtualDomNode,
-    domLevel: boolean,
+    parent?: VirtualDom,
+    parentNode?: VirtualDomNode,
+    domLevel?: boolean,
     key?: string,
     uniqid?: string,
-    relativeParentId: string,
-    relativePosition: string,
-    inheritableKey: string,
-    inheritableUniqid: string,
-    rootNode: HTMLElement
+    relativeParentId?: string,
+    relativePosition?: string,
+    inheritableKey?: string,
+    inheritableUniqid?: string,
+    rootNode?: HTMLElement
 };
 
 export class Context {
-    public parent: VirtualDom;
-    public parentNode: VirtualDomNode;
+    public parent?: VirtualDom;
+    public parentNode?: VirtualDomNode;
+    public rootNode?: HTMLElement;
 
     private parentId: string;
     private parentNodeId: string;
     private index: number;
     private parentPosition: string;
     private domIndex: number;
-    private domLevel: boolean;
-    private rootNode: HTMLElement;
-    private position: string;
-    private domId: string;
-    private relativePosition: string;
-    private relativeParentId: string;
-    private inheritableUniqid: string;
-    private inheritableKey: string;
+    private domLevel?: boolean;
+    private position?: string;
+    private domId?: string;
+    private relativePosition?: string;
+    private relativeParentId?: string;
+    private inheritableUniqid?: string;
+    private inheritableKey?: string;
     private id: string;
-    private hasKey: boolean;
+    private hasKey?: boolean;
 
     constructor({
         isDomNode,

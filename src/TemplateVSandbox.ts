@@ -1,5 +1,6 @@
 import { Context } from './Context';
 import { VSandbox } from './VSandbox';
+import { ConfigClient, TemplateBase } from './types';
 
 const rootContext = new Context({
     parentId: 'r',
@@ -10,12 +11,9 @@ const rootContext = new Context({
 });
 
 export class TemplateVSandbox {
-    constructor(domNode, template) {
-        this.domNode = domNode;
-        this.template = template;
-    }
+    constructor(private domNode: HTMLElement, private template: TemplateBase) {}
 
-    renderClient(config, context) {
+    public renderClient(config: ConfigClient, context: Context) {
         const sandbox = new VSandbox(this.domNode);
 
         if (context === undefined) {
