@@ -1,5 +1,6 @@
 import { VNODE } from './constants';
-import { Map, Context, VirtualDom, VirtualDomNode } from './types';
+import { Context } from './Context';
+import { Map, VirtualDom, VirtualDomNode } from './types';
 import { DynamicVNode } from './DynamicVNode';
 
 export class VNode {

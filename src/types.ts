@@ -1,4 +1,5 @@
 import { TemplateVNode } from './TemplateVNode';
+import { Context } from './Context';
 import { TemplateComponent } from './TemplateComponent';
 import { TemplateFragment } from './TemplateFragment';
 import { TemplateComponentStateless } from './TemplateComponentStateless';
@@ -14,7 +15,6 @@ export type ConfigClient = any; // FIXME
 
 export type VirtualDom = any; // FIXME
 export type VirtualDomNode = any; // FIXME
-export type Context = any; // FIXME
 
 export type Node = any; // FIXME
 

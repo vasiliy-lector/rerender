@@ -1,5 +1,6 @@
 import { VTEXT } from './constants';
-import { Context, VirtualDom, VirtualDomNode } from './types';
+import { Context } from './Context';
+import { VirtualDom, VirtualDomNode } from './types';
 
 export class VText {
     public type: string = VTEXT;

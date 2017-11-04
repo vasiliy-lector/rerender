@@ -1,7 +1,8 @@
 import { VCOMPONENT_STATELESS } from './constants';
 import { Component } from './Component';
+import { Context } from './Context';
 import { TemplateComponent } from './TemplateComponent';
-import { Context, VirtualDom } from './types';
+import { VirtualDom } from './types';
 
 export class VComponentStateless {
     public type: string = VCOMPONENT_STATELESS;

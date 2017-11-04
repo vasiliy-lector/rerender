@@ -2,7 +2,8 @@ import { VCOMPONENT } from './constants';
 import { Component } from './Component';
 import { TemplateComponent } from './TemplateComponent';
 import { DynamicVNode } from './DynamicVNode';
-import { Context, VirtualDom } from './types';
+import { Context } from './Context';
+import { VirtualDom } from './types';
 
 export class VComponent {
     public type: string = VCOMPONENT;
