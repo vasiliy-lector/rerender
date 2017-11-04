@@ -1,4 +1,44 @@
-export class Context{
+import { VirtualDom, VirtualDomNode } from './types';
+
+type ContextParams = {
+    isDomNode?: boolean,
+    parentId: string,
+    parentNodeId: string,
+    index: number,
+    parentPosition: string,
+    domIndex: number,
+    parent: VirtualDom,
+    parentNode: VirtualDomNode,
+    domLevel: boolean,
+    key?: string,
+    uniqid?: string,
+    relativeParentId: string,
+    relativePosition: string,
+    inheritableKey: string,
+    inheritableUniqid: string,
+    rootNode: HTMLElement
+};
+
+export class Context {
+    public parent: VirtualDom;
+    public parentNode: VirtualDomNode;
+
+    private parentId: string;
+    private parentNodeId: string;
+    private index: number;
+    private parentPosition: string;
+    private domIndex: number;
+    private domLevel: boolean;
+    private rootNode: HTMLElement;
+    private position: string;
+    private domId: string;
+    private relativePosition: string;
+    private relativeParentId: string;
+    private inheritableUniqid: string;
+    private inheritableKey: string;
+    private id: string;
+    private hasKey: boolean;
+
     constructor({
         isDomNode,
         parentId,
@@ -16,7 +56,7 @@ export class Context{
         inheritableKey,
         inheritableUniqid,
         rootNode
-    }) {
+    }: ContextParams) {
         this.parentId = parentId;
         this.parentNodeId = parentNodeId;
         this.index = index;
@@ -57,7 +97,7 @@ export class Context{
         this.id = id;
     }
 
-    addIdLevel(component) {
+    public addIdLevel(component?: VirtualDom) {
         return new Context({
             parentId: this.id,
             index: 0,
@@ -77,7 +117,7 @@ export class Context{
         });
     }
 
-    addDomLevel(node, id) {
+    public addDomLevel(node: VirtualDom, id: string) {
         return new Context({
             domLevel: true,
             parentId: this.id,
@@ -97,7 +137,7 @@ export class Context{
         });
     }
 
-    incrementComponent(key, uniqid) {
+    public incrementComponent(key?: string, uniqid?: string) {
         return new Context({
             index: (key || uniqid) ? this.index : this.index++,
             domIndex: this.domLevel ? this.domIndex++ : this.domIndex,
@@ -119,7 +159,7 @@ export class Context{
         });
     }
 
-    incrementDom(key, uniqid) {
+    public incrementDom(key?: string, uniqid?: string) {
         return new Context({
             isDomNode: true,
             index: (key || uniqid) ? this.index : this.index++,
@@ -142,23 +182,23 @@ export class Context{
         });
     }
 
-    getId() {
+    public getId() {
         return this.id;
     }
 
-    getDomNode() {
+    public getDomNode() {
         return (new Function('rootNode', `return rootNode${this.position}`))(this.rootNode);
     }
 
-    getDomId() {
+    public getDomId() {
         return this.domId;
     }
 
-    getParent() {
+    public getParent() {
         return this.parent;
     }
 
-    getParentNode() {
+    public getParentNode() {
         return this.parentNode;
     }
 }
