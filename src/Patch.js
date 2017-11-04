@@ -15,15 +15,15 @@ const catchEvent = function(event) {
     event.stopPropagation();
 };
 
-function Patch (document = self.document) {
-    this.document = document;
-    this.commands = [];
-    this.setRefCommands = [];
-    this.splitTextCommands = [];
-    this.eventsCommands = [];
-}
+export class Patch {
+    constructor(document = self.document) {
+        this.document = document;
+        this.commands = [];
+        this.setRefCommands = [];
+        this.splitTextCommands = [];
+        this.eventsCommands = [];
+    }
 
-Patch.prototype = {
     apply() {
         const domNodes = [];
         const document = this.document;
@@ -69,7 +69,7 @@ Patch.prototype = {
                 prevActiveElement.onfocus = prevOnfocus;
             }
         }
-    },
+    }
 
     applyNormalize() {
         for (let i = 0, l = this.splitTextCommands.length; i < l; i++) {
@@ -83,11 +83,11 @@ Patch.prototype = {
         for (let i = 0, l = this.eventsCommands.length; i < l; i++) {
             this.eventsCommands[i].apply();
         }
-    },
+    }
 
     push(command) {
         this.commands.push(command);
-    },
+    }
 
     pushNormalize(command) {
         switch (command.type) {
@@ -102,13 +102,15 @@ Patch.prototype = {
                 break;
         }
     }
-};
 
-function Create(nextNode) {
-    this.nextNode = nextNode;
 }
-Create.prototype = {
-    type: CREATE,
+
+export class Create {
+    type = CREATE;
+
+    constructor(nextNode) {
+        this.nextNode = nextNode;
+    }
 
     apply(options) {
         const parentDomNode = this.nextNode.parentNode.getDomNode();
@@ -121,15 +123,16 @@ Create.prototype = {
             parentDomNode.appendChild(nextDomNode);
         }
     }
-};
-
-function Move(nextNode, node) {
-    this.nextNode = nextNode;
-    this.node = node;
-    this.refNode = node;
 }
-Move.prototype = {
-    type: MOVE,
+
+export class Move {
+    type = MOVE;
+
+    constructor(nextNode, node) {
+        this.nextNode = nextNode;
+        this.node = node;
+        this.refNode = node;
+    }
 
     apply(options, prevDomNode) {
         const parentDomNode = this.nextNode.parentNode.getDomNode();
@@ -145,14 +148,15 @@ Move.prototype = {
             parentDomNode.appendChild(prevDomNode);
         }
     }
-};
-
-function Remove(node) {
-    this.node = node;
-    this.refNode = node;
 }
-Remove.prototype = {
-    type: REMOVE,
+
+export class Remove {
+    type = REMOVE;
+
+    constructor(node) {
+        this.node = node;
+        this.refNode = node;
+    }
 
     apply(options, domNode) {
         if (this.node.type === VNODE && this.node.attrs && typeof this.node.attrs.ref === 'function') {
@@ -163,25 +167,27 @@ Remove.prototype = {
             domNode.parentNode.removeChild(domNode);
         }
     }
-};
-
-function RemoveRef(node) {
-    this.node = node;
 }
-RemoveRef.prototype = {
-    type: REMOVE_REF,
+
+export class RemoveRef {
+    type = REMOVE_REF;
+
+    constructor(node) {
+        this.node = node;
+    }
 
     apply() {
         this.node.attrs.ref(null);
     }
-};
-
-function Replace(nextNode) {
-    this.nextNode = nextNode;
-    this.refNode = nextNode;
 }
-Replace.prototype = {
-    type: REPLACE,
+
+export class Replace {
+    type = REPLACE;
+
+    constructor(nextNode) {
+        this.nextNode = nextNode;
+        this.refNode = nextNode;
+    }
 
     apply(options, domNode) {
         const nextDomNode = createElement(this.nextNode, options.document, options.skipCreation);
@@ -191,37 +197,40 @@ Replace.prototype = {
             domNode
         );
     }
-};
-
-function SetRef(nextNode) {
-    this.nextNode = nextNode;
 }
-SetRef.prototype = {
-    type: SET_REF,
+
+export class SetRef {
+    type = SET_REF;
+
+    constructor(nextNode) {
+        this.nextNode = nextNode;
+    }
 
     apply() {
         this.nextNode.attrs.ref(this.nextNode.dynamic);
     }
-};
-
-function SplitText(nextNode) {
-    this.nextNode = nextNode;
 }
-SplitText.prototype = {
-    type: SPLIT_TEXT,
+
+export class SplitText {
+    type = SPLIT_TEXT;
+
+    constructor(nextNode) {
+        this.nextNode = nextNode;
+    }
 
     apply() {
         this.nextNode.getDomNode().splitText(this.nextNode.value.length);
     }
-};
-
-function Update(nextNode, node) {
-    this.nextNode = nextNode;
-    this.node = node;
-    this.refNode = nextNode;
 }
-Update.prototype = {
-    type: UPDATE,
+
+export class Update {
+    type = UPDATE;
+
+    constructor(nextNode, node) {
+        this.nextNode = nextNode;
+        this.node = node;
+        this.refNode = nextNode;
+    }
 
     apply(options, domNode) {
         if (this.nextNode.dynamic && this.nextNode.dynamic.prevAttrs) {
@@ -245,7 +254,7 @@ Update.prototype = {
                 }
             }
         }
-    },
+    }
 
     applyDynamic(options, domNode) {
         const nextAttrsDynamic = this.nextNode.dynamic.attrs;
@@ -282,9 +291,9 @@ Update.prototype = {
 
         delete this.node.dynamic.prevAttrs;
     }
-};
+}
 
-class UpdateDynamic {
+export class UpdateDynamic {
     type = UPDATE_DYNAMIC;
 
     constructor(node) {
@@ -315,11 +324,12 @@ class UpdateDynamic {
 }
 
 // TODO: rename AttachEventsAndDynamic
-function AttachEvents(nextNode) {
-    this.nextNode = nextNode;
-}
-AttachEvents.prototype = {
-    type: ATTACH_EVENTS,
+export class AttachEvents {
+    type = ATTACH_EVENTS;
+
+    constructor(nextNode) {
+        this.nextNode = nextNode;
+    }
 
     apply() {
         const domNode = this.nextNode.getDomNode();
@@ -334,7 +344,7 @@ AttachEvents.prototype = {
                 }
             }
         }
-    },
+    }
 
     applyDynamic() {
         const domNode = this.nextNode.getDomNode();
@@ -351,7 +361,7 @@ AttachEvents.prototype = {
             }
         }
     }
-};
+}
 
 function createElement(nextNode, document, skipCreation) {
     let nextDomNode;
@@ -400,17 +410,3 @@ function createElement(nextNode, document, skipCreation) {
 
     return nextDomNode;
 }
-
-export {
-    Patch,
-    Create,
-    Move,
-    Remove,
-    Replace,
-    SetRef,
-    RemoveRef,
-    SplitText,
-    Update,
-    UpdateDynamic,
-    AttachEvents
-};

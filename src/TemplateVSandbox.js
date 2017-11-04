@@ -9,12 +9,12 @@ const rootContext = new Context({
     domIndex: 0
 });
 
-function TemplateVSandbox(domNode, template) {
-    this.domNode = domNode;
-    this.template = template;
-}
+export class TemplateVSandbox {
+    constructor(domNode, template) {
+        this.domNode = domNode;
+        this.template = template;
+    }
 
-TemplateVSandbox.prototype = {
     renderClientServerLike(config, context) {
         const sandbox = new VSandbox(this.domNode);
 
@@ -27,7 +27,7 @@ TemplateVSandbox.prototype = {
         sandbox.setChilds([this.template.renderClientServerLike(config, context)]);
 
         return sandbox;
-    },
+    }
 
     renderClient(config, context) {
         const sandbox = new VSandbox(this.domNode);
@@ -42,6 +42,4 @@ TemplateVSandbox.prototype = {
 
         return sandbox;
     }
-};
-
-export { TemplateVSandbox };
+}
