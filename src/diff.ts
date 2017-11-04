@@ -2,7 +2,23 @@ import { VNODE, VTEXT } from './constants';
 import { Patch, Create, Replace, Move, Update, Remove, RemoveRef } from './Patch';
 import { shallowEqual, groupByIdNodes } from './utils';
 
-function diffNext(nextNode, options, insideCreation) {
+import { Map, VirtualDomNode } from './types';
+
+type OptionsNext = {
+    patch: Patch,
+    nodesById: Map<VirtualDomNode>
+};
+type OptionsPrev = {
+    patch: Patch,
+    nextNodesById: Map<VirtualDomNode>
+};
+type Options = {
+    nodesById?: Map<VirtualDomNode>,
+    nextNodesById?: Map<VirtualDomNode>,
+    document?: HTMLDocument
+};
+
+function diffNext(nextNode: VirtualDomNode, options: OptionsNext, insideCreation?: boolean) {
     if (nextNode.type === VNODE) {
         const context = nextNode.context;
         const node = options.nodesById[context.id];
@@ -53,7 +69,7 @@ function diffNext(nextNode, options, insideCreation) {
     }
 }
 
-function diffPrev(node, options, insideRemove) {
+function diffPrev(node: VirtualDomNode, options: OptionsPrev, insideRemove?: boolean) {
     let childrenRemoved;
     let childrenNeedRemove;
 
@@ -81,7 +97,7 @@ function diffPrev(node, options, insideRemove) {
     }
 }
 
-function diff(nextNode, node, options = {}) {
+function diff(nextNode: VirtualDomNode, node: VirtualDomNode, options: Partial<Options> = {}) {
     const patch = new Patch(options.document);
     const nodesById = options.nodesById || groupByIdNodes(node, {});
     const nextNodesById = options.nextNodesById || groupByIdNodes(nextNode, {});
