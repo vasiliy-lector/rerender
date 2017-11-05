@@ -12,7 +12,8 @@ import {
     TemplateBase,
     ConfigServer,
     StatelessComponent,
-    ConfigClient
+    ConfigClient,
+    Optionalize
 } from './types';
 
 const SPECIAL_PROPS = {
@@ -20,14 +21,21 @@ const SPECIAL_PROPS = {
     uniqid: true
 };
 
-export class TemplateComponentStateless implements TemplateBase {
+export class TemplateComponentStateless<
+    P extends object,
+    D extends object
+> implements TemplateBase {
     public type: string = TEMPLATE;
     public subtype: string = TEMPLATE_COMPONENT_STATELESS;
 
-    private props: Map<any>;
+    private props: any;
 
-    constructor(private componentType: StatelessComponent, props: RawProps, children: any) {
-        let nextProps = props || {};
+    constructor(
+        private componentType: StatelessComponent<P, D>,
+        props: Optionalize<P, D> & { key?: string, uniqid?: string } | null,
+        children: any
+    ) {
+        let nextProps: any = props || {};
 
         nextProps = Object.keys(nextProps).reduce((memo: Map<any>, key: string) => {
             if ((SPECIAL_PROPS as any)[key]) {
@@ -41,7 +49,7 @@ export class TemplateComponentStateless implements TemplateBase {
 
         nextProps.children = children;
 
-        if ((componentType as any).defaults) {
+        if (componentType.defaults) {
             for (const name in (componentType as any).defaults) {
                 if (nextProps[name] === undefined) {
                     nextProps[name] = (componentType as any).defaults[name];

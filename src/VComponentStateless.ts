@@ -11,10 +11,10 @@ export class VComponentStateless {
 
     constructor(
         public render: () => VirtualDom,
-        public componentType: StatelessComponent,
+        public componentType: StatelessComponent<any, any>,
         public id: string,
         public template: VirtualDom, // FIXME: проверить
-        public componentTemplate: TemplateComponentStateless,
+        public componentTemplate: TemplateComponentStateless<any, any>,
         private context: Context
     ) {
         this.parent = context.parent;

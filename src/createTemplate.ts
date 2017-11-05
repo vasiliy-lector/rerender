@@ -47,7 +47,7 @@ export const createTemplate: CreateTemplate = function(componentType, props) {
         );
     } else {
         return new TemplateComponentStateless(
-            componentType as StatelessComponent,
+            componentType as StatelessComponent<any, any>,
             props,
             createTemplateFragment(children)
         );
