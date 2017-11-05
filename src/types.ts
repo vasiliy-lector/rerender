@@ -15,7 +15,7 @@ type StatelessFunction<Props> = (props: Props) => Renderable;
 export type StatelessComponent<Props extends Map<any> = Map<any>> =
     StatelessFunction<Props> & StatelessComponentStatics<Props>;
 
-export interface ComponentType<C extends Component> {
+export interface ComponentType<C extends Component<Props, State>, Props = any, State = any> {
     wrapper?: boolean;
     store?: boolean;
     defaults?: Map<any>;

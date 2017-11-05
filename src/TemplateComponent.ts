@@ -26,8 +26,8 @@ export class TemplateComponent implements TemplateBase {
 
     private controller: ComponentType<any>;
     private props: Map<any>;
-    private ref?: (ref: Component) => any;
-    private wrapperRef?: (ref: Component) => any;
+    private ref?: (ref: Component<any>) => any;
+    private wrapperRef?: (ref: Component<any>) => any;
 
     constructor(
         private componentType: ComponentType<any>,

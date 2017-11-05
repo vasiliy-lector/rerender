@@ -7,7 +7,7 @@ import { Map, Renderable } from './types';
 
 type Path = Array<string | number>;
 
-export abstract class Component<Props extends Map<any> = Map<any>, State = any> extends Events {
+export abstract class Component<Props extends Map<any>, State = void> extends Events {
     public settingProps: boolean = false;
     public componentMounted: boolean = false;
 
