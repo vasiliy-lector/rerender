@@ -11,26 +11,28 @@ import { memoize, shallowEqualProps } from './utils';
 
 import {
     Map,
-    PropsType,
+    RawProps,
     ElementType,
     TemplateBase,
+    TemplateChildren,
     ConfigServer,
-    ConfigClient
+    ConfigClient,
+    ComponentType
 } from './types';
 
 export class TemplateComponent implements TemplateBase {
     public type: string = TEMPLATE;
     public subtype: string = TEMPLATE_COMPONENT;
 
-    private controller: typeof Component;
+    private controller: ComponentType<any>;
     private props: Map<any>;
-    private ref?: (ref: Component<any, any>) => any;
-    private wrapperRef?: (ref: Component<any, any>) => any;
+    private ref?: (ref: Component) => any;
+    private wrapperRef?: (ref: Component) => any;
 
     constructor(
-        private componentType: typeof Component,
-        props: PropsType,
-        children: any, // FIXME
+        private componentType: ComponentType<any>,
+        props: RawProps,
+        children: TemplateChildren,
         targetComponentType?: ElementType
     ) {
         let nextProps: Map<any> = props || {};

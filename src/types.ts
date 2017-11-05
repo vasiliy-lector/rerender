@@ -6,17 +6,34 @@ import { TemplateComponentStateless } from './TemplateComponentStateless';
 import { Component } from './Component';
 import { Promise } from './Promise';
 
-export type Template = any; // FIXME: TemplateVNode | TemplateComponent | TemplateComponentStateless;
-export type StatelessComponent = (props: PropsType) => Node;
-export type ElementType = string | typeof Component | StatelessComponent;
+interface StatelessComponentStatics<Props = Map<any>> {
+    defaults?: Partial<Props>;
+}
+
+type StatelessFunction<Props> = (props: Props) => Renderable;
+
+export type StatelessComponent<Props extends Map<any> = Map<any>> =
+    StatelessFunction<Props> & StatelessComponentStatics<Props>;
+
+export interface ComponentType<C extends Component> {
+    wrapper?: boolean;
+    store?: boolean;
+    defaults?: Map<any>;
+    new(...args: any[]): C;
+}
+export type ElementType = string | ComponentType<any> | StatelessComponent;
+
+export type Template = TemplateVNode | TemplateComponent | TemplateComponentStateless;
+
+type RenderableItem = number | string | boolean | undefined | null | Template;
+export type TemplateChildren = RenderableItem[] | null;
+export type Renderable = RenderableItem | RenderableItem[];
 
 export type ConfigServer = any; // FIXME
 export type ConfigClient = any; // FIXME
 
 export type VirtualDom = any; // FIXME
 export type VirtualDomNode = any; // FIXME
-
-export type Node = any; // FIXME
 
 export type AttrsValue = any;
 export type Attrs = Map<AttrsValue>;
@@ -25,6 +42,8 @@ export interface TemplateBase {
     renderServer: (config: ConfigServer) => Promise<void> | void;
     renderClient: (config: ConfigClient, context: Context) => VirtualDom;
 }
+
+export type Controller = any; // FIXME
 
 export type Path = Array<string | number>;
 
@@ -88,7 +107,7 @@ export type EventDefaults = {
     serverCacheAge?: number
 };
 
-export type PropsType = Map<any> | null | void;
+export type RawProps = Map<any> | null | void;
 
 export interface Map<T> {
     [key: string]: T;

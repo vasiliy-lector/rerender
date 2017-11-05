@@ -3,26 +3,13 @@ import { Events } from './Events';
 import { VEvent } from './VEvent';
 import { debug } from './debug';
 import { VComponent } from './VComponent';
-import { Map, Node } from './types';
+import { Map, Renderable } from './types';
 
 type Path = Array<string | number>;
 
-export class Component<Props extends Map<any>, State extends Map<any>> extends Events {
-    public static wrapper?: boolean;
-    public static store?: boolean;
-    public static defaults?: Map<any>;
-
+export abstract class Component<Props extends Map<any> = Map<any>, State = any> extends Events {
     public settingProps: boolean = false;
     public componentMounted: boolean = false;
-
-    public init: () => void;
-    public componentWillMount: () => void;
-    public componentWillUnmount: () => void;
-    public componentDidMount: () => void;
-    public componentDidUpdate: () => void;
-    public componentWillReceiveProps: (props: Props, additional: any) => void;
-    public componentWillDestroy: () => void;
-    public render: () => Node;
 
     protected state: State;
     private prevState?: State;
@@ -30,6 +17,15 @@ export class Component<Props extends Map<any>, State extends Map<any>> extends E
     constructor(public props: Props, private readonly options?: any, private readonly id?: string) {
         super();
     }
+
+    public init?(): any;
+    public componentWillMount?(): any;
+    public componentWillUnmount?(): any;
+    public componentDidMount?(): any;
+    public componentDidUpdate?(): any;
+    public componentWillReceiveProps?(props: Props, additional?: any): any;
+    public componentWillDestroy?(): any;
+    public abstract render(): Renderable;
 
     public forceRender(): void {
         this.options.events.emit('force-render', this.id);

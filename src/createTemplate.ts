@@ -4,11 +4,24 @@ import { TemplateFragment } from './TemplateFragment';
 import { TemplateComponentStateless } from './TemplateComponentStateless';
 import { Component } from './Component';
 import { Controllers } from './Controllers';
-import { ElementType, Template, PropsType, StatelessComponent } from './types';
+import {
+    ElementType,
+    Map,
+    RawProps,
+    Renderable,
+    ComponentType,
+    StatelessComponent,
+    Template,
+    TemplateChildren
+} from './types';
 
-export function createTemplate(componentType: ElementType, props: PropsType): Template {
+type CreateTemplate = <Props extends Map<any> = Map<any>, Children extends Renderable = Renderable>
+    (componentType: ElementType, props: Props | null, ...children: Children[])
+        => Template;
+
+export const createTemplate: CreateTemplate = function(componentType, props) {
     const length = arguments.length;
-    let children = null;
+    let children: TemplateChildren = null;
 
     if (length > 2 && (arguments[2] || length !== 3)) {
         children = Array(length - 2);
@@ -28,7 +41,7 @@ export function createTemplate(componentType: ElementType, props: PropsType): Te
         );
     } else if (componentType.prototype instanceof Component) {
         return new TemplateComponent(
-            componentType as typeof Component,
+            componentType as ComponentType<any>,
             props,
             createTemplateFragment(children)
         );
@@ -39,7 +52,7 @@ export function createTemplate(componentType: ElementType, props: PropsType): Te
             createTemplateFragment(children)
         );
     }
-}
+};
 
 function createTemplateFragment(fragment: any) {
     return fragment == null || fragment instanceof TemplateFragment

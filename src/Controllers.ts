@@ -1,14 +1,30 @@
+/* tslint:disable member-access */
 import { Component } from './Component';
 import { createDecorator } from './createDecorator';
 import { createTemplate } from './createTemplate';
 
-class Controllers extends Component {
+import { Controller, ElementType, TemplateChildren } from './types';
+
+type Props = {
+    targetComponentType: ElementType,
+    targetController: Controller,
+    children: TemplateChildren
+};
+type State = {
+    Root: ElementType
+};
+
+class Controllers extends Component<Props, State> {
+    static wrapper: boolean = true;
+    props: Props;
+    controllers: Controller[];
+
     init() {
         this.reWrap();
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.targetComponentType !== this.targetComponentType) {
+    componentWillReceiveProps(nextProps: Props) {
+        if (nextProps.targetComponentType !== this.props.targetComponentType) {
             this.reWrap(nextProps);
         }
     }
@@ -26,16 +42,15 @@ class Controllers extends Component {
 
         for (let i = this.controllers.length - 1; i >= 0; i--) {
             current = createDecorator(this.controllers[i].controller)(
-                this.controllers[i].options,
-                this.controllers[i].settings
+                this.controllers[i].options
             )(current);
         }
 
         return current;
     }
 
-    getControllers(props) {
-        const controllers = [];
+    getControllers(props: Props) {
+        const controllers: Controller[] = [];
         const componentType = this.props.targetComponentType;
 
         if (props.targetController) {
@@ -55,7 +70,5 @@ class Controllers extends Component {
         return createTemplate(Root, this.props, this.props.children);
     }
 }
-
-Controllers.wrapper = true;
 
 export { Controllers };

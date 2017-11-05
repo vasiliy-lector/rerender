@@ -7,7 +7,7 @@ import { VText } from './VText';
 
 import {
     Map,
-    PropsType,
+    RawProps,
     ElementType,
     TemplateBase,
     ConfigServer,
@@ -26,7 +26,7 @@ export class TemplateComponentStateless implements TemplateBase {
 
     private props: Map<any>;
 
-    constructor(private componentType: StatelessComponent, props: PropsType, children: any) {
+    constructor(private componentType: StatelessComponent, props: RawProps, children: any) {
         let nextProps = props || {};
 
         nextProps = Object.keys(nextProps).reduce((memo: Map<any>, key: string) => {
