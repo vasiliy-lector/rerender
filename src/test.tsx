@@ -1,4 +1,5 @@
 import { TemplateComponentStateless } from './TemplateComponentStateless';
+import { createTemplate as h } from './createTemplate';
 import { Component } from './Component';
 import { ComponentType, StatelessComponent, Optionalize, Renderable, VirtualDomNode } from './types';
 
@@ -20,20 +21,20 @@ declare global {
     }
 }
 
-const h = <
-    P extends object,
-    D extends object
->(
-    componentType: StatelessComponent<P, D>,
-    props: Optionalize<P, D> & { key?: string, uniqid?: string } | null,
-    ...children: any[]
-): JSX.Element => null;
+// const h = <
+//     P extends object,
+//     D extends object
+// >(
+//     componentType: StatelessComponent<P, D>,
+//     props: Optionalize<P, D> & { key?: string, uniqid?: string } | null,
+//     ...children: any[]
+// ): JSX.Element => null;
+//
+// const b = h(Block, { uniqid: 'sdf', id: 3 }, null);
 
 const defaults = { id : 1 };
-const Block: StatelessComponent<{ id: number }, typeof defaults> = (props) => props.id.toFixed(0);
+const Block: StatelessComponent<{ id?: number }, typeof defaults> = (props) => props.id.toFixed(0);
 Block.defaults = defaults;
-
-const b = h(Block, { uniqid: 'sdf', id: 3 }, null);
 
 class BlockWithState extends Component<{ id?: number }, void, typeof defaults> {
     public static defaults = defaults;

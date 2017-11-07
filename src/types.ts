@@ -14,8 +14,8 @@ import { Component } from './Component';
 import { VComponent } from './VComponent';
 import { Promise } from './Promise';
 
-export interface StatelessComponent<Props, Defaults extends Partial<Props>> {
-    (props: Props): Renderable;
+export interface StatelessComponent<Props, Defaults extends Partial<Props> = {}> {
+    (props: Props & Defaults & { children?: TemplateChildren }): Renderable;
     defaults?: Defaults;
 }
 
@@ -30,8 +30,8 @@ export type ElementType = string | ComponentType<any> | StatelessComponent<any, 
 
 export type Template = TemplateVNode | TemplateComponent | TemplateComponentStateless<any, any>;
 
-type RenderableItem = number | string | boolean | undefined | null | Template;
-export type TemplateChildren = RenderableItem[] | null;
+type RenderableItem = number | string | boolean | void | null | Template;
+export type TemplateChildren = RenderableItem[] | null | void;
 export type Renderable = RenderableItem | RenderableItem[];
 
 export type ConfigServer<State = any> = {
