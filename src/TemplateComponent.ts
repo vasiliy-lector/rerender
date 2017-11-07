@@ -203,7 +203,7 @@ export class TemplateComponent implements TemplateBase {
         return component;
     }
 
-    private firstRenderInit(instance: Component<any, any>, config: ConfigServer) {
+    private firstRenderInit(instance: Component<any, any>, config: ConfigServer): void | Promise<any> {
         if (typeof instance.init === 'undefined') {
             return;
         }

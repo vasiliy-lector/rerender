@@ -1,14 +1,17 @@
 import { TemplateComponentStateless } from './TemplateComponentStateless';
 import { Component } from './Component';
-import { StatelessComponent, Optionalize, Renderable } from './types';
+import { ComponentType, StatelessComponent, Optionalize, Renderable, VirtualDomNode } from './types';
 
 declare global {
     namespace JSX {
         type Element = Renderable;
 
         interface IntrinsicAttributes {
-            uniqid?: string;
+            controller?: ComponentType<any>;
+            uniqid?: string | number;
             key?: string | number;
+            ref?: (ref: VirtualDomNode) => any;
+            wrapperRef?: (ref: ComponentType<any>) => any;
         }
 
         interface IntrinsicElements {
@@ -32,8 +35,6 @@ Block.defaults = defaults;
 
 const b = h(Block, { uniqid: 'sdf', id: 3 }, null);
 
-const c: any = <Block uniqid='sdf' key={1} id={3} />;
-
 class BlockWithState extends Component<{ id?: number }, void, typeof defaults> {
     public static defaults = defaults;
 
@@ -41,3 +42,5 @@ class BlockWithState extends Component<{ id?: number }, void, typeof defaults> {
         return <form enctype='json'></form>;
     }
 }
+
+const c: any = <Block uniqid='sdf' key={1} id={3} controller={BlockWithState} />;

@@ -4,12 +4,14 @@ import { DispatcherFirstRender } from './DispatcherFirstRender';
 import { Dispatcher } from './Dispatcher';
 import { Events } from './Events';
 import { VNode } from './VNode';
+import { VText } from './VText';
 import { DynamicVNode } from './DynamicVNode';
 import { Context } from './Context';
 import { TemplateComponent } from './TemplateComponent';
 import { TemplateFragment } from './TemplateFragment';
 import { TemplateComponentStateless } from './TemplateComponentStateless';
 import { Component } from './Component';
+import { VComponent } from './VComponent';
 import { Promise } from './Promise';
 
 export interface StatelessComponent<Props, Defaults extends Partial<Props>> {
@@ -32,7 +34,7 @@ type RenderableItem = number | string | boolean | undefined | null | Template;
 export type TemplateChildren = RenderableItem[] | null;
 export type Renderable = RenderableItem | RenderableItem[];
 
-export type ConfigServer<State> = {
+export type ConfigServer<State = any> = {
     store: Store<State>,
     dispatcher: DispatcherFirstRender,
     hashEnabled?: boolean,
@@ -43,19 +45,19 @@ export type ConfigServer<State> = {
         dispatch: Dispatch
     }
 };
-export type ConfigClient<State> = {
+export type ConfigClient<State = any> = {
     store: Store<State>,
     dispatcher: DispatcherFirstRender | Dispatcher,
     events: Events,
     rootTempalate: Template,
     document?: HTMLDocument,
     rootNode?: HTMLElement,
-    components: Map<Component<any>>,
-    nextComponents: Map<Component<any>>,
-    mountComponents: Map<Component<any>>,
-    updateComponents: Map<Component<any>>,
-    nodes: Map<VNode>,
-    nextNodes: Map<VNode>,
+    components: Map<VirtualDom>,
+    nextComponents: Map<VirtualDom>,
+    mountComponents: Map<VirtualDom>,
+    updateComponents: Map<VirtualDom>,
+    nodes: Map<VirtualDomNode>,
+    nextNodes: Map<VirtualDomNode>,
     dynamicNodes: Map<DynamicVNode>,
     hashEnabled?: boolean,
     fullHash?: boolean,
@@ -145,6 +147,13 @@ export type EventDefaults = {
 };
 
 export type RawProps = Map<any> | null | void;
+export type IntrinsicProps = {
+    controller?: ComponentType<any>;
+    uniqid?: string | number;
+    key?: string | number;
+    ref?: (ref: VirtualDomNode) => any;
+    wrapperRef?: (ref: ComponentType<any>) => any;
+};
 
 export interface Map<T> {
     [key: string]: T;
