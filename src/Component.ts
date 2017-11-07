@@ -7,14 +7,18 @@ import { Map, Renderable } from './types';
 
 type Path = Array<string | number>;
 
-export abstract class Component<Props extends Map<any>, State = void> extends Events {
+export abstract class Component<
+    Props extends Map<any>,
+    State = void,
+    Defaults extends Partial<Props> = {}
+> extends Events {
     public settingProps: boolean = false;
     public componentMounted: boolean = false;
 
     protected state: State;
     private prevState?: State;
 
-    constructor(public props: Props, private readonly options?: any, private readonly id?: string) {
+    constructor(public props: Props & Defaults, private readonly options?: any, private readonly id?: string) {
         super();
     }
 

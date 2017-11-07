@@ -1,4 +1,10 @@
 import { TemplateVNode } from './TemplateVNode';
+import { Store } from './Store';
+import { DispatcherFirstRender } from './DispatcherFirstRender';
+import { Dispatcher } from './Dispatcher';
+import { Events } from './Events';
+import { VNode } from './VNode';
+import { DynamicVNode } from './DynamicVNode';
 import { Context } from './Context';
 import { TemplateComponent } from './TemplateComponent';
 import { TemplateFragment } from './TemplateFragment';
@@ -26,8 +32,42 @@ type RenderableItem = number | string | boolean | undefined | null | Template;
 export type TemplateChildren = RenderableItem[] | null;
 export type Renderable = RenderableItem | RenderableItem[];
 
-export type ConfigServer = any; // FIXME
-export type ConfigClient = any; // FIXME
+export type ConfigServer<State> = {
+    store: Store<State>,
+    dispatcher: DispatcherFirstRender,
+    hashEnabled?: boolean,
+    fullHash?: boolean,
+    stream: Events,
+    hash: number,
+    componentOptions: {
+        dispatch: Dispatch
+    }
+};
+export type ConfigClient<State> = {
+    store: Store<State>,
+    dispatcher: DispatcherFirstRender | Dispatcher,
+    events: Events,
+    rootTempalate: Template,
+    document?: HTMLDocument,
+    rootNode?: HTMLElement,
+    components: Map<Component<any>>,
+    nextComponents: Map<Component<any>>,
+    mountComponents: Map<Component<any>>,
+    updateComponents: Map<Component<any>>,
+    nodes: Map<VNode>,
+    nextNodes: Map<VNode>,
+    dynamicNodes: Map<DynamicVNode>,
+    hashEnabled?: boolean,
+    fullHash?: boolean,
+    hash?: number,
+    componentOptions: {
+        dispatch: Dispatch,
+        getParent: any,
+        events: Events
+    },
+    virtualRoot: any,
+    firstRender: boolean
+};
 
 export type VirtualDom = any; // FIXME
 export type VirtualDomNode = any; // FIXME
@@ -36,8 +76,8 @@ export type AttrsValue = any;
 export type Attrs = Map<AttrsValue>;
 
 export interface TemplateBase {
-    renderServer: (config: ConfigServer) => Promise<void> | void;
-    renderClient: (config: ConfigClient, context: Context) => VirtualDom;
+    renderServer: (config: ConfigServer<any>) => Promise<void> | void;
+    renderClient: (config: ConfigClient<any>, context: Context) => VirtualDom;
 }
 
 export type Controller = any; // FIXME
