@@ -40,7 +40,7 @@ class BlockWithState extends Component<{ id?: number }, void, typeof defaults> {
     public static defaults = defaults;
 
     public render() {
-        return <form enctype='json'></form>;
+        return <div>{this.props.id.toFixed(0)}</div>;
     }
 }
 
