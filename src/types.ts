@@ -180,6 +180,8 @@ export type ApplicationOptions = {
     fullHash?: boolean
 };
 
+export type Decorator = (Wrapped: ComponentType<any>) => ComponentType<any>;
+
 /**
  * From https://github.com/Microsoft/TypeScript/issues/12215#issuecomment-307871458
  * The Diff type is a subtraction operator for string literal types. It relies on:
