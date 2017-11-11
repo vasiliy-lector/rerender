@@ -84,8 +84,6 @@ export interface TemplateBase {
     renderClient: (config: ConfigClient<any>, context: Context) => VirtualDom;
 }
 
-export type Controller = any; // FIXME
-
 export type Path = Array<string | number>;
 
 type SetStateDirect<State> = (value: State) => void;
@@ -180,7 +178,7 @@ export type ApplicationOptions = {
     fullHash?: boolean
 };
 
-export type Decorator = (Wrapped: ComponentType<any>) => ComponentType<any>;
+export type Decorator = (Wrapped: ElementType) => ComponentType<any>;
 
 /**
  * From https://github.com/Microsoft/TypeScript/issues/12215#issuecomment-307871458
