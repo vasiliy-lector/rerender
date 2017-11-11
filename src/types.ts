@@ -16,11 +16,13 @@ import { Promise } from './Promise';
 
 export interface StatelessComponent<Props, Defaults extends Partial<Props> = {}> {
     (props: Props & Defaults & { children?: TemplateChildren }): Renderable;
+    displayName?: string;
     defaults?: Defaults;
 }
 
 export interface ComponentType<C extends Component<any>> {
     wrapper?: boolean;
+    displayName?: string;
     store?: boolean;
     defaults?: Map<any>;
     new(...args: any[]): C;

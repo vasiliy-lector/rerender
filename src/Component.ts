@@ -19,7 +19,7 @@ export abstract class Component<
     private prevState?: State;
 
     constructor(
-        public props: Props & Defaults & { children: TemplateChildren },
+        public props: Props & Defaults & { children?: TemplateChildren },
         private readonly options?: any,
         private readonly id?: string
     ) {
