@@ -1,6 +1,5 @@
 /* tslint:disable member-access */
 import { Component } from './Component';
-import { createDecorator } from './createDecorator';
 import { memoize, shallowEqual } from './utils';
 import { createTemplate } from './createTemplate';
 
