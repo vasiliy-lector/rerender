@@ -4,7 +4,7 @@ import { eventDefaults } from './defaults';
 import { debug } from './debug';
 import { Promise, isPromise } from './Promise';
 import {
-    ActionMethods,
+    EffectMethods,
     Dispatch,
     DispatcherCache,
     DispatcherCacheItem,
@@ -30,8 +30,8 @@ export class Dispatcher<State = any> {
     };
     protected eventDefaults: EventDefaults & Map<any>;
     protected reducerOptions: ReducerMethods;
-    protected actionOptions: ActionMethods;
-    protected actionOptionsInsideCache: ActionMethods;
+    protected actionOptions: EffectMethods;
+    protected actionOptionsInsideCache: EffectMethods;
 
     constructor(protected store: Store<State>, options: Options = {}) {
         this.cache = options.cache || {};

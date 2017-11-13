@@ -94,7 +94,7 @@ type GetStateDirect<State> = () => State;
 type GetStatePath<State> = (path: Path) => any;
 export type GetState<State = any> = GetStateDirect<State> | GetStatePath<State>;
 
-export type ActionMethods<State = any, Payload = any, Result = any> = {
+export type EffectMethods<State = any, Payload = any, Result = any> = {
     getState: GetState<State>,
     dispatch: Dispatch<Payload, Result>
 };
@@ -103,17 +103,15 @@ export type ReducerMethods<State = any> = {
     getState: GetState<State>,
     setState: SetState<State>
 };
-export type Action<State = any, Payload = any, Result = any> =
-    (methods: ActionMethods<State, Payload, Result>, payload: Payload) => Result;
+export type Effect<State = any, Payload = any, Result = any> =
+    (methods: EffectMethods<State, Payload, Result>, payload: Payload) => Result;
 export type Reducer<State = any, Payload = any> = (methods: ReducerMethods<State>, payload: Payload) => void;
 
 export type Event = {
-    name: string,
+    take?: 'every' | 'latest',
     cache?: boolean,
-    serverEnabled?: boolean,
-    userIndependent?: boolean,
-    action?: Action,
-    serverCacheAge: number,
+    verify?: boolean,
+    effect?: Effect,
     reducers?: Reducer[]
 };
 
@@ -128,7 +126,7 @@ export type DispatcherCache = {
 };
 
 export type DispatcherCacheItemDehydrated = {
-    name: string,
+    type: string,
     payload: any,
     result: any
 };
@@ -178,7 +176,7 @@ export type ApplicationOptions = {
     fullHash?: boolean
 };
 
-export type Decorator = (Wrapped: ElementType) => ComponentType<any>;
+export type Controller = (Wrapped: ElementType) => ComponentType<any>;
 
 /**
  * From https://github.com/Microsoft/TypeScript/issues/12215#issuecomment-307871458

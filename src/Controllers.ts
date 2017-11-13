@@ -2,11 +2,11 @@
 import { Component } from './Component';
 import { createTemplate } from './createTemplate';
 
-import { Decorator, ElementType, TemplateChildren } from './types';
+import { Controller, ElementType, TemplateChildren } from './types';
 
 type Props = {
     targetComponentType: ElementType,
-    targetController: Decorator | Decorator[],
+    targetController: Controller | Controller[],
 };
 
 type State = {

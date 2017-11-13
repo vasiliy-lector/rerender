@@ -3,10 +3,10 @@ import { Component } from './Component';
 import { memoize, shallowEqual } from './utils';
 import { createTemplate } from './createTemplate';
 
-import { Decorator, Map } from './types';
+import { Controller, Map, Dispatch } from './types';
 
 type ConnectOptions<MapProps, Props, MergedProps> = {
-    deps?: () => any,
+    deps?: (dispatch: Dispatch, props: Props) => any,
     map?: (storeState: any, props: Props) => MapProps,
     merge?: (result: MapProps, props: Props) => MergedProps
 };
@@ -16,13 +16,12 @@ type State = {
 };
 
 export function connect<MapProps, Props, MergedProps>({
-    deps,
     map,
     merge = (result, props) => ({
         ...(result as any),
         ...(props as any)
     } as MapProps & Props)
-}: ConnectOptions<MapProps, Props, MergedProps>): Decorator {
+}: ConnectOptions<MapProps, Props, MergedProps>): Controller {
     return  Wrapped =>
         class Connect extends Component<Props, State> {
             static displayName = 'Connect';
@@ -33,19 +32,14 @@ export function connect<MapProps, Props, MergedProps>({
 
             constructor(props: Props, ...args: any[]) {
                 super(props, ...args);
+                const storeState = args[3];
                 this.setState({
-                    storeState: args[3]
+                    storeState
                 });
                 if (map) {
                     this.map = memoize(map, [undefined, shallowEqual]);
                 }
-                this.merge = memoize(merge);
-            }
-
-            init() {
-                if (deps) {
-                    deps.call(this);
-                }
+                this.merge = memoize(merge, [shallowEqual, shallowEqual]);
             }
 
             componentWillReceiveProps(nextProps: Props, nextStoreState: any) {
@@ -54,10 +48,20 @@ export function connect<MapProps, Props, MergedProps>({
                 });
             }
 
+            dehydrate(): any {}
+
+            rehydrate(state: any, props: Props, storeState: any) {
+                this.setState({
+                    storeState
+                });
+            }
+
             render() {
                 return createTemplate(
                     Wrapped,
-                    map ? merge(map(this.state.storeState, this.props), this.props) : this.props,
+                    this.map
+                        ? this.merge(this.map(this.state.storeState, this.props), this.props)
+                        : this.props,
                     this.props.children
                 );
             }

@@ -3,7 +3,7 @@ import { Events } from './Events';
 import { VEvent } from './VEvent';
 import { debug } from './debug';
 import { VComponent } from './VComponent';
-import { IntrinsicProps, Map, Renderable, TemplateChildren } from './types';
+import { Event, IntrinsicProps, Map, Renderable, TemplateChildren } from './types';
 
 type Path = Array<string | number>;
 
@@ -39,7 +39,7 @@ export abstract class Component<
         this.options.events.emit('force-render', this.id);
     }
 
-    public dispatch(event: string, payload?: any) {
+    public dispatch(event: Event, payload?: any) {
         return this.options.dispatch.call(null, event, payload);
     }
 
@@ -83,6 +83,14 @@ export abstract class Component<
         } else {
             return this.state;
         }
+    }
+
+    public dehydrate(): State {
+        return this.state;
+    }
+
+    public rehydrate(state: State, props: Props, storeState?: any) {
+        return this.setState(state);
     }
 
     protected setState(value: any, path?: Path): void {
