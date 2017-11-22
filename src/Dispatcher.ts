@@ -88,15 +88,15 @@ export class Dispatcher<State = any> {
 
     protected dispatch(event: Event, payload: any): Promise<any> {
         return this.runAction(event, payload)
-            .then(actionResult => {
-                this.runReducers(event, actionResult);
+        .then(actionResult => {
+            this.runReducers(event, actionResult);
 
-                return actionResult;
-            });
+            return actionResult;
+        });
     }
 
     protected runAction(event: Event, payload: any): Promise<any> {
-        if (typeof event.action !== 'function') {
+        if (typeof event.effect !== 'function') {
             return Promise.resolve(payload);
         }
 
@@ -120,10 +120,10 @@ export class Dispatcher<State = any> {
     }
 
     protected runActionPure(event: Event, payload: any): Promise<any> {
-        const actionResult = event.action && event.action(
+        const actionResult = event.effect && event.effect(
             this.getEventSetting(event, 'cache')
-                ? this.actionOptions
-                : this.actionOptionsInsideCache,
+            ? this.actionOptions
+            : this.actionOptionsInsideCache,
             payload
         );
 

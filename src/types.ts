@@ -108,6 +108,7 @@ export type Effect<State = any, Payload = any, Result = any> =
 export type Reducer<State = any, Payload = any> = (methods: ReducerMethods<State>, payload: Payload) => void;
 
 export type Event = {
+    name: string,
     take?: 'every' | 'latest',
     cache?: boolean,
     verify?: boolean,
@@ -126,7 +127,7 @@ export type DispatcherCache = {
 };
 
 export type DispatcherCacheItemDehydrated = {
-    type: string,
+    name: string,
     payload: any,
     result: any
 };
@@ -186,7 +187,7 @@ export type Controller = (Wrapped: ElementType) => ComponentType<any>;
  *  - An object with a string index signature can be indexed with any string.
  */
 export type StringDiff<T extends string, U extends string> = ({[K in T]: K} &
-  {[K in U]: never} & {[K: string]: never})[T];
+    {[K in U]: never} & {[K: string]: never})[T];
 
 /**
  * From https://github.com/Microsoft/TypeScript/issues/12215#issuecomment-311923766
@@ -200,4 +201,4 @@ export type ObjectOmit<T extends object, K extends keyof T> = Pick<T, StringDiff
  * Compare to flow's $Diff<> type: https://flow.org/en/docs/types/utilities/#toc-diff
  */
 export type Optionalize<T extends object, U extends object> = ObjectOmit<T, keyof U & keyof T> &
-  {[K in (keyof U & keyof T)]?: T[K]};
+    {[K in (keyof U & keyof T)]?: T[K]};

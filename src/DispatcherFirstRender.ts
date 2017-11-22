@@ -85,8 +85,8 @@ class DispatcherFirstRender<State = any> extends Dispatcher<State> {
                     name: item.event.name,
                     payload: item.payload,
                     result: this.getEventSetting(item.event, 'dehydrate')
-                        ? this.getEventSetting(item.event, 'dehydrate')(value)
-                        : value
+                    ? this.getEventSetting(item.event, 'dehydrate')(value)
+                    : value
                 });
             }
         }
@@ -129,7 +129,7 @@ class DispatcherFirstRender<State = any> extends Dispatcher<State> {
                 settledCount++;
                 const newCatchedCount = catched.length;
 
-                if (item && typeof item.event.action === 'function'
+                if (item && typeof item.event.effect === 'function'
                     && this.getEventSetting(item.event, 'cache') && !this.getCachedOriginal(item.event, item.payload)) {
                     this.setCacheOriginal(item.event, item.payload, item.result);
                 }
