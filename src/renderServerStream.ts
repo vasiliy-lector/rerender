@@ -1,4 +1,3 @@
-import { getWrapHeader, getWrapFooter, getApplicationAfter, applicationId as defaultApplicationId } from './defaults';
 import { Store } from './Store';
 import { Events } from './Events';
 import { DispatcherFirstRender } from './DispatcherFirstRender';

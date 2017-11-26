@@ -36,6 +36,7 @@
     "cache": false
   },
   "devDependencies": {
+    "@types/es6-promise": "0.0.33",
     "@types/jasmine": "^2.6.0",
     "jasmine-ts": "^0.2.1",
     "jsdom": "^9.4.5",

@@ -18,6 +18,7 @@
                 ["Symbol", "Avoid using the `Symbol` type. Did you mean `symbol`?"]
             ]
         },
+        "new-parens": false,
         "interface-over-type-literal": false,
         "ordered-imports": false,
         "only-arrow-functions": false,
