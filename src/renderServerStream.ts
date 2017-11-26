@@ -1,98 +1,96 @@
 import { Store } from './Store';
 import { Events } from './Events';
+import { eventDefaults } from './defaults';
 import { DispatcherFirstRender } from './DispatcherFirstRender';
-import { Promise } from './Promise';
-import { mayAsync } from './utils';
 
-function renderServer(userTemplate, {
-    applicationId = defaultApplicationId,
-    wrap = false,
-    title = '',
-    head = '',
-    bodyEnd = '',
-    hashEnabled = true,
-    eventDefaults,
-    fullHash = false,
-    onData,
-    onError,
-    store = new Store(),
-    onEnd
-} = {}) {
-    const stream = new Events();
-    let needConcat = true;
-    let promiseResolve;
-    const promise = new Promise(resolve => {
-        promiseResolve = resolve;
-    });
+import { Template, EventSettings, ConfigServer } from './types';
 
-    if (typeof onData === 'function') {
-        stream.on('data', onData);
-        needConcat = false;
-    }
-    if (typeof onError === 'function') {
-        stream.on('error', onError);
-        needConcat = false;
-    }
-    if (typeof onEnd === 'function') {
-        stream.on('end', onEnd);
-        stream.on('end', () => {
-            stream.un('data');
-            stream.un('error');
-            promiseResolve();
-        });
-        needConcat = false;
-    }
+type ConfigStream<StoreState> = {
+    eventSettings?: EventSettings,
+    store?: Store<StoreState>,
+    doctype?: string,
+    clientScript?: string,
+    dehydrate?: boolean,
+    passes?: number,
+    stream: true,
+    onData: (data: string) => any,
+    onEnd: () => any
+};
 
-    if (needConcat) {
-        let html = '';
-        stream.on('data', data => {
-            html += data;
-        });
-        stream.on('end', () => promiseResolve(html));
-    }
+type ConfigNoStream<StoreState, Passes> = {
+    eventSettings?: EventSettings,
+    store?: Store<StoreState>,
+    doctype?: string,
+    clientScript?: string,
+    dehydrate?: boolean,
+    passes?: Passes,
+    stream?: false
+};
 
-    const dispatcher = new DispatcherFirstRender(store, { eventDefaults, isServer: true });
+type Config<StoreState, Passes> = ConfigStream<StoreState> | ConfigNoStream<StoreState, Passes>;
 
-    if (wrap) {
-        stream.emit('data', getWrapHeader({
-            title,
-            head,
-            applicationId
-        }));
-    }
+export function renderServerStream<StoreState>(
+    userTemplate: Template,
+    userConfig?: ConfigNoStream<StoreState, 1 | undefined>
+): string;
+export function renderServerStream<StoreState>(
+    userTemplate: Template,
+    userConfig?: ConfigNoStream<StoreState, number>
+): Promise<string>;
+export function renderServerStream<StoreState>(
+    userTemplate: Template,
+    userConfig?: ConfigStream<StoreState>
+): void;
 
-    const config = {
+export function renderServerStream<StoreState>(
+    userTemplate: Template,
+    userConfig: Config<StoreState, any> = {}
+): string | Promise<string> | void {
+    const {
+        eventSettings,
+        store = new Store<StoreState>(),
+        doctype,
+        clientScript,
+        dehydrate,
+        passes = 1
+    } = userConfig;
+    const renderChannel = new Events();
+    const dispatcher = new DispatcherFirstRender(store, { eventDefaults: eventSettings, isServer: true });
+    const config: ConfigServer<StoreState> = {
         store,
         dispatcher,
-        hashEnabled,
-        fullHash,
-        stream,
+        hashEnabled: true,
+        fullHash: false,
+        stream: renderChannel,
         componentOptions: {
             dispatch: dispatcher.dispatch
         },
         hash: 0
     };
 
-    mayAsync(userTemplate.renderServer(config), () => {
-        if (wrap) {
-            stream.emit('data', getApplicationAfter({
-                applicationId,
-                dispatcherCache: dispatcher.dehydrate(),
-                hashEnabled,
-                fullHash,
-                eventDefaults,
-                hash: config.hash
-            }));
+    if (userConfig.stream) {
+        renderChannel.on('data', userConfig.onData);
+        renderChannel.on('end', userConfig.onEnd);
+        userTemplate.renderServer(config);
+        return;
+    } else {
+        let html = '';
 
-            stream.emit('data', getWrapFooter({
-                bodyEnd
-            }));
+        renderChannel.on('data', data => {
+            html += data;
+        });
+
+        if (passes > 1) {
+            let promiseResolve: Function;
+            const promise = new Promise<string>(resolve => {
+                promiseResolve = resolve;
+            });
+            renderChannel.on('end', () => promiseResolve(html));
+            userTemplate.renderServer(config);
+            return promise;
+        } else {
+            userTemplate.renderServer(config);
+            return html;
         }
-
-        stream.emit('end');
-    }, error => config.stream.emit('error', error));
-
-    return promise;
+    }
 }
-
-export { renderServer };

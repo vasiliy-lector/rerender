@@ -30,7 +30,8 @@ export interface ComponentType<C extends Component<any>> {
 
 export type ElementType = string | ComponentType<any> | StatelessComponent<any, any>;
 
-export type Template = TemplateVNode | TemplateComponent | TemplateComponentStateless<any, any>;
+// FIXME: export type Template = TemplateVNode | TemplateComponent | TemplateComponentStateless<any, any>;
+export type Template = TemplateComponent | TemplateComponentStateless<any, any>;
 
 type RenderableItem = number | string | boolean | void | null | Template;
 export type TemplateChildren = RenderableItem[] | null | void;
@@ -138,7 +139,7 @@ export type DispatcherCacheDehydrated = {
 
 export type Dispatch<Payload = any, Result = any> = (event: Event, payload: Payload) => Promise<Result>;
 
-export type EventDefaults = {
+export type EventSettings = {
     cache?: boolean,
     userIndependent?: boolean,
     serverEnabled?: boolean,
@@ -172,7 +173,7 @@ export type ApplicationOptions = {
     dispatcherCache: DispatcherCache,
     applicationId?: string,
     hashEnabled?: boolean,
-    eventDefaults?: EventDefaults,
+    eventDefaults?: EventSettings,
     hash?: boolean,
     fullHash?: boolean
 };

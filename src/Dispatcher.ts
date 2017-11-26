@@ -9,7 +9,7 @@ import {
     DispatcherCache,
     DispatcherCacheItem,
     Event,
-    EventDefaults,
+    EventSettings,
     GetState,
     Map,
     ReducerMethods,
@@ -18,7 +18,7 @@ import {
 
 type Options = {
     cache?: DispatcherCache,
-    eventDefaults?: EventDefaults & Map<any>,
+    eventDefaults?: EventSettings & Map<any>,
     hasInheritance?: boolean,
     isServer?: boolean
 };
@@ -28,7 +28,7 @@ export class Dispatcher<State = any> {
     protected brokenCacheKeys: {
         [name: string]: boolean
     };
-    protected eventDefaults: EventDefaults & Map<any>;
+    protected eventDefaults: EventSettings & Map<any>;
     protected reducerOptions: ReducerMethods;
     protected actionOptions: EffectMethods;
     protected actionOptionsInsideCache: EffectMethods;
@@ -59,6 +59,15 @@ export class Dispatcher<State = any> {
         }
     }
 
+    public dispatch(event: Event, payload: any): Promise<any> {
+        return this.runAction(event, payload)
+        .then(actionResult => {
+            this.runReducers(event, actionResult);
+
+            return actionResult;
+        });
+    }
+
     protected setActionOptions() {
         this.actionOptions = Object.freeze({
             dispatch: this.dispatch,
@@ -84,15 +93,6 @@ export class Dispatcher<State = any> {
         }
 
         return this.dispatch(event, payload);
-    }
-
-    protected dispatch(event: Event, payload: any): Promise<any> {
-        return this.runAction(event, payload)
-        .then(actionResult => {
-            this.runReducers(event, actionResult);
-
-            return actionResult;
-        });
     }
 
     protected runAction(event: Event, payload: any): Promise<any> {

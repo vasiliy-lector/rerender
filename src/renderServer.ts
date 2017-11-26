@@ -1,9 +1,10 @@
 import { Store } from './Store';
 import { eventDefaults } from './defaults';
-import { Template, EventDefaults } from './types';
+import { renderServerStream } from './renderServerStream';
+import { Template, EventSettings } from './types';
 
 type Config<StoreState, Passes> = {
-    eventSettings?: EventDefaults,
+    eventSettings?: EventSettings,
     store?: Store<StoreState>,
     doctype?: string,
     clientScript?: string,
@@ -30,5 +31,12 @@ export function renderServer<StoreState>(
         passes = 1
     }: (Config<StoreState, any>) = {}
 ): string | Promise<string> {
-    return '';
+    return renderServerStream<StoreState>(userTemplate, {
+        eventSettings,
+        store,
+        doctype,
+        clientScript,
+        dehydrate,
+        passes
+    });
 }

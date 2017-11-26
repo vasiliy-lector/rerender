@@ -1,13 +1,13 @@
 import { escapeAttr, escapeHtml } from './utils';
 import {
     ApplicationOptions,
-    EventDefaults,
+    EventSettings,
     FooterOptions,
     HeaderOptions,
     Map
 } from './types';
 
-export const eventDefaults: EventDefaults & Map<any> = {
+export const eventDefaults: EventSettings & Map<any> = {
     cache: false,
     userIndependent: false,
     serverEnabled: true,

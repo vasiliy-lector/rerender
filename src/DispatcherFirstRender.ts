@@ -5,7 +5,7 @@ import { Promise } from './Promise';
 import { deepEqual, noop } from './utils';
 
 import {
-    EventDefaults,
+    EventSettings,
     Event,
     DispatcherCache,
     DispatcherCacheItem,
@@ -18,8 +18,8 @@ import {
 const crossUserCache: DispatcherCache & Map<any> = {};
 
 type DispatcherFirstOptions = {
-    eventDefaults?: EventDefaults,
-    cacheFromServer: DispatcherCacheDehydrated,
+    eventDefaults?: EventSettings,
+    cacheFromServer?: DispatcherCacheDehydrated,
     isServer?: boolean,
     crossUserCacheEnabled?: boolean
 };
