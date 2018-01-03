@@ -12,7 +12,7 @@ type OptionsPrev = {
     patch: Patch,
     nextNodesById: Map<VirtualDomNode>
 };
-type Options = {
+export type Options = {
     nodesById?: Map<VirtualDomNode>,
     nextNodesById?: Map<VirtualDomNode>,
     document?: HTMLDocument

@@ -5,7 +5,7 @@ import { DispatcherFirstRender } from './DispatcherFirstRender';
 
 import { Template, EventSettings, ConfigServer } from './types';
 
-type ConfigStream<StoreState> = {
+export type ConfigStream<StoreState> = {
     eventSettings?: EventSettings,
     store?: Store<StoreState>,
     doctype?: string,
@@ -17,7 +17,7 @@ type ConfigStream<StoreState> = {
     onEnd: () => any
 };
 
-type ConfigNoStream<StoreState, Passes> = {
+export type ConfigNoStream<StoreState, Passes> = {
     eventSettings?: EventSettings,
     store?: Store<StoreState>,
     doctype?: string,
@@ -27,7 +27,7 @@ type ConfigNoStream<StoreState, Passes> = {
     stream?: false
 };
 
-type Config<StoreState, Passes> = ConfigStream<StoreState> | ConfigNoStream<StoreState, Passes>;
+export type Config<StoreState, Passes> = ConfigStream<StoreState> | ConfigNoStream<StoreState, Passes>;
 
 export function renderServerStream<StoreState>(
     userTemplate: Template,

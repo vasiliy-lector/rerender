@@ -1,32 +1,35 @@
-/* tslint:disable member-access */
 import { Component } from './Component';
 import { createTemplate } from './createTemplate';
 
 import { Controller, ElementType, TemplateChildren } from './types';
 
-type Props = {
+export type ControllersProps = {
     targetComponentType: ElementType,
     targetController: Controller | Controller[],
 };
 
-type State = {
+export type ControllersState = {
     RootController: ElementType
 };
 
-class Controllers extends Component<Props, State> {
-    static wrapper = true;
+class Controllers extends Component<ControllersProps, ControllersState> {
+    public static wrapper = true;
 
-    init() {
+    public init() {
         this.reWrap();
     }
 
-    componentWillReceiveProps(nextProps: Props) {
+    public componentWillReceiveProps(nextProps: ControllersProps) {
         if (nextProps.targetComponentType !== this.props.targetComponentType) {
             this.reWrap(nextProps);
         }
     }
 
-    reWrap(props = this.props) {
+    public render() {
+        return createTemplate(this.state.RootController, this.props, this.props.children);
+    }
+
+    private reWrap(props = this.props) {
         const { targetController } = this.props;
         const controllers = Array.isArray(targetController) ? targetController : [ targetController ];
         let RootController = this.props.targetComponentType;
@@ -38,10 +41,6 @@ class Controllers extends Component<Props, State> {
         this.setState({
             RootController
         });
-    }
-
-    render() {
-        return createTemplate(this.state.RootController, this.props, this.props.children);
     }
 }
 

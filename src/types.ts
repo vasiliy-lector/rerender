@@ -33,7 +33,7 @@ export type ElementType = string | ComponentType<any> | StatelessComponent<any, 
 // FIXME: export type Template = TemplateVNode | TemplateComponent | TemplateComponentStateless<any, any>;
 export type Template = TemplateComponent | TemplateComponentStateless<any, any>;
 
-type RenderableItem = number | string | boolean | void | null | Template;
+export type RenderableItem = number | string | boolean | void | null | Template;
 export type TemplateChildren = RenderableItem[] | null | void;
 export type Renderable = RenderableItem | RenderableItem[];
 
@@ -87,12 +87,12 @@ export interface TemplateBase {
 
 export type Path = Array<string | number>;
 
-type SetStateDirect<State> = (value: State) => void;
-type SetStatePath<State> = (value: any, path: Path) => void;
+export type SetStateDirect<State> = (value: State) => void;
+export type SetStatePath<State> = (value: any, path: Path) => void;
 export type SetState<State = any> = SetStateDirect<State> | SetStatePath<State>;
 
-type GetStateDirect<State> = () => State;
-type GetStatePath<State> = (path: Path) => any;
+export type GetStateDirect<State> = () => State;
+export type GetStatePath<State> = (path: Path) => any;
 export type GetState<State = any> = GetStateDirect<State> | GetStatePath<State>;
 
 export type EffectMethods<State = any, Payload = any, Result = any> = {

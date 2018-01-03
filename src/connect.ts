@@ -5,7 +5,7 @@ import { createTemplate } from './createTemplate';
 
 import { Controller, Map, Dispatch } from './types';
 
-type ConnectOptions<MapProps, Props, MergedProps> = {
+export type ConnectOptions<MapProps, Props, MergedProps> = {
     deps?: (dispatch: Dispatch, props: Props) => any,
     map?: (storeState: any, props: Props) => MapProps,
     merge?: (result: MapProps, props: Props) => MergedProps

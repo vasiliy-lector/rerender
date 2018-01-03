@@ -1,6 +1,6 @@
 const noop = () => {};
 
-type Callback = (payload?: any) => any;
+export type Callback = (payload?: any) => any;
 
 export class Events {
     private callbacks: {

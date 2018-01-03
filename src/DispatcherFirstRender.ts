@@ -17,13 +17,13 @@ import {
 
 const crossUserCache: DispatcherCache & Map<any> = {};
 
-type DispatcherFirstOptions = {
+export type DispatcherFirstOptions = {
     eventDefaults?: EventSettings,
     cacheFromServer?: DispatcherCacheDehydrated,
     isServer?: boolean,
     crossUserCacheEnabled?: boolean
 };
-type CachedItem = {
+export type CachedItem = {
     event: Event,
     payload: any,
     result: any

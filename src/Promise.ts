@@ -1,11 +1,11 @@
 import { identity } from './utils';
 
-type Status = 'pending' | 'resolved' | 'rejected';
-type Callback<T, R> = (payload: T) => R;
-type ErrorCallback<R> = (error: any) => R;
-type ResolveFunction<T> = (payload: T | Promise<T>) => void;
-type RejectFunction = (error: any) => void;
-type ConstructorFunction<T> = (resolve: ResolveFunction<T>, reject: RejectFunction) => void;
+export type Status = 'pending' | 'resolved' | 'rejected';
+export type Callback<T, R> = (payload: T) => R;
+export type ErrorCallback<R> = (error: any) => R;
+export type ResolveFunction<T> = (payload: T | Promise<T>) => void;
+export type RejectFunction = (error: any) => void;
+export type ConstructorFunction<T> = (resolve: ResolveFunction<T>, reject: RejectFunction) => void;
 
 export class Promise<T> {
 

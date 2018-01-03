@@ -4,7 +4,6 @@
         "declaration": true,
         "module": "commonjs",
         "outDir": "./lib/",
-        "allowJs": true,
         "jsx": "react",
         "jsxFactory": "h",
         "noImplicitReturns": true,
@@ -14,5 +13,9 @@
     },
     "include": [
         "./src/**/*"
+    ],
+    "exclude": [
+        "./src/diff.ts",
+        "./src/createInitialPatch.ts"
     ]
 }

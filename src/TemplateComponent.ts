@@ -7,7 +7,7 @@ import { mayAsync } from './utils';
 import { VText } from './VText';
 import { componentInit, componentBeforeRender, componentSetProps } from './componentLifeCycle';
 import { specialAttrs, specialAttrsWrapper } from './constants';
-import { memoize, shallowEqualProps } from './utils';
+import { memoize } from './utils';
 
 import {
     Map,
@@ -122,12 +122,14 @@ export class TemplateComponent implements TemplateBase {
             );
             const componentWillReceiveProps = memoize(
                 (nextProps, additional) => componentSetProps(instance, nextProps, additional),
-                [ shallowEqualProps, undefined ],
+                [ undefined, undefined ],
+                // [ shallowEqualProps, undefined ],
                 [ props, storeState ]
             );
             const render = memoize(
                 () => instance.render(),
-                [ shallowEqualProps, undefined ]
+                [ undefined, undefined ]
+                // [ shallowEqualProps, undefined ]
             );
 
             componentInit(instance);

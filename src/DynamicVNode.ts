@@ -1,5 +1,5 @@
 import { DYNAMIC_VNODE } from './constants';
-import { UpdateDynamic } from './Patch';
+// import { UpdateDynamic } from './Patch';
 import { VirtualDomNode, Map, Attrs, AttrsValue } from './types';
 
 export class DynamicVNode {
@@ -86,9 +86,9 @@ export class DynamicVNode {
     private update() {
         delete this.timeout;
 
-        if (this.prevAttrs) {
-            (new UpdateDynamic(this.node)).apply();
-        }
+        // if (this.prevAttrs) {
+        //     (new UpdateDynamic(this.node)).apply();
+        // }
     }
 
     private handleInput(event: Event) {

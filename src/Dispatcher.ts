@@ -16,7 +16,7 @@ import {
     SetState
 } from './types';
 
-type Options = {
+export type Options = {
     cache?: DispatcherCache,
     eventDefaults?: EventSettings & Map<any>,
     hasInheritance?: boolean,

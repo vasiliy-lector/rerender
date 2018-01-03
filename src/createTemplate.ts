@@ -15,7 +15,7 @@ import {
     TemplateChildren
 } from './types';
 
-type CreateTemplate = <Props extends Map<any> = Map<any>, Children extends Renderable = Renderable>
+export type CreateTemplate = <Props extends Map<any> = Map<any>, Children extends Renderable = Renderable>
     (componentType: ElementType, props: Props | null, ...children: Children[])
         => any;
         // FIXME: must be => Template;

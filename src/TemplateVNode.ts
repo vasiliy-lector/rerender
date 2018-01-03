@@ -8,17 +8,21 @@ import { VText } from './VText';
 import { DynamicVNode } from './DynamicVNode';
 
 // TODO: full list
-const interactiveTags = {
+const interactiveTags: any = {
     input: true,
     textarea: true,
     select: true
 };
 
 export class TemplateVNode {
-    type = TEMPLATE;
-    subtype = TEMPLATE_VNODE;
+    public type = TEMPLATE;
+    public subtype = TEMPLATE_VNODE;
 
-    constructor(tag, attrs, children) {
+    private key: string;
+    private uniqid: string;
+    private ref: any;
+
+    constructor(public tag: string, public attrs: any, public children: any) {
         if (attrs) {
             if (attrs.key) {
                 this.key = attrs.key;
@@ -38,25 +42,7 @@ export class TemplateVNode {
         this.children = children;
     }
 
-    calcHash(config) {
-        let hash = config.hash;
-
-        hash = calcHash(hash, '<', this.tag);
-
-        if (config.fullHash && this.attrs) {
-            for (let name in this.attrs) {
-                if (typeof this.attrs[name] !== 'function') {
-                    hash = calcHash(hash, name, String(this.attrs[name]));
-                }
-            }
-        }
-
-        hash = calcHash(hash, '>');
-
-        config.hash = hash;
-    }
-
-    renderServer(config) {
+    public renderServer(config: any) {
         const tag = this.tag;
         let attrs = '';
 
@@ -65,7 +51,7 @@ export class TemplateVNode {
         }
 
         if (this.attrs) {
-            for (let name in this.attrs) {
+            for (const name in this.attrs) {
                 attrs += stringifyAttr(name, this.attrs[name]);
             }
         }
@@ -77,11 +63,7 @@ export class TemplateVNode {
         }, error => config.stream.emit('error', error));
     }
 
-    needDynamic() {
-        return this.ref || interactiveTags[this.tag];
-    }
-
-    renderClient(config, context) {
+    public renderClient(config: any, context: any) {
         if (config.hashEnabled) {
             this.calcHash(config);
         }
@@ -112,13 +94,35 @@ export class TemplateVNode {
 
         return nextNode;
     }
-};
 
-function renderChildrenFirst(items, config, context, needKeys) {
-    return renderChildren(items, config, context, needKeys, true)
+    private calcHash(config: any) {
+        let hash = config.hash;
+
+        hash = calcHash(hash, '<', this.tag);
+
+        if (config.fullHash && this.attrs) {
+            for (const name in this.attrs) {
+                if (typeof this.attrs[name] !== 'function') {
+                    hash = calcHash(hash, name, String(this.attrs[name]));
+                }
+            }
+        }
+
+        hash = calcHash(hash, '>');
+
+        config.hash = hash;
+    }
+
+    private needDynamic() {
+        return this.ref || interactiveTags[this.tag];
+    }
 }
 
-function renderChildren(items, config, context, needKeys, serverLike) {
+function renderChildrenFirst(items: any[], config: any, context: any, needKeys?: boolean) {
+    return renderChildren(items, config, context, needKeys, true);
+}
+
+function renderChildren(items: any[], config: any, context: any, needKeys?: boolean, serverLike?: boolean): any {
     let childs;
 
     if (items) {
@@ -143,7 +147,10 @@ function renderChildren(items, config, context, needKeys, serverLike) {
             } else if (Array.isArray(item)) {
                 childs.push.apply(childs, renderChildren(item, config, context.addIdLevel(), true, serverLike));
             } else if (isObject && item.type === TEMPLATE_FRAGMENT) {
-                childs.push.apply(childs, renderChildren(item.fragment, config, context.addIdLevel(), false, serverLike));
+                childs.push.apply(
+                    childs,
+                    renderChildren(item.fragment, config, context.addIdLevel(), false, serverLike)
+                );
             } else {
                 if (config.hashEnabled && item) {
                     config.hash = calcHash(config.hash, String(item));
@@ -159,7 +166,7 @@ function renderChildren(items, config, context, needKeys, serverLike) {
     return childs || null;
 }
 
-function stringifyChildren(children, config, begin = 0, l = children.length) {
+function stringifyChildren(children: any, config: any, begin: number = 0, l: number = children.length): any {
     for (let i = begin; i < l; i++) {
         const result = stringifyChildrenItem(children[i], config);
 
@@ -173,12 +180,12 @@ function stringifyChildren(children, config, begin = 0, l = children.length) {
     }
 }
 
-const enabledPrimitives = {
+const enabledPrimitives: any = {
     string: true,
     number: true
 };
 
-function stringifyChildrenItem(item, config) {
+function stringifyChildrenItem(item: any, config: any) {
     const type = typeof item;
 
     if (enabledPrimitives[type]) {
@@ -202,14 +209,14 @@ function stringifyChildrenItem(item, config) {
     }
 }
 
-function stringifyAttr(name, value) {
+function stringifyAttr(name: string, value: any) {
     if (name === 'style') {
         return ` style="${escapeStyle(value)}"`;
     } else if (name === 'attributes') {
         let result = '';
 
-        for (let name in value) {
-            result += ` ${name}="${escapeAttr(value[name])}"`;
+        for (const n in value) {
+            result += ` ${name}="${escapeAttr(value[n])}"`;
         }
 
         return result;
@@ -223,12 +230,15 @@ function stringifyAttr(name, value) {
     }
 }
 
-const convertAttr = {
+type ConvertAttr = {
+    [key: string]: string
+};
+const convertAttr: ConvertAttr = {
     className: 'class',
     maxLength: 'maxlength'
 };
 
-function convertAttrName(name) {
+function convertAttrName(name: string) {
     return convertAttr[name] || name;
 }
 

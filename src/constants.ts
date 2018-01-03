@@ -38,7 +38,7 @@ export const noRenderAttrs: Map<boolean> = {
     children: true
 };
 
-export const styleProps = {
+export const styleProps: Map<string> = {
     animation: 'animation',
     background: 'background',
     backgroundAttachment: 'background-attachment',

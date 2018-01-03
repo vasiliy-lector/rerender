@@ -3,7 +3,7 @@ import { eventDefaults } from './defaults';
 import { renderServerStream } from './renderServerStream';
 import { Template, EventSettings } from './types';
 
-type Config<StoreState, Passes> = {
+export type Config<StoreState, Passes> = {
     eventSettings?: EventSettings,
     store?: Store<StoreState>,
     doctype?: string,

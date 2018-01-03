@@ -5,7 +5,7 @@ import { debug } from './debug';
 import { VComponent } from './VComponent';
 import { Event, IntrinsicProps, Map, Renderable, TemplateChildren } from './types';
 
-type Path = Array<string | number>;
+export type Path = Array<string | number>;
 
 export abstract class Component<
     Props extends Map<any>,

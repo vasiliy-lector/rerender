@@ -2,7 +2,7 @@ import { VNODE, VTEXT } from './constants';
 import { Patch, Create, SetRef, AttachEvents, SplitText } from './Patch';
 import { VirtualDomNode } from './types';
 
-type Options = {
+export type Options = {
     patch: Patch,
     document?: HTMLDocument
 };

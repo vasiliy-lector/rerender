@@ -2,7 +2,7 @@ import { TEMPLATE, TEMPLATE_COMPONENT_STATELESS, TEMPLATE_VNODE, VCOMPONENT_STAT
 import { Context } from './Context';
 import { stringifyChildrenItem } from './TemplateVNode';
 import { VComponentStateless } from './VComponentStateless';
-import { memoize, shallowEqualProps } from './utils';
+import { memoize } from './utils';
 import { VText } from './VText';
 
 import {
@@ -76,7 +76,8 @@ export class TemplateComponentStateless<
         if (prev === undefined || prev.type !== VCOMPONENT_STATELESS || prev.componentType !== componentType) {
             const render = memoize(
                 componentType,
-                [ shallowEqualProps ]
+                [ undefined ]
+                // [ shallowEqualProps ]
             );
             template = render(props);
             component = new VComponentStateless(

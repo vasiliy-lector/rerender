@@ -1,13 +1,18 @@
+// export {
+//     escapeAttr,
+//     escapeHtml,
+//     escapeStyle,
+//     groupByIdNodes,
+//     groupByIdComponents,
+//     shallowEqualProps,
+//     shallowEqualArray
+// } from './utils-js';
 export {
-    calcHash,
     escapeAttr,
     escapeHtml,
-    escapeStyle,
-    groupByIdNodes,
-    groupByIdComponents,
-    shallowEqualProps,
-    shallowEqualArray
-} from './utils-js';
+    escapeStyle
+} from './escape';
+export { calcHash } from './calcHash';
 export { shallowClone } from './shallowClone';
 export { memoize } from './memoize';
 export { shallowEqual } from './shallowEqual';

@@ -1,4 +1,4 @@
-type EqualityFunction = (arg: any, prevArg: any) => boolean;
+export type EqualityFunction = (arg: any, prevArg: any) => boolean;
 
 export function memoize(
     fn: (...args: any[]) => any,

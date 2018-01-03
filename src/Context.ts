@@ -1,6 +1,6 @@
 import { VirtualDom, VirtualDomNode } from './types';
 
-type ContextParams = {
+export type ContextParams = {
     isDomNode?: boolean,
     parentId: string,
     parentNodeId: string,
