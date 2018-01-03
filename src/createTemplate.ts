@@ -17,7 +17,8 @@ import {
 
 type CreateTemplate = <Props extends Map<any> = Map<any>, Children extends Renderable = Renderable>
     (componentType: ElementType, props: Props | null, ...children: Children[])
-        => Template;
+        => any;
+        // FIXME: must be => Template;
 
 export const createTemplate: CreateTemplate = function(componentType, props) {
     const length = arguments.length;

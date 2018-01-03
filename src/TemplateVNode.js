@@ -56,7 +56,7 @@ export class TemplateVNode {
         config.hash = hash;
     }
 
-    renderServer(config: ConfigServer) {
+    renderServer(config) {
         const tag = this.tag;
         let attrs = '';
 
