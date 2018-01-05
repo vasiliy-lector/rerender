@@ -15,6 +15,7 @@ export abstract class Component<
     public settingProps: boolean = false;
     public componentMounted: boolean = false;
 
+    public externalProps: Props;
     protected state: State;
     private prevState?: State;
 

@@ -33,9 +33,9 @@ export type ElementType = string | ComponentType<any> | StatelessComponent<any, 
 // FIXME: export type Template = TemplateVNode | TemplateComponent | TemplateComponentStateless<any, any>;
 export type Template = TemplateComponent | TemplateComponentStateless<any, any>;
 
-export type RenderableItem = number | string | boolean | void | null | Template;
-export type TemplateChildren = RenderableItem[] | null | void;
+export type RenderableItem = number | string | boolean | void | undefined | null | Template;
 export type Renderable = RenderableItem | RenderableItem[];
+export type TemplateChildren = Renderable;
 
 export type ConfigServer<State = any> = {
     store: Store<State>,
@@ -179,6 +179,28 @@ export type ApplicationOptions = {
 };
 
 export type Controller = (Wrapped: ElementType) => ComponentType<any>;
+
+declare global {
+    namespace JSX {
+        type Element = Renderable;
+
+        interface IntrinsicAttributes {
+            controller?: ComponentType<any>;
+            uniqid?: string | number;
+            key?: string | number;
+            ref?: (ref: VirtualDomNode) => any;
+            wrapperRef?: (ref: ComponentType<any>) => any;
+        }
+
+        interface IntrinsicElements {
+            [key: string]: any;
+        }
+
+        interface ElementAttributesProperty { externalProps: {}; }
+
+        interface ElementChildrenAttribute { children: {}; }
+    }
+}
 
 /**
  * From https://github.com/Microsoft/TypeScript/issues/12215#issuecomment-307871458
