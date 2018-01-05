@@ -197,8 +197,6 @@ declare global {
         }
 
         interface ElementAttributesProperty { externalProps: {}; }
-
-        interface ElementChildrenAttribute { children: {}; }
     }
 }
 
