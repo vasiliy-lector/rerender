@@ -30,11 +30,11 @@ export interface ComponentType<C extends Component<any>> {
 
 export type ElementType = string | ComponentType<any> | StatelessComponent<any, any>;
 
-// FIXME: export type Template = TemplateVNode | TemplateComponent | TemplateComponentStateless<any, any>;
-export type Template = TemplateComponent | TemplateComponentStateless<any, any>;
+// export type Template = TemplateComponent | TemplateComponentStateless<any, any>;
+export type Template = TemplateVNode | TemplateComponent | TemplateComponentStateless<any, any>;
 
-export type RenderableItem = number | string | boolean | void | undefined | null | Template;
-export type Renderable = RenderableItem | RenderableItem[];
+export type Renderable = number | string | boolean | void | undefined | null | Template | RenderableArray;
+export interface RenderableArray extends Array<Renderable> {}
 export type TemplateChildren = Renderable;
 
 export type ConfigServer<State = any> = {

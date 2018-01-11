@@ -9,6 +9,8 @@ export { Promise } from './Promise';
 export const renderClient: any = () => {};
 export { renderServer } from './renderServer';
 export { shallowEqual, memoize } from './utils';
+export { Doctype } from './Doctype';
+export { Fragment } from './Fragment';
 export { Store } from './Store';
 export {
     ElementType,

@@ -24,6 +24,7 @@ export class TemplateComponent implements TemplateBase {
     public type: string = TEMPLATE;
     public subtype: string = TEMPLATE_COMPONENT;
 
+    public key: string | number;
     private controller: ComponentType<any>;
     private props: Map<any>;
     private ref?: (ref: Component<any>) => any;

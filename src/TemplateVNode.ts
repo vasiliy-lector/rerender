@@ -6,6 +6,7 @@ import { isPromise } from './Promise';
 import { VNode } from './VNode';
 import { VText } from './VText';
 import { DynamicVNode } from './DynamicVNode';
+import { TemplateBase, ConfigServer } from './types';
 
 // TODO: full list
 const interactiveTags: any = {
@@ -14,11 +15,11 @@ const interactiveTags: any = {
     select: true
 };
 
-export class TemplateVNode {
+export class TemplateVNode implements TemplateBase {
     public type = TEMPLATE;
     public subtype = TEMPLATE_VNODE;
 
-    private key: string;
+    public key: string | number;
     private uniqid: string;
     private ref: any;
 
@@ -42,7 +43,7 @@ export class TemplateVNode {
         this.children = children;
     }
 
-    public renderServer(config: any) {
+    public renderServer(config: ConfigServer) {
         const tag = this.tag;
         let attrs = '';
 

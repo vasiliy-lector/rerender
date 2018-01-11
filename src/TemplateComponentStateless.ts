@@ -27,6 +27,7 @@ export class TemplateComponentStateless<
 > implements TemplateBase {
     public type: string = TEMPLATE;
     public subtype: string = TEMPLATE_COMPONENT_STATELESS;
+    public key: string | number;
 
     private props: any;
 

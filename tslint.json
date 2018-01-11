@@ -9,6 +9,7 @@
             "options": ["single"]
         },
         "arrow-parens": false,
+        "no-empty-interface": false,
         "ban-types": {
             "options": [
                 ["Object", "Avoid using the `Object` type. Did you mean `object`?"],
