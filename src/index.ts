@@ -18,6 +18,6 @@ export {
     StatelessComponent,
     Renderable,
     Template,
-    TemplateChildren,
+    Children,
     Event
 } from './types';

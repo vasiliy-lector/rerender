@@ -3,7 +3,7 @@ import { Events } from './Events';
 import { VEvent } from './VEvent';
 import { debug } from './debug';
 import { VComponent } from './VComponent';
-import { Event, IntrinsicProps, Map, Renderable, TemplateChildren } from './types';
+import { Event, IntrinsicProps, Map, Renderable, Children } from './types';
 
 export type Path = Array<string | number>;
 
@@ -20,7 +20,7 @@ export abstract class Component<
     private prevState?: State;
 
     constructor(
-        public props: Props & Defaults & { children?: TemplateChildren },
+        public props: Props & Defaults & { children?: Children },
         private readonly options?: any,
         private readonly id?: string
     ) {

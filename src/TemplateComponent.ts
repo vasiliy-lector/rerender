@@ -14,7 +14,7 @@ import {
     RawProps,
     ElementType,
     TemplateBase,
-    TemplateChildren,
+    Children,
     ConfigServer,
     ConfigClient,
     ComponentType
@@ -33,7 +33,7 @@ export class TemplateComponent implements TemplateBase {
     constructor(
         private componentType: ComponentType<any>,
         props: RawProps,
-        children: TemplateChildren,
+        children: Children,
         targetComponentType?: ElementType
     ) {
         let nextProps: Map<any> = props || {};

@@ -1,7 +1,7 @@
 import { TEMPLATE_FRAGMENT } from './constants';
+import { Renderable } from './types';
 
 export class TemplateFragment {
     public type: string = TEMPLATE_FRAGMENT;
-    // FIXME: any
-    constructor(public fragment: any) {}
+    constructor(public fragment: Renderable) {}
 }

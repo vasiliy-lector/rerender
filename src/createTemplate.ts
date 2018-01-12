@@ -12,17 +12,17 @@ import {
     ComponentType,
     StatelessComponent,
     Template,
-    TemplateChildren
+    Children
 } from './types';
 
-export type CreateTemplate = <Props extends Map<any> = Map<any>, Children extends Renderable = Renderable>
-    (componentType: ElementType, props: Props | null, ...children: Children[])
+export type CreateTemplate = <Props extends Map<any> = Map<any>>
+    (componentType: ElementType, props: Props | null, ...children: Renderable[])
         => any;
         // FIXME: must be => Template;
 
 export const createTemplate: CreateTemplate = function(componentType, props) {
     const length = arguments.length;
-    let children: TemplateChildren = null;
+    let children: Children = null;
 
     if (length > 2 && (arguments[2] || length !== 3)) {
         children = Array(length - 2);

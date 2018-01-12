@@ -1,7 +1,7 @@
 import { Component } from './Component';
 import { createTemplate } from './createTemplate';
 
-import { Controller, ElementType, TemplateChildren } from './types';
+import { Controller, ElementType, Children } from './types';
 
 export type ControllersProps = {
     targetComponentType: ElementType,
