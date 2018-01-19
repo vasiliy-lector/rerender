@@ -2,10 +2,17 @@ import { styleProps } from '../constants';
 
 const REGEXP_ATTR = /[<>"&]/;
 const REGEXP_HTML = /[<>&]/;
+type EnabledEntities = {
+    [key: string]: boolean
+};
+const enabledEntities: EnabledEntities = {
+    '&nbsp;': true,
+    '&copy;': true
+};
 
 function escapeHtmlHeavy(value: string) {
     return value
-        .replace(/&/g, '&amp;')
+        .replace(/&([^;]+;)/g, (m, e) => enabledEntities[m] ? m : `&amp;${e}`)
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
 }
